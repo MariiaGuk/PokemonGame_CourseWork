@@ -4,12 +4,21 @@ import com.example.chimeralis.logic.Chimera
 import com.example.chimeralis.logic.types.ChimeraType
 
 /**
- * Basic abstract class for every chimera in the game.
+ * Basic class for every move in the game.
  */
-abstract class Move (
+class Move (
     var name: String,
     val type: ChimeraType,
-    var pp: Int
+    var pp: Int,
+    private val effects: List<IMoveEffect>
 ){
-    abstract fun execute(attacker: Chimera, target: Chimera)
+    fun execute(attacker: Chimera, target: Chimera) {
+        if (pp <= 0) return
+
+        pp--
+
+        effects.forEach { effect ->
+            effect.apply(attacker,target)
+        }
+    }
 }

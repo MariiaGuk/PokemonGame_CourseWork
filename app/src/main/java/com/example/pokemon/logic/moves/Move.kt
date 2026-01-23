@@ -4,12 +4,21 @@ import com.example.pokemon.logic.Pokemon
 import com.example.pokemon.logic.types.PokemonType
 
 /**
- * Basic abstract class for every pokemon in the game.
+ * Basic class for every move in the game.
  */
-abstract class Move (
+class Move (
     var name: String,
     val type: PokemonType,
-    var pp: Int
+    var pp: Int,
+    private val effects: List<IMoveEffect>
 ){
-    abstract fun execute(attacker: Pokemon, target: Pokemon)
+    fun execute(attacker: Pokemon, target: Pokemon) {
+        if (pp <= 0) return
+
+        pp--
+
+        effects.forEach { effect ->
+            effect.apply(attacker,target)
+        }
+    }
 }

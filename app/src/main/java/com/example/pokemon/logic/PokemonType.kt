@@ -1,4 +1,4 @@
-package com.example.pokemon.logic.types
+package com.example.pokemon.logic
 
 /**
  * Enum class describes pokemon types.

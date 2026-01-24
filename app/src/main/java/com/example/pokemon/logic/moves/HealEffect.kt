@@ -2,12 +2,13 @@ package com.example.pokemon.logic.moves
 
 import com.example.pokemon.logic.Pokemon
 
-class HealEffect(
-    private val damage: Int
-) : IMoveEffect
+/**
+ * Class describes heal effect.
+ */
+class HealEffect(private val healAmount: Int): IMoveEffect
 {
     override fun apply(attacker: Pokemon, target: Pokemon)
     {
-        target.takeDamage(damage)
+        attacker.heal(healAmount)
     }
 }

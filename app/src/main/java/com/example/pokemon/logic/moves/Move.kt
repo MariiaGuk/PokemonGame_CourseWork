@@ -1,7 +1,7 @@
 package com.example.pokemon.logic.moves
 
 import com.example.pokemon.logic.Pokemon
-import com.example.pokemon.logic.types.PokemonType
+import com.example.pokemon.logic.PokemonType
 
 /**
  * Basic class for every move in the game.

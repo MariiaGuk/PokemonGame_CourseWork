@@ -3,6 +3,9 @@ package com.example.pokemon.logic
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Class for stats of the pokemon.
+ */
 class Stats(
     maxHp: Int,
     attack: Int,
@@ -26,11 +29,8 @@ class Stats(
         currentHp = max(0, currentHp - damage)
     }
 
-    fun healConst(healAmount: Int) {
+    fun heal(healAmount: Int) {
         currentHp = min(maxHp, currentHp + healAmount)
-    }
-    fun healPercentage(percent: Int) {
-        currentHp = min(maxHp, currentHp + maxHp * percent/100)
     }
 
     fun isAlive(): Boolean = currentHp > 0

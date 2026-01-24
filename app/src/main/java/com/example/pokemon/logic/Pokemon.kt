@@ -1,8 +1,7 @@
 package com.example.pokemon.logic
 
 import com.example.pokemon.logic.moves.Move
-import com.example.pokemon.logic.types.PokemonType
-import kotlin.math.min
+import com.example.pokemon.logic.PokemonType
 import kotlin.random.Random
 
 /**
@@ -19,11 +18,8 @@ abstract class Pokemon (
         stats.takeDamage(damage)
     }
 
-    fun healConst(healAmount: Int) {
-        stats.healConst(healAmount)
-    }
-    fun healPercentage(percent: Int) {
-        stats.healPercentage(percent)
+    fun heal(healAmount: Int) {
+        stats.heal(healAmount)
     }
 
     fun levelUp() {

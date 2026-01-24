@@ -1,7 +1,7 @@
 package com.example.chimeralis.logic.moves
 
 import com.example.chimeralis.logic.Chimera
-import com.example.chimeralis.logic.types.ChimeraType
+import com.example.chimeralis.logic.ChimeraType
 
 /**
  * Basic class for every move in the game.

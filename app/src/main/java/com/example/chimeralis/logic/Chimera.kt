@@ -1,8 +1,7 @@
 package com.example.chimeralis.logic
 
 import com.example.chimeralis.logic.moves.Move
-import com.example.chimeralis.logic.types.ChimeraType
-import kotlin.math.min
+import com.example.chimeralis.logic.ChimeraType
 import kotlin.random.Random
 
 /**
@@ -19,11 +18,8 @@ abstract class Chimera (
         stats.takeDamage(damage)
     }
 
-    fun healConst(healAmount: Int) {
-        stats.healConst(healAmount)
-    }
-    fun healPercentage(percent: Int) {
-        stats.healPercentage(percent)
+    fun heal(healAmount: Int) {
+        stats.heal(healAmount)
     }
 
     fun levelUp() {

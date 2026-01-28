@@ -1,7 +1,6 @@
 package com.example.pokemon.logic
 
 import com.example.pokemon.logic.moves.Move
-import com.example.pokemon.logic.PokemonType
 import kotlin.random.Random
 
 /**
@@ -14,14 +13,6 @@ abstract class Pokemon (
     var level: Int,
     val moves: List<Move>
 ){
-    fun takeDamage(damage: Int) {
-        stats.takeDamage(damage)
-    }
-
-    fun heal(healAmount: Int) {
-        stats.heal(healAmount)
-    }
-
     fun levelUp() {
         level++
         if (level % 5 == 0) evolution()
@@ -37,6 +28,4 @@ abstract class Pokemon (
     fun evolution(){
         //evolution logic
     }
-
-    abstract fun calculateAttackDamage(): Int
 }

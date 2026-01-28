@@ -9,9 +9,12 @@ import com.example.pokemon.logic.PokemonType
 class Move (
     var name: String,
     val type: PokemonType,
-    var pp: Int,
+    val maxPp: Int,
     private val effects: List<IMoveEffect>
 ){
+    var pp: Int = maxPp // Поточне значення при створенні дорівнює максимальному
+        private set
+
     fun execute(attacker: Pokemon, target: Pokemon) {
         if (pp <= 0) return
 

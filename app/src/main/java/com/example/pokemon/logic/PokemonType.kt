@@ -7,10 +7,23 @@ enum class PokemonType {
     FIRE, WATER, GRASS; //Can be added more later
 
     fun typeEffectiveness(targetType: PokemonType): Double {
-        return when (this) {
-            FIRE -> if (targetType == GRASS) 2.0 else if (targetType == WATER) 0.5 else 1.0
-            WATER -> if (targetType == FIRE) 2.0 else if (targetType == GRASS) 0.5 else 1.0
-            GRASS -> if (targetType == WATER) 2.0 else if (targetType == FIRE) 0.5 else 1.0
-        }
+        return effectiveness[this]?.get(targetType) ?: 1.0
+    }
+
+    companion object {
+        private val effectiveness = mapOf(
+            FIRE to mapOf(
+                GRASS to 2.0,
+                WATER to 0.5
+            ),
+            WATER to mapOf(
+                FIRE to 2.0,
+                GRASS to 0.5
+            ),
+            GRASS to mapOf(
+                WATER to 2.0,
+                FIRE to 0.5
+            )
+        )
     }
 }

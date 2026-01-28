@@ -9,9 +9,12 @@ import com.example.chimeralis.logic.ChimeraType
 class Move (
     var name: String,
     val type: ChimeraType,
-    var pp: Int,
+    val maxPp: Int,
     private val effects: List<IMoveEffect>
 ){
+    var pp: Int = maxPp // Поточне значення при створенні дорівнює максимальному
+        private set
+
     fun execute(attacker: Chimera, target: Chimera) {
         if (pp <= 0) return
 

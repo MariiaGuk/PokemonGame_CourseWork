@@ -1,7 +1,6 @@
 package com.example.chimeralis.logic
 
 import com.example.chimeralis.logic.moves.Move
-import com.example.chimeralis.logic.ChimeraType
 import kotlin.random.Random
 
 /**
@@ -14,14 +13,6 @@ abstract class Chimera (
     var level: Int,
     val moves: List<Move>
 ){
-    fun takeDamage(damage: Int) {
-        stats.takeDamage(damage)
-    }
-
-    fun heal(healAmount: Int) {
-        stats.heal(healAmount)
-    }
-
     fun levelUp() {
         level++
         if (level % 5 == 0) evolution()
@@ -37,6 +28,4 @@ abstract class Chimera (
     fun evolution(){
         //evolution logic
     }
-
-    abstract fun calculateAttackDamage(): Int
 }

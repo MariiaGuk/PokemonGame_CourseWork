@@ -39,12 +39,4 @@ class Stats(
     }
 
     fun isAlive(): Boolean = currentHp > 0
-    fun modifyStat(type: String, amount: Int){}
-    fun upgrade(maxHp: Int = 0, attack: Int = 0, defence: Int = 0, speed: Int = 0) {
-        this.maxHp += maxHp
-        this.currentHp += maxHp
-        this.attack += attack
-        this.defence += defence
-        this.speed += speed
-    }
 }

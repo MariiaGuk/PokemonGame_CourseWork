@@ -4,9 +4,9 @@ import com.example.pokemon.logic.moves.Move
 import kotlin.random.Random
 
 /**
- * Basic abstract class for every pokemon in the game.
+ * Basic class for every pokemon in the game.
  */
-abstract class Pokemon (
+class Pokemon (
     var name: String,
     val type: PokemonType,
     val stats: Stats,

@@ -4,7 +4,7 @@ package com.example.pokemon.logic
  * Enum class describes pokemon types.
  */
 enum class PokemonType {
-    FIRE, WATER, GRASS; //Can be added more later
+    NORMAL, FIRE, WATER, GRASS; //Can be added more later
 
     fun typeEffectiveness(targetType: PokemonType): Double {
         return effectiveness[this]?.get(targetType) ?: 1.0

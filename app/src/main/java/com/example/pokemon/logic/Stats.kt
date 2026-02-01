@@ -1,8 +1,5 @@
 package com.example.pokemon.logic
 
-import kotlin.math.max
-import kotlin.math.min
-
 /**
  * Class for stats of the pokemon.
  */
@@ -13,33 +10,41 @@ class Stats(
     speed: Int
 ) {
     var maxHp: Int = maxHp
-        private set
+        set(value) {
+            field = value.coerceAtLeast(1)
+        }
     var attack: Int = attack
-        private set
+        set(value) {
+            field = value.coerceAtLeast(1)
+        }
     var defence: Int = defence
-        private set
+        set(value) {
+            field = value.coerceAtLeast(1)
+        }
     var speed: Int = speed
-        private set
-
+        set(value) {
+            field = value.coerceAtLeast(1)
+        }
     var currentHp: Int = maxHp
-        private set
-
+        set(value) {
+            field = value.coerceAtLeast(0).coerceAtMost(maxHp)
+        }
 
     fun takeDamage(damage: Int) {
-        currentHp = max(0, currentHp - damage)
+        currentHp -= damage
     }
 
     fun heal(healAmount: Int) {
-        currentHp = min(maxHp, currentHp + healAmount)
+        currentHp += healAmount
     }
 
     fun isAlive(): Boolean = currentHp > 0
-
-    fun upgrade(hpGain: Int, atkGain: Int, defGain: Int, spdGain: Int) {
-        maxHp += hpGain
-        currentHp += hpGain
-        attack += atkGain
-        defence += defGain
-        speed += spdGain
+    fun modifyStat(type: String, amount: Int){}
+    fun upgrade(maxHp: Int = 0, attack: Int = 0, defence: Int = 0, speed: Int = 0) {
+        this.maxHp += maxHp
+        this.currentHp += maxHp
+        this.attack += attack
+        this.defence += defence
+        this.speed += speed
     }
 }

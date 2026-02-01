@@ -10,9 +10,10 @@ class Move (
     var name: String,
     val type: PokemonType,
     val maxPp: Int,
+    val accurecy: Int,
     private val effects: List<IMoveEffect>
 ){
-    var pp: Int = maxPp // Поточне значення при створенні дорівнює максимальному
+    var pp: Int = maxPp
         private set
 
     fun execute(attacker: Pokemon, target: Pokemon) {

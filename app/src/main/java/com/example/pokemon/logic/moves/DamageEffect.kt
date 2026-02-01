@@ -13,6 +13,6 @@ class DamageEffect(private val power: Int): IMoveEffect
 
         val damage = (attacker.stats.attack + power - target.stats.defence) * effectiveness
 
-        target.stats.takeDamage(damage.toInt())
+        target.stats.attack -= damage.toInt()
     }
 }

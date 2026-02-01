@@ -4,9 +4,9 @@ import com.example.chimeralis.logic.moves.Move
 import kotlin.random.Random
 
 /**
- * Basic abstract class for every chimera in the game.
+ * Basic class for every chimera in the game.
  */
-abstract class Chimera (
+class Chimera (
     var name: String,
     val type: ChimeraType,
     val stats: Stats,

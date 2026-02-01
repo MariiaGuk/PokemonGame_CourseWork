@@ -4,7 +4,7 @@ package com.example.chimeralis.logic
  * Enum class describes chimera types.
  */
 enum class ChimeraType {
-    FIRE, WATER, GRASS; //Can be added more later
+    NORMAL, FIRE, WATER, GRASS; //Can be added more later
 
     fun typeEffectiveness(targetType: ChimeraType): Double {
         return effectiveness[this]?.get(targetType) ?: 1.0

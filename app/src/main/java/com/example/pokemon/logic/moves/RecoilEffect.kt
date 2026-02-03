@@ -10,10 +10,12 @@ class RecoilEffect(private val power: Int, private val recoilPercent: Int) : IMo
     override fun apply(attacker: Pokemon, target: Pokemon)
     {
         val effectiveness = attacker.type.typeEffectiveness(target.type)
-        val damageToTarget = (attacker.stats.attack + power - target.stats.defence) * effectiveness
-        target.stats.attack -= damageToTarget.toInt()
+
+        val damageToTarget = (((2.0 * attacker.level / 5.0 + 2) * power * attacker.stats.attack / target.stats.defence) / 50.0 + 2) * effectiveness
+
+        target.stats.currentHp -= damageToTarget.toInt()
 
         val recoilDamage = (damageToTarget * recoilPercent)
-        attacker.stats.attack -= recoilDamage.toInt()
+        attacker.stats.currentHp -= recoilDamage.toInt()
     }
 }

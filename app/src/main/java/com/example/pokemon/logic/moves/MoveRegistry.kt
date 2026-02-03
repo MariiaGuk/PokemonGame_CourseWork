@@ -24,7 +24,7 @@ object MoveRegistry {
         type = PokemonType.NORMAL,
         maxPp = 40,
         accurecy = 100,
-        effects = listOf(StatChangeEffect(statName="attack", amount = 1, true))
+        effects = listOf(StatChangeEffect(statName="attack", amount = -1, true))
     )
 
     fun tailWhip() = Move(
@@ -32,7 +32,7 @@ object MoveRegistry {
         type = PokemonType.NORMAL,
         maxPp = 30,
         accurecy = 100,
-        effects = listOf(StatChangeEffect(statName="defence", amount = 1, true))
+        effects = listOf(StatChangeEffect(statName="defence", amount = -1, true))
     )
 
     fun recover() = Move(

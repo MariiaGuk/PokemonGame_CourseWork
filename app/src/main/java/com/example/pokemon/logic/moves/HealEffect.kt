@@ -9,6 +9,6 @@ class HealEffect(private val healAmount: Int): IMoveEffect
 {
     override fun apply(attacker: Pokemon, target: Pokemon)
     {
-        target.stats.currentHp += healAmount
+        attacker.stats.currentHp += healAmount
     }
 }

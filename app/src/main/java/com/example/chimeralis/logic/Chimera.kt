@@ -1,7 +1,6 @@
 package com.example.chimeralis.logic
 
 import com.example.chimeralis.logic.moves.Move
-import kotlin.random.Random
 
 /**
  * Basic class for every chimera in the game.
@@ -12,12 +11,19 @@ class Chimera (
     val baseStats: Stats,
     var exp: Int,
     var level: Int,
-    val moves: List<Move>
+    val moves: MutableList<Move>,
+    val learnableMoves: Map<Int, () -> Move>
 ){
     val stats: Stats = Stats(0, 0, 0, 0)
 
     init {
         recalculateStats()
+
+        learnableMoves.forEach { (lvl, moveProvider) ->
+            if (this.level >= lvl && moves.size < 4 && moves.none { it.name == moveProvider().name }) {
+                moves.add(moveProvider())
+            }
+        }
     }
 
     fun recalculateStats() {
@@ -39,6 +45,19 @@ class Chimera (
         recalculateStats()
 
         if (level % 50 == 0) evolution()
+
+        learnableMoves[level]?.let { moveProvider ->
+            learnMove(moveProvider())
+        }
+    }
+
+    private fun learnMove(move: Move) {
+        if (moves.size < 4) {
+            moves.add(move)
+        }
+        else {
+            //Ask the player if they want to replace one of the moves
+        }
     }
 
     fun evolution(){

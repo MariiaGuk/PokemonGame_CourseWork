@@ -92,4 +92,16 @@ class ExampleUnitTest {
     fun recoilEffectTest() {
         //Test when recoil moves added
     }
+
+    //Adding new moves Tests
+    @Test
+    fun newMoveTest() {
+        val sunflare = ChimeraRegistry.sunflare(level = 3)
+
+        assertFalse(sunflare.moves.any { it.name == "Ember" })
+        sunflare.levelUp()
+
+        assertEquals(4, sunflare.level)
+        assertTrue(sunflare.moves.any { it.name == "Ember" })
+    }
 }

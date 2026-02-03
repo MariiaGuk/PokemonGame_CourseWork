@@ -2,6 +2,7 @@ package com.example.chimeralis.logic.moves
 
 import com.example.chimeralis.logic.Chimera
 import com.example.chimeralis.logic.ChimeraType
+import com.example.chimeralis.logic.moves.effects.IMoveEffect
 
 /**
  * Basic class for every move in the game.

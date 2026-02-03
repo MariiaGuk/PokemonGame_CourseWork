@@ -1,4 +1,4 @@
-package com.example.chimeralis.logic.moves
+package com.example.chimeralis.logic.moves.effects
 
 import com.example.chimeralis.logic.Chimera
 

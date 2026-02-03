@@ -1,6 +1,9 @@
 package com.example.pokemon.logic.moves
 
 import com.example.pokemon.logic.PokemonType
+import com.example.pokemon.logic.moves.effects.DamageEffect
+import com.example.pokemon.logic.moves.effects.HealEffect
+import com.example.pokemon.logic.moves.effects.StatChangeEffect
 
 object MoveRegistry {
     fun tackle() = Move(
@@ -24,7 +27,7 @@ object MoveRegistry {
         type = PokemonType.NORMAL,
         maxPp = 40,
         accurecy = 100,
-        effects = listOf(StatChangeEffect(statName="attack", amount = -1, true))
+        effects = listOf(StatChangeEffect(statName = "attack", amount = -1, true))
     )
 
     fun tailWhip() = Move(
@@ -32,7 +35,7 @@ object MoveRegistry {
         type = PokemonType.NORMAL,
         maxPp = 30,
         accurecy = 100,
-        effects = listOf(StatChangeEffect(statName="defence", amount = -1, true))
+        effects = listOf(StatChangeEffect(statName = "defence", amount = -1, true))
     )
 
     fun recover() = Move(

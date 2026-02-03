@@ -2,6 +2,7 @@ package com.example.pokemon.logic.moves
 
 import com.example.pokemon.logic.Pokemon
 import com.example.pokemon.logic.PokemonType
+import com.example.pokemon.logic.moves.effects.IMoveEffect
 
 /**
  * Basic class for every move in the game.

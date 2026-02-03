@@ -92,4 +92,16 @@ class ExampleUnitTest {
     fun recoilEffectTest() {
         //Test when recoil moves added
     }
+
+    //Adding new moves Tests
+    @Test
+    fun newMoveTest() {
+        val charmander = PokemonRegistry.charmander(level = 3)
+
+        assertFalse(charmander.moves.any { it.name == "Ember" })
+        charmander.levelUp()
+
+        assertEquals(4, charmander.level)
+        assertTrue(charmander.moves.any { it.name == "Ember" })
+    }
 }

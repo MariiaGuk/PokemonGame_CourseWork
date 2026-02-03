@@ -1,4 +1,4 @@
-package com.example.pokemon.logic.moves
+package com.example.pokemon.logic.moves.effects
 
 import com.example.pokemon.logic.Pokemon
 

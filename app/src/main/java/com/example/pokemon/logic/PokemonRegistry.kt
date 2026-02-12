@@ -16,7 +16,7 @@ object PokemonRegistry {
         )
     )
 
-    fun bulbasaur() = Pokemon(
+    fun bulbasaur(level: Int = 1) = Pokemon(
         name = "Bulbasaur",
         type = PokemonType.GRASS,
         baseStats = Stats(maxHp = 45, attack = 49, defence = 49, speed = 45),
@@ -26,7 +26,7 @@ object PokemonRegistry {
         learnableMoves = mapOf()
     )
 
-    fun squirtle() = Pokemon(
+    fun squirtle(level: Int = 1) = Pokemon(
         name = "Squirtle",
         type = PokemonType.WATER,
         baseStats = Stats(maxHp = 44, attack = 48, defence = 65, speed = 43),

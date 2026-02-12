@@ -10,7 +10,7 @@ object MoveRegistry {
         name = "Tackle",
         type = PokemonType.NORMAL,
         maxPp = 35,
-        accurecy = 100,
+        accuracy = 100,
         effects = listOf(DamageEffect(power = 40))
     )
 
@@ -18,7 +18,7 @@ object MoveRegistry {
         name = "Ember",
         type = PokemonType.FIRE,
         maxPp = 25,
-        accurecy = 100,
+        accuracy = 100,
         effects = listOf(DamageEffect(power = 40))
     )
 
@@ -26,7 +26,7 @@ object MoveRegistry {
         name = "Growl",
         type = PokemonType.NORMAL,
         maxPp = 40,
-        accurecy = 100,
+        accuracy = 100,
         effects = listOf(StatChangeEffect(statName = "attack", amount = -1, true))
     )
 
@@ -34,7 +34,7 @@ object MoveRegistry {
         name = "Tail Whip",
         type = PokemonType.NORMAL,
         maxPp = 30,
-        accurecy = 100,
+        accuracy = 100,
         effects = listOf(StatChangeEffect(statName = "defence", amount = -1, true))
     )
 
@@ -42,7 +42,7 @@ object MoveRegistry {
         name = "Recover",
         type = PokemonType.NORMAL,
         maxPp = 5,
-        accurecy = 100,
+        accuracy = 100,
         effects = listOf(HealEffect(healAmount = 50))
     )
 }

@@ -3,6 +3,8 @@ package com.example.pokemon
 import com.example.pokemon.logic.PokemonRegistry
 import com.example.pokemon.logic.PokemonType
 import com.example.pokemon.logic.Stats
+import com.example.pokemon.logic.moves.Move
+import com.example.pokemon.logic.moves.effects.DamageEffect
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -59,6 +61,27 @@ class ExampleUnitTest {
         assertEquals(2.0, fire.typeEffectiveness(PokemonType.GRASS), 0.01)
         assertEquals(0.5, fire.typeEffectiveness(PokemonType.WATER), 0.01)
         assertEquals(1.0, fire.typeEffectiveness(PokemonType.NORMAL), 0.01)
+    }
+
+    //Accuracy Tests
+    @Test
+    fun accuracyTest() {
+        val attacker = PokemonRegistry.charmander()
+        val target = PokemonRegistry.charmander()
+        val initialHp = target.stats.currentHp
+
+        val brokenMove = Move(
+            name = "Broken Move",
+            type = PokemonType.NORMAL,
+            maxPp = 10,
+            accuracy = 0,
+            effects = listOf(DamageEffect(power = 100))
+        )
+
+        brokenMove.execute(attacker, target)
+
+        assertEquals(initialHp, target.stats.currentHp)
+        assertEquals(9, brokenMove.pp)
     }
 
     //Effects Tests

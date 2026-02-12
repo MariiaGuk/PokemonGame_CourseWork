@@ -3,6 +3,8 @@ package com.example.chimeralis
 import com.example.chimeralis.logic.ChimeraRegistry
 import com.example.chimeralis.logic.ChimeraType
 import com.example.chimeralis.logic.Stats
+import com.example.chimeralis.logic.moves.Move
+import com.example.chimeralis.logic.moves.effects.DamageEffect
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -59,6 +61,27 @@ class ExampleUnitTest {
         assertEquals(2.0, fire.typeEffectiveness(ChimeraType.GRASS), 0.01)
         assertEquals(0.5, fire.typeEffectiveness(ChimeraType.WATER), 0.01)
         assertEquals(1.0, fire.typeEffectiveness(ChimeraType.NORMAL), 0.01)
+    }
+
+    //Accuracy Tests
+    @Test
+    fun accuracyTest() {
+        val attacker = ChimeraRegistry.sunflare()
+        val target = ChimeraRegistry.sunflare()
+        val initialHp = target.stats.currentHp
+
+        val brokenMove = Move(
+            name = "Broken Move",
+            type = ChimeraType.NORMAL,
+            maxPp = 10,
+            accuracy = 0,
+            effects = listOf(DamageEffect(power = 100))
+        )
+
+        brokenMove.execute(attacker, target)
+
+        assertEquals(initialHp, target.stats.currentHp)
+        assertEquals(9, brokenMove.pp)
     }
 
     //Effects Tests

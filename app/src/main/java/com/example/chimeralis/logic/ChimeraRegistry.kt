@@ -16,7 +16,7 @@ object ChimeraRegistry {
         )
     )
 
-    fun sylvhorn() = Chimera(
+    fun sylvhorn(level: Int = 1) = Chimera(
         name = "Sylvhorn",
         type = ChimeraType.GRASS,
         baseStats = Stats(maxHp = 45, attack = 49, defence = 49, speed = 45),
@@ -26,7 +26,7 @@ object ChimeraRegistry {
         learnableMoves = mapOf()
     )
 
-    fun aquantis() = Chimera(
+    fun aquantis(level: Int = 1) = Chimera(
         name = "Aquantis",
         type = ChimeraType.WATER,
         baseStats = Stats(maxHp = 44, attack = 48, defence = 65, speed = 43),

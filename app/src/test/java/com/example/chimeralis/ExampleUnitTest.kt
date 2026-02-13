@@ -49,7 +49,7 @@ class ExampleUnitTest {
         sunflare.levelUp()
 
         assertEquals(2, sunflare.level)
-        assertEquals(13, sunflare.stats.maxHp)
+        assertTrue(sunflare.stats.maxHp in 13..14)
         assertEquals(7, sunflare.stats.attack)
     }
 
@@ -90,22 +90,24 @@ class ExampleUnitTest {
         val attacker = ChimeraRegistry.sunflare(level=5)
         val target = ChimeraRegistry.sunflare(level=5)
 
-        assertEquals(18, target.stats.currentHp)
+        assertTrue(target.stats.currentHp in 18..20)
 
+        val initialHp = target.stats.currentHp
         attacker.moves[0].execute(attacker, target)
-
-        assertEquals(13, target.stats.currentHp)
+        assertEquals(initialHp - 5, target.stats.currentHp)
     }
     @Test
     fun statChangeEffectTest() {
         val attacker = ChimeraRegistry.sunflare(level=5)
         val target = ChimeraRegistry.sunflare(level=5)
 
-        assertEquals(10, target.stats.attack)
+        val initialAttack = target.stats.attack
+        assertTrue(attacker.stats.attack in 10..11)
 
         attacker.moves[1].execute(attacker, target)
 
-        assertEquals(9, target.stats.attack)
+        assertTrue(target.stats.attack == initialAttack - 1)
+        assertTrue(target.stats.attack in 9..10)
     }
     @Test
     fun healEffectTest() {

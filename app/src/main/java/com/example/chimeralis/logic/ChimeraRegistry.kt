@@ -3,10 +3,17 @@ package com.example.chimeralis.logic
 import com.example.chimeralis.logic.moves.MoveRegistry
 
 object ChimeraRegistry {
-    fun sunflare(level: Int = 1) = Chimera(
+    private fun generateRandomIV(): Stats = Stats(
+        maxHp = (0..15).random(),
+        attack = (0..15).random(),
+        defence = (0..15).random(),
+        speed = (0..15).random()
+    )
+    fun sunflare(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Chimera(
         name = "Sunflare",
         type = ChimeraType.FIRE,
         baseStats = Stats(maxHp = 39, attack = 52, defence = 43, speed = 65),
+        IVStats = ivStats,
         exp = 0,
         level = level,
         moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.growl()),
@@ -16,20 +23,22 @@ object ChimeraRegistry {
         )
     )
 
-    fun sylvhorn(level: Int = 1) = Chimera(
+    fun sylvhorn(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Chimera(
         name = "Sylvhorn",
         type = ChimeraType.GRASS,
         baseStats = Stats(maxHp = 45, attack = 49, defence = 49, speed = 45),
+        IVStats = ivStats,
         exp = 0,
         level = 1,
         moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.growl()),
         learnableMoves = mapOf()
     )
 
-    fun aquantis(level: Int = 1) = Chimera(
+    fun aquantis(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Chimera(
         name = "Aquantis",
         type = ChimeraType.WATER,
         baseStats = Stats(maxHp = 44, attack = 48, defence = 65, speed = 43),
+        IVStats = ivStats,
         exp = 0,
         level = 1,
         moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.tailWhip()),

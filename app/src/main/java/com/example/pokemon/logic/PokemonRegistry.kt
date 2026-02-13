@@ -3,10 +3,17 @@ package com.example.pokemon.logic
 import com.example.pokemon.logic.moves.MoveRegistry
 
 object PokemonRegistry {
-    fun charmander(level: Int = 1) = Pokemon(
+    private fun generateRandomIV(): Stats = Stats(
+        maxHp = (0..15).random(),
+        attack = (0..15).random(),
+        defence = (0..15).random(),
+        speed = (0..15).random()
+    )
+    fun charmander(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Pokemon(
         name = "Charmander",
         type = PokemonType.FIRE,
         baseStats = Stats(maxHp = 39, attack = 52, defence = 43, speed = 65),
+        IVStats = ivStats,
         exp = 0,
         level = level,
         moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.growl()),
@@ -16,20 +23,22 @@ object PokemonRegistry {
         )
     )
 
-    fun bulbasaur(level: Int = 1) = Pokemon(
+    fun bulbasaur(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Pokemon(
         name = "Bulbasaur",
         type = PokemonType.GRASS,
         baseStats = Stats(maxHp = 45, attack = 49, defence = 49, speed = 45),
+        IVStats = ivStats,
         exp = 0,
         level = 1,
         moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.growl()),
         learnableMoves = mapOf()
     )
 
-    fun squirtle(level: Int = 1) = Pokemon(
+    fun squirtle(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Pokemon(
         name = "Squirtle",
         type = PokemonType.WATER,
         baseStats = Stats(maxHp = 44, attack = 48, defence = 65, speed = 43),
+        IVStats = ivStats,
         exp = 0,
         level = 1,
         moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.tailWhip()),

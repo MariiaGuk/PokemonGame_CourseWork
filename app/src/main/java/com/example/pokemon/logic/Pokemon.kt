@@ -9,6 +9,7 @@ class Pokemon (
     var name: String,
     val type: PokemonType,
     val baseStats: Stats,
+    val IVStats: Stats,
     var exp: Int,
     var level: Int,
     val moves: MutableList<Move>,
@@ -29,10 +30,10 @@ class Pokemon (
     fun recalculateStats() {
         val oldMaxHp = stats.maxHp
 
-        stats.maxHp = ((2 * baseStats.maxHp * level) / 100) + level + 10
-        stats.attack = ((2 * baseStats.attack * level) / 100) + 5
-        stats.defence = ((2 * baseStats.defence * level) / 100) + 5
-        stats.speed = ((2 * baseStats.speed * level) / 100) + 5
+        stats.maxHp = (((baseStats.maxHp + IVStats.maxHp) * 2 * level) / 100) + level + 10
+        stats.attack = (((baseStats.attack + IVStats.attack) * 2 * level) / 100) + 5
+        stats.defence = (((baseStats.defence + IVStats.defence) * 2 * level) / 100) + 5
+        stats.speed = (((baseStats.speed + IVStats.speed) * 2 * level) / 100) + 5
 
         val hpGain = stats.maxHp - oldMaxHp
 

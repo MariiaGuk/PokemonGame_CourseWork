@@ -29,7 +29,7 @@ class Move (
 
         pp--
         effects.forEach { effect ->
-            effect.apply(attacker,target)
+            effect.apply(attacker,target,type)
         }
     }
 }

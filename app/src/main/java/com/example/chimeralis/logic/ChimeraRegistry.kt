@@ -2,6 +2,9 @@ package com.example.chimeralis.logic
 
 import com.example.chimeralis.logic.moves.MoveRegistry
 
+/**
+ * Registry for every chimera in the game.
+ */
 object ChimeraRegistry {
     private fun generateRandomIV(): Stats = Stats(
         maxHp = (0..15).random(),

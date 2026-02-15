@@ -5,6 +5,9 @@ import com.example.pokemon.logic.moves.effects.DamageEffect
 import com.example.pokemon.logic.moves.effects.HealEffect
 import com.example.pokemon.logic.moves.effects.StatChangeEffect
 
+/**
+ * Registry for every move in the game.
+ */
 object MoveRegistry {
     fun tackle() = Move(
         name = "Tackle",

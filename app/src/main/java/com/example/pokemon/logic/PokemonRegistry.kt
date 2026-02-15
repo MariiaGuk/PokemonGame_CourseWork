@@ -2,6 +2,9 @@ package com.example.pokemon.logic
 
 import com.example.pokemon.logic.moves.MoveRegistry
 
+/**
+ * Registry for every pokemon in the game.
+ */
 object PokemonRegistry {
     private fun generateRandomIV(): Stats = Stats(
         maxHp = (0..15).random(),

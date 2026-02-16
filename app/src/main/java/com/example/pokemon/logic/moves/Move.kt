@@ -9,7 +9,7 @@ import kotlin.random.Random
  * Basic class for every move in the game.
  */
 class Move (
-    var name: String,
+    val name: String,
     val type: PokemonType,
     val maxPp: Int,
     val accuracy: Int,

@@ -9,34 +9,48 @@ class Pokemon (
     var name: String,
     val type: PokemonType,
     val baseStats: Stats,
-    val IVStats: Stats,
-    var exp: Int,
-    var level: Int,
-    val moves: MutableList<Move>,
-    val learnableMoves: Map<Int, () -> Move>
+    val ivStats: Stats,
+    level: Int,
+    val learnableMoves: List<Pair<Int, () -> Move>>
 ){
+    var exp: Int = 0
+        private set
+
+    var level: Int = level
+        private set
+
+    private val _moves = mutableListOf<Move>()
+    val moves: List<Move> get() = _moves
+
     val stats: Stats = Stats(0, 0, 0, 0)
 
     init {
         recalculateStats()
 
-        learnableMoves.forEach { (lvl, moveProvider) ->
-            if (this.level >= lvl && moves.size < 4 && moves.none { it.name == moveProvider().name }) {
-                moves.add(moveProvider())
+        learnableMoves
+            .filter { it.first <= this.level }
+            .forEach { (_, moveProvider) ->
+                val move = moveProvider()
+                if (_moves.size < 4 && _moves.none { it.name == move.name }) {
+                    _moves.add(move)
+                }
             }
-        }
     }
 
-    fun recalculateStats() {
+    fun gainExp(amount: Int) {
+        exp += amount
+        //levelUp check
+    }
+
+    private fun recalculateStats() {
         val oldMaxHp = stats.maxHp
 
-        stats.maxHp = (((baseStats.maxHp + IVStats.maxHp) * 2 * level) / 100) + level + 10
-        stats.attack = (((baseStats.attack + IVStats.attack) * 2 * level) / 100) + 5
-        stats.defence = (((baseStats.defence + IVStats.defence) * 2 * level) / 100) + 5
-        stats.speed = (((baseStats.speed + IVStats.speed) * 2 * level) / 100) + 5
+        stats.setStat("maxhp", (((baseStats.maxHp + ivStats.maxHp) * 2 * level) / 100) + level + 10)
+        stats.setStat("attack", (((baseStats.attack + ivStats.attack) * 2 * level) / 100) + 5)
+        stats.setStat("defence", (((baseStats.defence + ivStats.defence) * 2 * level) / 100) + 5)
+        stats.setStat("speed", (((baseStats.speed + ivStats.speed) * 2 * level) / 100) + 5)
 
         val hpGain = stats.maxHp - oldMaxHp
-
         stats.heal(hpGain)
     }
 
@@ -47,14 +61,18 @@ class Pokemon (
 
         if (level % 50 == 0) evolution()
 
-        learnableMoves[level]?.let { moveProvider ->
-            learnMove(moveProvider())
-        }
+        learnableMoves
+            .filter { it.first == this.level }
+            .forEach { (_, moveProvider) ->
+                learnMove(moveProvider())
+            }
     }
 
     private fun learnMove(move: Move) {
+        if (_moves.any { it.name == move.name }) return
+
         if (moves.size < 4) {
-            moves.add(move)
+            _moves.add(move)
         }
         else {
             //Ask the player if they want to replace one of the moves

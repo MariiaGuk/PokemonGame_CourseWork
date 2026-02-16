@@ -10,32 +10,56 @@ class Stats(
     speed: Int
 ) {
     var maxHp: Int = maxHp
-        set(value) {
+        private set(value) {
             field = value.coerceAtLeast(1)
         }
     var attack: Int = attack
-        set(value) {
+        private set(value) {
             field = value.coerceAtLeast(1)
         }
     var defence: Int = defence
-        set(value) {
+        private set(value) {
             field = value.coerceAtLeast(1)
         }
     var speed: Int = speed
-        set(value) {
+        private set(value) {
             field = value.coerceAtLeast(1)
         }
     var currentHp: Int = maxHp
-        set(value) {
-            field = value.coerceAtLeast(0).coerceAtMost(maxHp)
+        private set(value) {
+            field = value.coerceIn(0, maxHp)
         }
 
     fun takeDamage(damage: Int) {
         currentHp -= damage
     }
 
-    fun heal(healAmount: Int) {
-        currentHp += healAmount
+    fun heal(amount: Int) {
+        currentHp += amount
+    }
+
+    fun modifyStat(statName: String, amount: Int) {
+        when (statName.lowercase()) {
+            "attack" -> attack += amount
+            "defence" -> defence += amount
+            "speed" -> speed += amount
+            "maxhp" -> {
+                maxHp += amount
+                currentHp = currentHp
+            }
+        }
+    }
+
+    fun setStat(statName: String, amount: Int) {
+        when (statName.lowercase()) {
+            "attack" -> attack = amount
+            "defence" -> defence = amount
+            "speed" -> speed = amount
+            "maxhp" -> {
+                maxHp = amount
+                currentHp = currentHp
+            }
+        }
     }
 
     fun isAlive(): Boolean = currentHp > 0

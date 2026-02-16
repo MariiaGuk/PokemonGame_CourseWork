@@ -31,13 +31,13 @@ class ExampleUnitTest {
     fun otherStatsLimitsTest() {
         val stats = Stats(maxHp = 100, attack = 10, defence = 10, speed = 10)
 
-        stats.maxHp = -5
+        stats.setStat("maxHp", -5)
         assertEquals(1, stats.maxHp)
-        stats.attack = -5
+        stats.setStat("attack", -5)
         assertEquals(1, stats.attack)
-        stats.defence = -5
+        stats.modifyStat("defence", -10)
         assertEquals(1, stats.defence)
-        stats.speed = -5
+        stats.modifyStat("speed", -10)
         assertEquals(1, stats.speed)
     }
 

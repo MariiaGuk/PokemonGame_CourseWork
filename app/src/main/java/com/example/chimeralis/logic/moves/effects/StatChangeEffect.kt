@@ -15,10 +15,6 @@ class StatChangeEffect(
     {
         val subject = if (onTarget) target else attacker
 
-        when (statName) {
-            "attack" -> subject.stats.attack += amount
-            "defence" -> subject.stats.defence += amount
-            "speed" -> subject.stats.speed += amount
-        }
+        subject.stats.modifyStat(statName, amount)
     }
 }

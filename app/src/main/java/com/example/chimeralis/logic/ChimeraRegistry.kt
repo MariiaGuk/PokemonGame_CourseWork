@@ -16,12 +16,12 @@ object ChimeraRegistry {
         name = "Sunflare",
         type = ChimeraType.FIRE,
         baseStats = Stats(maxHp = 39, attack = 52, defence = 43, speed = 65),
-        IVStats = ivStats,
-        exp = 0,
+        ivStats = ivStats,
         level = level,
-        moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.growl()),
-        learnableMoves = mapOf(
-            4 to { MoveRegistry.ember() },
+        learnableMoves = listOf(
+            1 to {MoveRegistry.tackle()},
+            1 to {MoveRegistry.growl()},
+            4 to {MoveRegistry.ember()},
             //...
         )
     )
@@ -30,21 +30,25 @@ object ChimeraRegistry {
         name = "Sylvhorn",
         type = ChimeraType.GRASS,
         baseStats = Stats(maxHp = 45, attack = 49, defence = 49, speed = 45),
-        IVStats = ivStats,
-        exp = 0,
-        level = 1,
-        moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.growl()),
-        learnableMoves = mapOf()
+        ivStats = ivStats,
+        level = level,
+        learnableMoves = listOf(
+            1 to {MoveRegistry.tackle()},
+            1 to {MoveRegistry.growl()},
+            //...
+        )
     )
 
     fun aquantis(level: Int = 1, ivStats: Stats = generateRandomIV() ) = Chimera(
         name = "Aquantis",
         type = ChimeraType.WATER,
         baseStats = Stats(maxHp = 44, attack = 48, defence = 65, speed = 43),
-        IVStats = ivStats,
-        exp = 0,
-        level = 1,
-        moves = mutableListOf(MoveRegistry.tackle(),MoveRegistry.tailWhip()),
-        learnableMoves = mapOf()
+        ivStats = ivStats,
+        level = level,
+        learnableMoves = listOf(
+            1 to {MoveRegistry.tackle()},
+            1 to {MoveRegistry.tailWhip()},
+            //...
+        )
     )
 }

@@ -10,6 +10,6 @@ class HealEffect(private val healAmount: Int): IMoveEffect
 {
     override fun apply(attacker: Chimera, target: Chimera, moveType: ChimeraType)
     {
-        attacker.stats.currentHp += healAmount
+        attacker.stats.heal(healAmount)
     }
 }

@@ -38,24 +38,28 @@ class Stats(
         currentHp += amount
     }
 
-    fun modifyStat(statName: String, amount: Int) {
-        when (statName.lowercase()) {
-            "attack" -> attack += amount
-            "defence" -> defence += amount
-            "speed" -> speed += amount
-            "maxhp" -> {
+    enum class StatType {
+        MAX_HP, ATTACK, DEFENCE, SPEED
+    }
+
+    fun modifyStat(statType: StatType, amount: Int) {
+        when (statType) {
+            StatType.ATTACK -> attack += amount
+            StatType.DEFENCE -> defence += amount
+            StatType.SPEED -> speed += amount
+            StatType.MAX_HP -> {
                 maxHp += amount
                 currentHp = currentHp
             }
         }
     }
 
-    fun setStat(statName: String, amount: Int) {
-        when (statName.lowercase()) {
-            "attack" -> attack = amount
-            "defence" -> defence = amount
-            "speed" -> speed = amount
-            "maxhp" -> {
+    fun setStat(statType: StatType, amount: Int) {
+        when (statType) {
+            StatType.ATTACK -> attack = amount
+            StatType.DEFENCE -> defence = amount
+            StatType.SPEED -> speed = amount
+            StatType.MAX_HP -> {
                 maxHp = amount
                 currentHp = currentHp
             }

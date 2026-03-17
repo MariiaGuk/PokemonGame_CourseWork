@@ -3,6 +3,7 @@ package com.example.pokemon
 import com.example.pokemon.logic.PokemonRegistry
 import com.example.pokemon.logic.PokemonType
 import com.example.pokemon.logic.Stats
+import com.example.pokemon.logic.Stats.StatType
 import com.example.pokemon.logic.moves.Move
 import com.example.pokemon.logic.moves.effects.DamageEffect
 import org.junit.Test
@@ -31,13 +32,13 @@ class ExampleUnitTest {
     fun otherStatsLimitsTest() {
         val stats = Stats(maxHp = 100, attack = 10, defence = 10, speed = 10)
 
-        stats.setStat("maxHp", -5)
+        stats.setStat(StatType.MAX_HP, -5)
         assertEquals(1, stats.maxHp)
-        stats.setStat("attack", -5)
+        stats.setStat(StatType.ATTACK, -5)
         assertEquals(1, stats.attack)
-        stats.modifyStat("defence", -10)
+        stats.modifyStat(StatType.DEFENCE, -10)
         assertEquals(1, stats.defence)
-        stats.modifyStat("speed", -10)
+        stats.modifyStat(StatType.SPEED, -10)
         assertEquals(1, stats.speed)
     }
 

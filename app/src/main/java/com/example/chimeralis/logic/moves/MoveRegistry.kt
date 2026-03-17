@@ -1,6 +1,7 @@
 package com.example.chimeralis.logic.moves
 
 import com.example.chimeralis.logic.ChimeraType
+import com.example.chimeralis.logic.Stats.StatType
 import com.example.chimeralis.logic.moves.effects.DamageEffect
 import com.example.chimeralis.logic.moves.effects.HealEffect
 import com.example.chimeralis.logic.moves.effects.StatChangeEffect
@@ -30,7 +31,7 @@ object MoveRegistry {
         type = ChimeraType.NORMAL,
         maxPp = 40,
         accuracy = 100,
-        effects = listOf(StatChangeEffect(statName = "attack", amount = -1, true))
+        effects = listOf(StatChangeEffect(statType = StatType.ATTACK, amount = -1, true))
     )
 
     fun tailWhip() = Move(
@@ -38,7 +39,7 @@ object MoveRegistry {
         type = ChimeraType.NORMAL,
         maxPp = 30,
         accuracy = 100,
-        effects = listOf(StatChangeEffect(statName = "defence", amount = -1, true))
+        effects = listOf(StatChangeEffect(statType = StatType.DEFENCE, amount = -1, true))
     )
 
     fun recover() = Move(

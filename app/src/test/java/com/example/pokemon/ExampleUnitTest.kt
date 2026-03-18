@@ -1,6 +1,7 @@
 package com.example.pokemon
 
-import com.example.pokemon.logic.PokemonRegistry
+import com.example.pokemon.logic.PokemonFactory
+import com.example.pokemon.logic.PokemonSpecies
 import com.example.pokemon.logic.PokemonType
 import com.example.pokemon.logic.Stats
 import com.example.pokemon.logic.Stats.StatType
@@ -45,7 +46,7 @@ class ExampleUnitTest {
     //Level up Tests
     @Test
     fun levelUpFormulaTest() {
-        val charmander = PokemonRegistry.charmander()
+        val charmander = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER)
 
         charmander.levelUp()
 
@@ -67,8 +68,8 @@ class ExampleUnitTest {
     //Accuracy Tests
     @Test
     fun accuracyTest() {
-        val attacker = PokemonRegistry.charmander()
-        val target = PokemonRegistry.charmander()
+        val attacker = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER)
+        val target = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER)
         val initialHp = target.stats.currentHp
 
         val brokenMove = Move(
@@ -88,8 +89,8 @@ class ExampleUnitTest {
     //Effects Tests
     @Test
     fun damageEffectTest() {
-        val attacker = PokemonRegistry.charmander(level=5)
-        val target = PokemonRegistry.charmander(level=5)
+        val attacker = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
+        val target = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
 
         assertTrue(target.stats.currentHp in 18..20)
 
@@ -99,8 +100,8 @@ class ExampleUnitTest {
     }
     @Test
     fun statChangeEffectTest() {
-        val attacker = PokemonRegistry.charmander(level=5)
-        val target = PokemonRegistry.charmander(level=5)
+        val attacker = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
+        val target = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
 
         val initialAttack = target.stats.attack
         assertTrue(attacker.stats.attack in 10..11)
@@ -122,7 +123,7 @@ class ExampleUnitTest {
     //Adding new moves Tests
     @Test
     fun newMoveTest() {
-        val charmander = PokemonRegistry.charmander(level = 3)
+        val charmander = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 3)
 
         assertFalse(charmander.moves.any { it.name == "Ember" })
         charmander.levelUp()

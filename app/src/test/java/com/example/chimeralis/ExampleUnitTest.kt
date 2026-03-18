@@ -1,6 +1,7 @@
 package com.example.chimeralis
 
-import com.example.chimeralis.logic.ChimeraRegistry
+import com.example.chimeralis.logic.ChimeraFactory
+import com.example.chimeralis.logic.ChimeraSpecies
 import com.example.chimeralis.logic.ChimeraType
 import com.example.chimeralis.logic.Stats
 import com.example.chimeralis.logic.Stats.StatType
@@ -45,7 +46,7 @@ class ExampleUnitTest {
     //Level up Tests
     @Test
     fun levelUpFormulaTest() {
-        val sunflare = ChimeraRegistry.sunflare()
+        val sunflare = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE)
 
         sunflare.levelUp()
 
@@ -67,8 +68,8 @@ class ExampleUnitTest {
     //Accuracy Tests
     @Test
     fun accuracyTest() {
-        val attacker = ChimeraRegistry.sunflare()
-        val target = ChimeraRegistry.sunflare()
+        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE)
+        val target = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE)
         val initialHp = target.stats.currentHp
 
         val brokenMove = Move(
@@ -88,8 +89,8 @@ class ExampleUnitTest {
     //Effects Tests
     @Test
     fun damageEffectTest() {
-        val attacker = ChimeraRegistry.sunflare(level=5)
-        val target = ChimeraRegistry.sunflare(level=5)
+        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
+        val target = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
 
         assertTrue(target.stats.currentHp in 18..20)
 
@@ -99,8 +100,8 @@ class ExampleUnitTest {
     }
     @Test
     fun statChangeEffectTest() {
-        val attacker = ChimeraRegistry.sunflare(level=5)
-        val target = ChimeraRegistry.sunflare(level=5)
+        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
+        val target = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
 
         val initialAttack = target.stats.attack
         assertTrue(attacker.stats.attack in 10..11)
@@ -122,7 +123,7 @@ class ExampleUnitTest {
     //Adding new moves Tests
     @Test
     fun newMoveTest() {
-        val sunflare = ChimeraRegistry.sunflare(level = 3)
+        val sunflare = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 3)
 
         assertFalse(sunflare.moves.any { it.name == "Ember" })
         sunflare.levelUp()

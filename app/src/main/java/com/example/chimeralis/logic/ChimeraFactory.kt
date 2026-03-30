@@ -4,7 +4,7 @@ import com.example.chimeralis.logic.moves.MoveFactory
 import com.example.chimeralis.logic.moves.MoveName
 
 /**
- * Registry for every chimera in the game.
+ * Factory for every chimera in the game.
  */
 object ChimeraFactory {
     private fun generateRandomIV(): Stats = Stats(
@@ -17,8 +17,37 @@ object ChimeraFactory {
         val ivStats = generateRandomIV()
 
         return when (species) {
+            ChimeraSpecies.SOLIGNIS -> Chimera(
+                name = "Solignis",
+                species = species,
+                type = ChimeraType.FIRE,
+                baseStats = Stats(78, 84, 78, 100),
+                ivStats = ivStats,
+                level = level,
+                learnableMoves = listOf(
+                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to {MoveFactory.createMove(MoveName.GROWL)},
+                    4 to {MoveFactory.createMove(MoveName.EMBER)},
+                    //...
+                )
+            )
+            ChimeraSpecies.SOLFLARE -> Chimera(
+                name = "Solflare",
+                species = species,
+                type = ChimeraType.FIRE,
+                baseStats = Stats(58, 64, 58, 80),
+                ivStats = ivStats,
+                level = level,
+                learnableMoves = listOf(
+                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to {MoveFactory.createMove(MoveName.GROWL)},
+                    4 to {MoveFactory.createMove(MoveName.EMBER)},
+                    //...
+                )
+            )
             ChimeraSpecies.SUNFLARE -> Chimera(
                 name = "Sunflare",
+                species = species,
                 type = ChimeraType.FIRE,
                 baseStats = Stats(39, 52, 43, 65),
                 ivStats = ivStats,
@@ -32,6 +61,7 @@ object ChimeraFactory {
             )
             ChimeraSpecies.SYLVHORN -> Chimera(
                 name = "Sylvhorn",
+                species = species,
                 type = ChimeraType.GRASS,
                 baseStats = Stats(45, 49, 49, 45),
                 ivStats = ivStats,
@@ -44,6 +74,7 @@ object ChimeraFactory {
             )
             ChimeraSpecies.AQUANTIS -> Chimera(
                 name = "Aquantis",
+                species = species,
                 type = ChimeraType.WATER,
                 baseStats = Stats(44, 48, 65, 43),
                 ivStats = ivStats,

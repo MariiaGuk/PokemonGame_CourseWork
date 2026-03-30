@@ -30,16 +30,24 @@ class Stats(
             field = value.coerceIn(0, maxHp)
         }
 
+    init {
+        this.maxHp = maxHp
+        this.attack = attack
+        this.defence = defence
+        this.speed = speed
+        this.currentHp = maxHp
+    }
+
+    enum class StatType {
+        MAX_HP, ATTACK, DEFENCE, SPEED
+    }
+
     fun takeDamage(damage: Int) {
         currentHp -= damage
     }
 
     fun heal(amount: Int) {
         currentHp += amount
-    }
-
-    enum class StatType {
-        MAX_HP, ATTACK, DEFENCE, SPEED
     }
 
     fun modifyStat(statType: StatType, amount: Int) {

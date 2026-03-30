@@ -8,11 +8,15 @@ import com.example.chimeralis.logic.moves.Move
  */
 class Chimera (
     name: String,
+    val species: ChimeraSpecies,
     val type: ChimeraType,
     val baseStats: Stats,
     val ivStats: Stats,
     level: Int,
-    val learnableMoves: List<Pair<Int, () -> Move>>
+    val learnableMoves: List<Pair<Int, () -> Move>>,
+    val onLevelUp: ((Chimera) -> Unit)? = null,
+    val onMoveLearn: ((Chimera, Move, onReplace: (Int) -> Unit) -> Unit)? = null,
+    val onEvolution: ((old: Chimera, new: Chimera) -> Unit)? = null
 ){
 
     var name: String = name.trim()
@@ -57,7 +61,11 @@ class Chimera (
 
     fun gainExp(amount: Int) {
         exp += amount
-        //levelUp check
+        val expNeeded = level * level * level
+        if (exp >= expNeeded) {
+            exp -= expNeeded
+            levelUp()
+        }
     }
 
     private fun recalculateStats() {
@@ -74,8 +82,9 @@ class Chimera (
 
     fun levelUp() {
         level++
-
         recalculateStats()
+
+        onLevelUp?.invoke(this)
 
         if (level % 50 == 0) evolution()
 
@@ -93,11 +102,16 @@ class Chimera (
             _moves.add(move)
         }
         else {
-            //Ask the player if they want to replace one of the moves
+            onMoveLearn?.invoke(this, move) { index ->
+                _moves[index] = move
+            }
         }
     }
 
-    fun evolution(){
-        //evolution logic
+    fun evolution() {
+        val nextSpecies = species.evolvesInto ?: return
+        val evolved = ChimeraFactory.createChimera(nextSpecies, level)
+        evolved.gainExp(exp)
+        onEvolution?.invoke(this, evolved)
     }
 }

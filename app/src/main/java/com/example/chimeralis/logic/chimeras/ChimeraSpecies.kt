@@ -1,4 +1,4 @@
-package com.example.chimeralis.logic
+package com.example.chimeralis.logic.chimeras
 
 enum class ChimeraSpecies(val evolvesInto: ChimeraSpecies? = null) {
     SOLIGNIS,

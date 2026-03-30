@@ -1,7 +1,7 @@
-package com.example.chimeralis.logic.moves.effects
+package com.example.chimeralis.logic.chimeras.moves.moveEffects
 
-import com.example.chimeralis.logic.Chimera
-import com.example.chimeralis.logic.ChimeraType
+import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraType
 
 /**
  * Class describes heal effect.

@@ -1,7 +1,7 @@
-package com.example.chimeralis.logic
+package com.example.chimeralis.logic.chimeras
 
-import com.example.chimeralis.logic.moves.MoveFactory
-import com.example.chimeralis.logic.moves.MoveName
+import com.example.chimeralis.logic.chimeras.moves.MoveFactory
+import com.example.chimeralis.logic.chimeras.moves.MoveName
 
 /**
  * Factory for every chimera in the game.
@@ -25,9 +25,9 @@ object ChimeraFactory {
                 ivStats = ivStats,
                 level = level,
                 learnableMoves = listOf(
-                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to {MoveFactory.createMove(MoveName.GROWL)},
-                    4 to {MoveFactory.createMove(MoveName.EMBER)},
+                    1 to { MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to { MoveFactory.createMove(MoveName.GROWL)},
+                    4 to { MoveFactory.createMove(MoveName.EMBER)},
                     //...
                 )
             )
@@ -39,9 +39,9 @@ object ChimeraFactory {
                 ivStats = ivStats,
                 level = level,
                 learnableMoves = listOf(
-                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to {MoveFactory.createMove(MoveName.GROWL)},
-                    4 to {MoveFactory.createMove(MoveName.EMBER)},
+                    1 to { MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to { MoveFactory.createMove(MoveName.GROWL)},
+                    4 to { MoveFactory.createMove(MoveName.EMBER)},
                     //...
                 )
             )
@@ -53,9 +53,9 @@ object ChimeraFactory {
                 ivStats = ivStats,
                 level = level,
                 learnableMoves = listOf(
-                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to {MoveFactory.createMove(MoveName.GROWL)},
-                    4 to {MoveFactory.createMove(MoveName.EMBER)},
+                    1 to { MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to { MoveFactory.createMove(MoveName.GROWL)},
+                    4 to { MoveFactory.createMove(MoveName.EMBER)},
                     //...
                 )
             )
@@ -67,8 +67,8 @@ object ChimeraFactory {
                 ivStats = ivStats,
                 level = level,
                 learnableMoves = listOf(
-                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to {MoveFactory.createMove(MoveName.GROWL)},
+                    1 to { MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to { MoveFactory.createMove(MoveName.GROWL)},
                     //...
                 )
             )
@@ -80,8 +80,8 @@ object ChimeraFactory {
                 ivStats = ivStats,
                 level = level,
                 learnableMoves = listOf(
-                    1 to {MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to {MoveFactory.createMove(MoveName.TAILWHIP)},
+                    1 to { MoveFactory.createMove(MoveName.TACKLE)},
+                    1 to { MoveFactory.createMove(MoveName.TAILWHIP)},
                     //...
                 )
             )

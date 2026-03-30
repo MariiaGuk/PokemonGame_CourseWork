@@ -1,10 +1,10 @@
-package com.example.chimeralis.logic.moves
+package com.example.chimeralis.logic.chimeras.moves
 
-import com.example.chimeralis.logic.ChimeraType
-import com.example.chimeralis.logic.Stats.StatType
-import com.example.chimeralis.logic.moves.effects.DamageEffect
-import com.example.chimeralis.logic.moves.effects.HealEffect
-import com.example.chimeralis.logic.moves.effects.StatChangeEffect
+import com.example.chimeralis.logic.chimeras.ChimeraType
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.DamageEffect
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.HealEffect
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.StatChangeEffect
+import com.example.chimeralis.logic.chimeras.Stats
 
 /**
  * Factory for every move in the game.
@@ -33,7 +33,13 @@ object MoveFactory {
                 type = ChimeraType.NORMAL,
                 maxPp = 40,
                 accuracy = 100,
-                effects = listOf(StatChangeEffect(statType = StatType.ATTACK, amount = -1, true))
+                effects = listOf(
+                    StatChangeEffect(
+                        statType = Stats.StatType.ATTACK,
+                        amount = -1,
+                        true
+                    )
+                )
             )
 
             MoveName.TAILWHIP -> Move(
@@ -41,7 +47,13 @@ object MoveFactory {
                 type = ChimeraType.NORMAL,
                 maxPp = 30,
                 accuracy = 100,
-                effects = listOf(StatChangeEffect(statType = StatType.DEFENCE, amount = -1, true))
+                effects = listOf(
+                    StatChangeEffect(
+                        statType = Stats.StatType.DEFENCE,
+                        amount = -1,
+                        true
+                    )
+                )
             )
 
             MoveName.RECOVER -> Move(

@@ -1,4 +1,4 @@
-package com.example.chimeralis.logic
+package com.example.chimeralis.logic.chimeras
 
 /**
  * Enum class describes chimera types.

@@ -1,12 +1,12 @@
 package com.example.chimeralis
 
-import com.example.chimeralis.logic.ChimeraFactory
-import com.example.chimeralis.logic.ChimeraSpecies
-import com.example.chimeralis.logic.ChimeraType
-import com.example.chimeralis.logic.Stats
-import com.example.chimeralis.logic.Stats.StatType
-import com.example.chimeralis.logic.moves.Move
-import com.example.chimeralis.logic.moves.effects.DamageEffect
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
+import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.ChimeraType
+import com.example.chimeralis.logic.chimeras.Stats
+import com.example.chimeralis.logic.chimeras.Stats.StatType
+import com.example.chimeralis.logic.chimeras.moves.Move
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.DamageEffect
 import org.junit.Test
 
 import org.junit.Assert.*

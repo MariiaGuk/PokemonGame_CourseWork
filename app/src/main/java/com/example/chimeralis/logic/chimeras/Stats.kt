@@ -1,4 +1,4 @@
-package com.example.chimeralis.logic
+package com.example.chimeralis.logic.chimeras
 
 /**
  * Class for stats of the chimera.

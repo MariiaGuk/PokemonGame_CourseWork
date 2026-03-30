@@ -1,8 +1,8 @@
-package com.example.chimeralis.logic.moves
+package com.example.chimeralis.logic.chimeras.moves
 
-import com.example.chimeralis.logic.Chimera
-import com.example.chimeralis.logic.ChimeraType
-import com.example.chimeralis.logic.moves.effects.IMoveEffect
+import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraType
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.IMoveEffect
 import kotlin.random.Random
 
 /**

@@ -1,10 +1,10 @@
-package com.example.pokemon.logic.moves
+package com.example.pokemon.logic.pokemons.moves
 
-import com.example.pokemon.logic.PokemonType
-import com.example.pokemon.logic.Stats.StatType
-import com.example.pokemon.logic.moves.effects.DamageEffect
-import com.example.pokemon.logic.moves.effects.HealEffect
-import com.example.pokemon.logic.moves.effects.StatChangeEffect
+import com.example.pokemon.logic.pokemons.PokemonType
+import com.example.pokemon.logic.pokemons.moves.moveEffects.DamageEffect
+import com.example.pokemon.logic.pokemons.moves.moveEffects.HealEffect
+import com.example.pokemon.logic.pokemons.moves.moveEffects.StatChangeEffect
+import com.example.pokemon.logic.pokemons.Stats
 
 /**
  * Factory for every move in the game.
@@ -33,7 +33,13 @@ object MoveFactory {
                 type = PokemonType.NORMAL,
                 maxPp = 40,
                 accuracy = 100,
-                effects = listOf(StatChangeEffect(statType = StatType.ATTACK, amount = -1, true))
+                effects = listOf(
+                    StatChangeEffect(
+                        statType = Stats.StatType.ATTACK,
+                        amount = -1,
+                        true
+                    )
+                )
             )
 
             MoveName.TAILWHIP -> Move(
@@ -41,7 +47,13 @@ object MoveFactory {
                 type = PokemonType.NORMAL,
                 maxPp = 30,
                 accuracy = 100,
-                effects = listOf(StatChangeEffect(statType = StatType.DEFENCE, amount = -1, true))
+                effects = listOf(
+                    StatChangeEffect(
+                        statType = Stats.StatType.DEFENCE,
+                        amount = -1,
+                        true
+                    )
+                )
             )
 
             MoveName.RECOVER -> Move(

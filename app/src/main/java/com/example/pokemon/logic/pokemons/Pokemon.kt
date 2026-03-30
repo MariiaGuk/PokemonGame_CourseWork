@@ -1,7 +1,6 @@
-package com.example.pokemon.logic
+package com.example.pokemon.logic.pokemons
 
-import com.example.pokemon.logic.Stats.StatType
-import com.example.pokemon.logic.moves.Move
+import com.example.pokemon.logic.pokemons.moves.Move
 
 /**
  * Basic class for every pokemon in the game.
@@ -71,10 +70,10 @@ class Pokemon (
     private fun recalculateStats() {
         val oldMaxHp = stats.maxHp
 
-        stats.setStat(StatType.MAX_HP, (((baseStats.maxHp + ivStats.maxHp) * 2 * level) / 100) + level + 10)
-        stats.setStat(StatType.ATTACK, (((baseStats.attack + ivStats.attack) * 2 * level) / 100) + 5)
-        stats.setStat(StatType.DEFENCE, (((baseStats.defence + ivStats.defence) * 2 * level) / 100) + 5)
-        stats.setStat(StatType.SPEED, (((baseStats.speed + ivStats.speed) * 2 * level) / 100) + 5)
+        stats.setStat(Stats.StatType.MAX_HP, (((baseStats.maxHp + ivStats.maxHp) * 2 * level) / 100) + level + 10)
+        stats.setStat(Stats.StatType.ATTACK, (((baseStats.attack + ivStats.attack) * 2 * level) / 100) + 5)
+        stats.setStat(Stats.StatType.DEFENCE, (((baseStats.defence + ivStats.defence) * 2 * level) / 100) + 5)
+        stats.setStat(Stats.StatType.SPEED, (((baseStats.speed + ivStats.speed) * 2 * level) / 100) + 5)
 
         val hpGain = stats.maxHp - oldMaxHp
         stats.heal(hpGain)

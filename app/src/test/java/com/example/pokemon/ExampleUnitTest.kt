@@ -1,12 +1,12 @@
 package com.example.pokemon
 
-import com.example.pokemon.logic.PokemonFactory
-import com.example.pokemon.logic.PokemonSpecies
-import com.example.pokemon.logic.PokemonType
-import com.example.pokemon.logic.Stats
-import com.example.pokemon.logic.Stats.StatType
-import com.example.pokemon.logic.moves.Move
-import com.example.pokemon.logic.moves.effects.DamageEffect
+import com.example.pokemon.logic.pokemons.PokemonFactory
+import com.example.pokemon.logic.pokemons.PokemonSpecies
+import com.example.pokemon.logic.pokemons.PokemonType
+import com.example.pokemon.logic.pokemons.Stats
+import com.example.pokemon.logic.pokemons.Stats.StatType
+import com.example.pokemon.logic.pokemons.moves.Move
+import com.example.pokemon.logic.pokemons.moves.moveEffects.DamageEffect
 import org.junit.Test
 
 import org.junit.Assert.*

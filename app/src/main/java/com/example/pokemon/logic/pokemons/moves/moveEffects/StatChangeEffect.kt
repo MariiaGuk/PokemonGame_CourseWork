@@ -1,8 +1,8 @@
-package com.example.pokemon.logic.moves.effects
+package com.example.pokemon.logic.pokemons.moves.moveEffects
 
-import com.example.pokemon.logic.Pokemon
-import com.example.pokemon.logic.PokemonType
-import com.example.pokemon.logic.Stats
+import com.example.pokemon.logic.pokemons.Pokemon
+import com.example.pokemon.logic.pokemons.PokemonType
+import com.example.pokemon.logic.pokemons.Stats
 
 /**
  * Class describes stats effect.

@@ -1,8 +1,8 @@
-package com.example.pokemon.logic.moves
+package com.example.pokemon.logic.pokemons.moves
 
-import com.example.pokemon.logic.Pokemon
-import com.example.pokemon.logic.PokemonType
-import com.example.pokemon.logic.moves.effects.IMoveEffect
+import com.example.pokemon.logic.pokemons.Pokemon
+import com.example.pokemon.logic.pokemons.PokemonType
+import com.example.pokemon.logic.pokemons.moves.moveEffects.IMoveEffect
 import kotlin.random.Random
 
 /**

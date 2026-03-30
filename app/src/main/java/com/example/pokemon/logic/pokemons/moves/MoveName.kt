@@ -1,4 +1,4 @@
-package com.example.pokemon.logic.moves
+package com.example.pokemon.logic.pokemons.moves
 
 enum class MoveName {
     TACKLE,

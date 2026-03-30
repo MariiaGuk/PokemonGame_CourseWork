@@ -8,11 +8,15 @@ import com.example.pokemon.logic.moves.Move
  */
 class Pokemon (
     name: String,
+    val species: PokemonSpecies,
     val type: PokemonType,
     val baseStats: Stats,
     val ivStats: Stats,
     level: Int,
-    val learnableMoves: List<Pair<Int, () -> Move>>
+    val learnableMoves: List<Pair<Int, () -> Move>>,
+    val onLevelUp: ((Pokemon) -> Unit)? = null,
+    val onMoveLearn: ((Pokemon, Move, onReplace: (Int) -> Unit) -> Unit)? = null,
+    val onEvolution: ((old: Pokemon, new: Pokemon) -> Unit)? = null
 ){
 
     var name: String = name.trim()
@@ -57,7 +61,11 @@ class Pokemon (
 
     fun gainExp(amount: Int) {
         exp += amount
-        //levelUp check
+        val expNeeded = level * level * level
+        if (exp >= expNeeded) {
+            exp -= expNeeded
+            levelUp()
+        }
     }
 
     private fun recalculateStats() {
@@ -74,8 +82,9 @@ class Pokemon (
 
     fun levelUp() {
         level++
-
         recalculateStats()
+
+        onLevelUp?.invoke(this)
 
         if (level % 50 == 0) evolution()
 
@@ -93,11 +102,16 @@ class Pokemon (
             _moves.add(move)
         }
         else {
-            //Ask the player if they want to replace one of the moves
+            onMoveLearn?.invoke(this, move) { index ->
+                _moves[index] = move
+            }
         }
     }
 
-    fun evolution(){
-        //evolution logic
+    fun evolution() {
+        val nextSpecies = species.evolvesInto ?: return
+        val evolved = PokemonFactory.createPokemon(nextSpecies, level)
+        evolved.gainExp(exp)
+        onEvolution?.invoke(this, evolved)
     }
 }

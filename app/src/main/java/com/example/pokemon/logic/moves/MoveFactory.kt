@@ -7,7 +7,7 @@ import com.example.pokemon.logic.moves.effects.HealEffect
 import com.example.pokemon.logic.moves.effects.StatChangeEffect
 
 /**
- * Registry for every move in the game.
+ * Factory for every move in the game.
  */
 object MoveFactory {
     fun createMove(move: MoveName): Move {

@@ -60,10 +60,11 @@ class Pokemon (
 
     fun gainExp(amount: Int) {
         exp += amount
-        val expNeeded = level * level * level
-        if (exp >= expNeeded) {
+        var expNeeded = level * level * level
+        while  (exp >= expNeeded) {
             exp -= expNeeded
             levelUp()
+            expNeeded = level * level * level
         }
     }
 

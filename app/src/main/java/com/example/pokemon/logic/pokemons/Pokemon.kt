@@ -86,7 +86,7 @@ class Pokemon (
 
         onLevelUp?.invoke(this)
 
-        if (level % 50 == 0) evolution()
+        if (level == species.evolutionLevel) evolution()
 
         learnableMoves
             .filter { it.first == this.level }
@@ -102,9 +102,7 @@ class Pokemon (
             _moves.add(move)
         }
         else {
-            onMoveLearn?.invoke(this, move) { index ->
-                _moves[index] = move
-            }
+            onMoveLearn?.invoke(this, move, {index -> _moves[index] = move})
         }
     }
 

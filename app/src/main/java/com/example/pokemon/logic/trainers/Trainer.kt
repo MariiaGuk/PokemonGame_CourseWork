@@ -12,7 +12,7 @@ abstract class Trainer(
     var activePokemon: Pokemon = team.first()
         protected set
 
-    fun swapPokemon(pokemon: Pokemon) {
+    fun switchPokemon(pokemon: Pokemon) {
         require(pokemon in team) { "Pokemon is not in team" }
         require(pokemon.stats.isAlive()) { "Cannot swap to fainted pokemon" }
         activePokemon = pokemon

@@ -43,7 +43,7 @@ class BattleManager(
 //                enemyTurn(log)
 //            }
             is BattleAction.SwapPokemon -> {
-                swapPokemon(playerAction.pokemon, log)
+                switchPokemon(playerAction.pokemon, log)
                 enemyTurn(log)
             }
             is BattleAction.Run -> {
@@ -81,8 +81,8 @@ class BattleManager(
         }
     }
 
-    private fun swapPokemon(pokemon: Pokemon, log: MutableList<String>) {
-        player.swapPokemon(pokemon)
+    private fun switchPokemon(pokemon: Pokemon, log: MutableList<String>) {
+        player.switchPokemon(pokemon)
         log.add("Go, ${pokemon.name}!")
     }
 

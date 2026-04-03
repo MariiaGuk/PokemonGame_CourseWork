@@ -43,7 +43,7 @@ class BattleManager(
 //                enemyTurn(log)
 //            }
             is BattleAction.SwapChimera -> {
-                swapChimera(playerAction.chimera, log)
+                switchChimera(playerAction.chimera, log)
                 enemyTurn(log)
             }
             is BattleAction.Run -> {
@@ -81,8 +81,8 @@ class BattleManager(
         }
     }
 
-    private fun swapChimera(chimera: Chimera, log: MutableList<String>) {
-        player.swapChimera(chimera)
+    private fun switchChimera(chimera: Chimera, log: MutableList<String>) {
+        player.switchChimera(chimera)
         log.add("Go, ${chimera.name}!")
     }
 

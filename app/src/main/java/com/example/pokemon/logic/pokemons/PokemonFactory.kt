@@ -17,7 +17,7 @@ object PokemonFactory {
         val ivStats = generateRandomIV()
 
         return when (species) {
-            PokemonSpecies.CHARIZARD -> Pokemon(
+            PokemonSpecies.Charizard -> Pokemon(
                 name = "Charizard",
                 species = species,
                 type = PokemonType.FIRE,
@@ -31,7 +31,7 @@ object PokemonFactory {
                     //...
                 )
             )
-            PokemonSpecies.CHARMELEON -> Pokemon(
+            PokemonSpecies.Charmeleon -> Pokemon(
                 name = "Charmeleon",
                 species = species,
                 type = PokemonType.FIRE,
@@ -45,7 +45,7 @@ object PokemonFactory {
                     //...
                 )
             )
-            PokemonSpecies.CHARMANDER -> Pokemon(
+            PokemonSpecies.Charmander -> Pokemon(
                 name = "Charmander",
                 species = species,
                 type = PokemonType.FIRE,
@@ -59,7 +59,7 @@ object PokemonFactory {
                     //...
                 )
             )
-            PokemonSpecies.BULBASAUR -> Pokemon(
+            PokemonSpecies.Bulbasaur -> Pokemon(
                 name = "Bulbasaur",
                 species = species,
                 type = PokemonType.GRASS,
@@ -72,7 +72,7 @@ object PokemonFactory {
                     //...
                 )
             )
-            PokemonSpecies.SQUIRTLE -> Pokemon(
+            PokemonSpecies.Squirtle -> Pokemon(
                 name = "Squirtle",
                 species = species,
                 type = PokemonType.WATER,

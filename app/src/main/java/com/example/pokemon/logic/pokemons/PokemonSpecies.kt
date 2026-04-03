@@ -1,13 +1,13 @@
 package com.example.pokemon.logic.pokemons
 
-enum class PokemonSpecies(
+sealed class PokemonSpecies(
     val evolvesInto: PokemonSpecies? = null,
     val evolutionLevel: Int? = null
-){
-    CHARIZARD,
-    CHARMELEON(evolvesInto = CHARIZARD, evolutionLevel = 36),
-    CHARMANDER(evolvesInto = CHARMELEON, evolutionLevel = 16),
+) {
+    object Charizard : PokemonSpecies()
+    object Charmeleon : PokemonSpecies(evolvesInto = Charizard, evolutionLevel = 36)
+    object Charmander : PokemonSpecies(evolvesInto = Charmeleon, evolutionLevel = 16)
 
-    BULBASAUR(),
-    SQUIRTLE(),
+    object Bulbasaur : PokemonSpecies()
+    object Squirtle : PokemonSpecies()
 }

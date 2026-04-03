@@ -16,7 +16,7 @@ import org.junit.Assert.*
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest {
+class  ExampleUnitTest {
     //Stats Tests
     @Test
     fun currentHpLimitsTest() {
@@ -46,7 +46,7 @@ class ExampleUnitTest {
     //Level up Tests
     @Test
     fun levelUpFormulaTest() {
-        val charmander = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER)
+        val charmander = PokemonFactory.createPokemon(PokemonSpecies.Charmander)
 
         charmander.levelUp()
 
@@ -68,8 +68,8 @@ class ExampleUnitTest {
     //Accuracy Tests
     @Test
     fun accuracyTest() {
-        val attacker = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER)
-        val target = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER)
+        val attacker = PokemonFactory.createPokemon(PokemonSpecies.Charmander)
+        val target = PokemonFactory.createPokemon(PokemonSpecies.Charmander)
         val initialHp = target.stats.currentHp
 
         val brokenMove = Move(
@@ -89,8 +89,8 @@ class ExampleUnitTest {
     //Effects Tests
     @Test
     fun damageEffectTest() {
-        val attacker = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
-        val target = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
+        val attacker = PokemonFactory.createPokemon(PokemonSpecies.Charmander, level = 5)
+        val target = PokemonFactory.createPokemon(PokemonSpecies.Charmander, level = 5)
 
         assertTrue(target.stats.currentHp in 18..20)
 
@@ -100,8 +100,8 @@ class ExampleUnitTest {
     }
     @Test
     fun statChangeEffectTest() {
-        val attacker = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
-        val target = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 5)
+        val attacker = PokemonFactory.createPokemon(PokemonSpecies.Charmander, level = 5)
+        val target = PokemonFactory.createPokemon(PokemonSpecies.Charmander, level = 5)
 
         val initialAttack = target.stats.attack
         assertTrue(attacker.stats.attack in 10..11)
@@ -123,7 +123,7 @@ class ExampleUnitTest {
     //Adding new moves Tests
     @Test
     fun newMoveTest() {
-        val charmander = PokemonFactory.createPokemon(PokemonSpecies.CHARMANDER, level = 3)
+        val charmander = PokemonFactory.createPokemon(PokemonSpecies.Charmander, level = 3)
 
         assertFalse(charmander.moves.any { it.name == "Ember" })
         charmander.levelUp()

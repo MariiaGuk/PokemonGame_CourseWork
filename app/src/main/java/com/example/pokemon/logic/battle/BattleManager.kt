@@ -1,5 +1,6 @@
 package com.example.pokemon.logic.battle
 
+import com.example.pokemon.logic.items.Item
 import com.example.pokemon.logic.pokemons.Pokemon
 import com.example.pokemon.logic.pokemons.moves.Move
 import com.example.pokemon.logic.trainers.NPC
@@ -38,10 +39,10 @@ class BattleManager(
                     if (isBattleActive) playerTurn(playerAction.move, log)
                 }
             }
-//            is BattleAction.UseItem -> {
-//                useItem(playerAction.item, log)
-//                enemyTurn(log)
-//            }
+            is BattleAction.UseItem -> {
+                useItem(playerAction.item, log)
+                enemyTurn(log)
+            }
             is BattleAction.SwapPokemon -> {
                 switchPokemon(playerAction.pokemon, log)
                 enemyTurn(log)
@@ -79,6 +80,11 @@ class BattleManager(
                 log.add("You won!")
             }
         }
+    }
+
+    private fun useItem(item: Item, log: MutableList<String>){
+        player.inventory.useItem(item, playerPokemon)
+        log.add("Used ${item.name} on ${playerPokemon.name}!")
     }
 
     private fun switchPokemon(pokemon: Pokemon, log: MutableList<String>) {

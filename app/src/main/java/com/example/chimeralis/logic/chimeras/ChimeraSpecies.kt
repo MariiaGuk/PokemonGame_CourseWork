@@ -1,13 +1,13 @@
 package com.example.chimeralis.logic.chimeras
 
-enum class ChimeraSpecies(
+sealed class ChimeraSpecies(
     val evolvesInto: ChimeraSpecies? = null,
     val evolutionLevel: Int? = null
-){
-    SOLIGNIS,
-    SOLFLARE(evolvesInto = SOLIGNIS, evolutionLevel = 36),
-    SUNFLARE(evolvesInto = SOLFLARE, evolutionLevel = 16),
+) {
+    object Solignis : ChimeraSpecies()
+    object Solflare : ChimeraSpecies(evolvesInto = Solignis, evolutionLevel = 36)
+    object Sunflare : ChimeraSpecies(evolvesInto = Solflare, evolutionLevel = 16)
 
-    SYLVHORN(),
-    AQUANTIS(),
+    object Sylvhorn : ChimeraSpecies()
+    object Aquantis : ChimeraSpecies()
 }

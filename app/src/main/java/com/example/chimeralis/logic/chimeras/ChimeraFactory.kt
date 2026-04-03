@@ -17,7 +17,7 @@ object ChimeraFactory {
         val ivStats = generateRandomIV()
 
         return when (species) {
-            ChimeraSpecies.SOLIGNIS -> Chimera(
+            ChimeraSpecies.Solignis -> Chimera(
                 name = "Solignis",
                 species = species,
                 type = ChimeraType.FIRE,
@@ -31,7 +31,7 @@ object ChimeraFactory {
                     //...
                 )
             )
-            ChimeraSpecies.SOLFLARE -> Chimera(
+            ChimeraSpecies.Solflare -> Chimera(
                 name = "Solflare",
                 species = species,
                 type = ChimeraType.FIRE,
@@ -45,7 +45,7 @@ object ChimeraFactory {
                     //...
                 )
             )
-            ChimeraSpecies.SUNFLARE -> Chimera(
+            ChimeraSpecies.Sunflare -> Chimera(
                 name = "Sunflare",
                 species = species,
                 type = ChimeraType.FIRE,
@@ -59,7 +59,7 @@ object ChimeraFactory {
                     //...
                 )
             )
-            ChimeraSpecies.SYLVHORN -> Chimera(
+            ChimeraSpecies.Sylvhorn -> Chimera(
                 name = "Sylvhorn",
                 species = species,
                 type = ChimeraType.GRASS,
@@ -72,7 +72,7 @@ object ChimeraFactory {
                     //...
                 )
             )
-            ChimeraSpecies.AQUANTIS -> Chimera(
+            ChimeraSpecies.Aquantis -> Chimera(
                 name = "Aquantis",
                 species = species,
                 type = ChimeraType.WATER,

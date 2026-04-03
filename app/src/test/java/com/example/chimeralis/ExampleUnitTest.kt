@@ -16,7 +16,7 @@ import org.junit.Assert.*
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest {
+class  ExampleUnitTest {
     //Stats Tests
     @Test
     fun currentHpLimitsTest() {
@@ -46,7 +46,7 @@ class ExampleUnitTest {
     //Level up Tests
     @Test
     fun levelUpFormulaTest() {
-        val sunflare = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE)
+        val sunflare = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare)
 
         sunflare.levelUp()
 
@@ -68,8 +68,8 @@ class ExampleUnitTest {
     //Accuracy Tests
     @Test
     fun accuracyTest() {
-        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE)
-        val target = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE)
+        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare)
+        val target = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare)
         val initialHp = target.stats.currentHp
 
         val brokenMove = Move(
@@ -89,8 +89,8 @@ class ExampleUnitTest {
     //Effects Tests
     @Test
     fun damageEffectTest() {
-        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
-        val target = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
+        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare, level = 5)
+        val target = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare, level = 5)
 
         assertTrue(target.stats.currentHp in 18..20)
 
@@ -100,8 +100,8 @@ class ExampleUnitTest {
     }
     @Test
     fun statChangeEffectTest() {
-        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
-        val target = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 5)
+        val attacker = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare, level = 5)
+        val target = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare, level = 5)
 
         val initialAttack = target.stats.attack
         assertTrue(attacker.stats.attack in 10..11)
@@ -123,7 +123,7 @@ class ExampleUnitTest {
     //Adding new moves Tests
     @Test
     fun newMoveTest() {
-        val sunflare = ChimeraFactory.createChimera(ChimeraSpecies.SUNFLARE, level = 3)
+        val sunflare = ChimeraFactory.createChimera(ChimeraSpecies.Sunflare, level = 3)
 
         assertFalse(sunflare.moves.any { it.name == "Ember" })
         sunflare.levelUp()

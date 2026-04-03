@@ -1,5 +1,6 @@
 package com.example.chimeralis.logic.battle
 
+import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.trainers.NPC
@@ -38,10 +39,10 @@ class BattleManager(
                     if (isBattleActive) playerTurn(playerAction.move, log)
                 }
             }
-//            is BattleAction.UseItem -> {
-//                useItem(playerAction.item, log)
-//                enemyTurn(log)
-//            }
+            is BattleAction.UseItem -> {
+                useItem(playerAction.item, log)
+                enemyTurn(log)
+            }
             is BattleAction.SwapChimera -> {
                 switchChimera(playerAction.chimera, log)
                 enemyTurn(log)
@@ -79,6 +80,11 @@ class BattleManager(
                 log.add("You won!")
             }
         }
+    }
+
+    private fun useItem(item: Item, log: MutableList<String>){
+        player.inventory.useItem(item, playerChimera)
+        log.add("Used ${item.name} on ${playerChimera.name}!")
     }
 
     private fun switchChimera(chimera: Chimera, log: MutableList<String>) {

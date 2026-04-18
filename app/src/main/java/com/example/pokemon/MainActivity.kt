@@ -1,34 +1,68 @@
 package com.example.pokemon
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_Pokemon)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        setContentView(R.layout.activity_splash)
-
-        Handler(Looper.getMainLooper()).postDelayed({
-
-            setContentView(R.layout.activity_main)
-
-            val mainView = findViewById<android.view.View>(R.id.main)
-            if (mainView != null) {
-                ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
-                    val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-                    insets
+        setContent {
+            MaterialTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    AppNavigation()
                 }
             }
-
-        }, 5000)
+        }
     }
+}
+
+@Composable
+fun AppNavigation() {
+    var currentScreen by remember { mutableStateOf("splash") }
+
+    LaunchedEffect(Unit) {
+        delay(2000)
+        currentScreen = "main_menu"
+    }
+
+    when (currentScreen) {
+        "splash" -> SplashScreen()
+        "main_menu" -> MainMenuScreen(
+            onNewGame = { currentScreen = "starter_selection" },
+            onContinue = { /* пізніше */ }
+        )
+        "starter_selection" -> StarterSelectionScreen(
+            onStarterSelected = { currentScreen = "battle" }
+        )
+        "battle" -> BattleScreen()
+    }
+}
+
+@Composable
+fun SplashScreen() {
+    // TODO
+}
+
+@Composable
+fun MainMenuScreen(onNewGame: () -> Unit, onContinue: () -> Unit) {
+    // TODO
+}
+
+@Composable
+fun StarterSelectionScreen(onStarterSelected: () -> Unit) {
+    // TODO
+}
+
+@Composable
+fun BattleScreen() {
+    // TODO
 }

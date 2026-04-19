@@ -6,9 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -26,9 +31,11 @@ import androidx.compose.remote.creation.random
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +45,14 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.delay
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font
+
+val cinzelFamily = FontFamily(
+    Font(R.font.cinzel_black, FontWeight.Black)
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,18 +121,21 @@ fun SplashScreen(onFinished: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.7f)
-                .padding(horizontal = 32.dp)
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 70.dp),
+                .padding(bottom = 70.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF2D0A00).copy(alpha = 0.5f)) // темно-бордовий
+                .padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
+        ){
             Text(
                 text = "${(animatedProgress * 100).toInt()}%",
                 color = Color(0xFFFFD700),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
+                letterSpacing = 2.sp,
+                fontFamily = cinzelFamily
             )
 
             Box(
@@ -154,7 +172,89 @@ fun SplashScreen(onFinished: () -> Unit) {
 
 @Composable
 fun MainMenuScreen(onNewGame: () -> Unit, onContinue: () -> Unit) {
-    // TODO
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.menu),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            MenuButton(text = "New Game", onClick = onNewGame)
+            MenuButton(text = "Continue", onClick = onContinue)
+            MenuButton(text = "Settings", onClick = { })
+            MenuButton(text = "Exit", onClick = { })
+        }
+    }
+}
+
+@Composable
+fun MenuButton(text: String, onClick: () -> Unit) {
+    val gradientBrush = Brush.horizontalGradient(
+        colors = listOf(
+            Color(0xFFFF6B00).copy(alpha = 0.6f),
+            Color(0xFFFFD700).copy(alpha = 0.9f),
+            Color(0xFFFF6B00).copy(alpha = 0.6f)
+        )
+    )
+    var isPressed by remember { mutableStateOf(false) }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .width(160.dp)
+            .height(42.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = { onClick() }
+                )
+            }
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val cut = size.height * 0.25f
+            val path = Path().apply {
+                moveTo(cut, 0f)
+                lineTo(size.width - cut, 0f)
+                lineTo(size.width, cut)
+                lineTo(size.width, size.height - cut)
+                lineTo(size.width - cut, size.height)
+                lineTo(cut, size.height)
+                lineTo(0f, size.height - cut)
+                lineTo(0f, cut)
+                close()
+            }
+            drawPath(
+                path = path,
+                color = if (isPressed) Color(0xFF290e00).copy(alpha = 0.85f)
+                else Color(0xFF3D1500).copy(alpha = 0.75f)
+            )
+            drawPath(
+                path = path,
+                brush = gradientBrush,
+                style = Stroke(width = 2f)
+            )
+        }
+        Text(
+            text = text,
+            color = Color(0xFFFFD700),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
+            fontFamily = cinzelFamily
+        )
+    }
 }
 
 @Composable

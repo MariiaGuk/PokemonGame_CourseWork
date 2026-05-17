@@ -10,10 +10,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Pokemon">
+        android:theme="@style/Theme.Chimeralis">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.Pokemon.Splash"
+            android:theme="@style/Theme.Chimeralis.Splash"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>

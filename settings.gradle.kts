@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Pokemon"
+rootProject.name = "Chimeralis"
 include(":app")
  

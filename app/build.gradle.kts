@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.pokemon"
+    namespace = "com.example.chimeralis"
     compileSdk {
         version = release(36)
     }
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.pokemon"
+        applicationId = "com.example.chimeralis"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

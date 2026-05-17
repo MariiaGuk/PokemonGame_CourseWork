@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.ui.screens.BattleScreen
 import com.example.chimeralis.ui.screens.MainMenuScreen
 import com.example.chimeralis.ui.screens.SplashScreen
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("splash") }
+    var selectedStarter by remember { mutableStateOf<ChimeraSpecies?>(null) }
 
     when (currentScreen) {
         "splash" -> SplashScreen(onFinished = { currentScreen = "main_menu" })
@@ -48,7 +50,11 @@ fun AppNavigation() {
             onContinue = { /* пізніше */ }
         )
         "starter_selection" -> StarterSelectionScreen(
-            onStarterSelected = { currentScreen = "battle" }
+            onStarterSelected = { starter ->
+                selectedStarter = starter
+                currentScreen = "battle"
+            },
+            onBack = { currentScreen = "main_menu" }
         )
         "battle" -> BattleScreen()
     }

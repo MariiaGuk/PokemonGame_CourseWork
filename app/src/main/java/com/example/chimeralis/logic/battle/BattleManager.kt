@@ -43,7 +43,7 @@ class BattleManager(
                 useItem(playerAction.item, log)
                 enemyTurn(log)
             }
-            is BattleAction.SwapChimera -> {
+            is BattleAction.SwitchChimera -> {
                 switchChimera(playerAction.chimera, log)
                 enemyTurn(log)
             }

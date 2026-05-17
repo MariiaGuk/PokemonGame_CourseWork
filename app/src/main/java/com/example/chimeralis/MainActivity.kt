@@ -1,4 +1,4 @@
-package com.example.chimeralis
+﻿package com.example.chimeralis
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,6 +16,7 @@ import com.example.chimeralis.ui.screens.BattleScreen
 import com.example.chimeralis.ui.screens.MainMenuScreen
 import com.example.chimeralis.ui.screens.SplashScreen
 import com.example.chimeralis.ui.screens.StarterSelectionScreen
+import com.example.chimeralis.ui.screens.WorldScreen
 import com.example.chimeralis.ui.theme.ChimeralisTheme
 
 class MainActivity : ComponentActivity() {
@@ -52,9 +53,13 @@ fun AppNavigation() {
         "starter_selection" -> StarterSelectionScreen(
             onStarterSelected = { starter ->
                 selectedStarter = starter
-                currentScreen = "battle"
+                currentScreen = "world"
             },
             onBack = { currentScreen = "main_menu" }
+        )
+        "world" -> WorldScreen(
+            starter = selectedStarter,
+            onWildEncounter = {}
         )
         "battle" -> BattleScreen()
     }

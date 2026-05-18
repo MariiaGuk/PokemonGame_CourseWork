@@ -39,7 +39,9 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 @Composable
 fun TrainerNameScreen(
     onNameConfirmed: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    errorMessage: String? = null,
+    onNameEdited: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     var trainerName by remember { mutableStateOf(TextFieldValue("")) }
@@ -113,6 +115,7 @@ fun TrainerNameScreen(
                     onValueChange = { value ->
                         if (value.text.length <= MaxTrainerNameLength) {
                             trainerName = value
+                            onNameEdited()
                         }
                     },
                     singleLine = true,
@@ -138,6 +141,17 @@ fun TrainerNameScreen(
                         }
                         innerTextField()
                     }
+                )
+            }
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = Color(0xFFFF6A2A),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = CinzelFamily,
+                    textAlign = TextAlign.Center
                 )
             }
 

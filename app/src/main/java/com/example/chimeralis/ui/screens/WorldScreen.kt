@@ -36,8 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -80,19 +83,25 @@ private val grassTiles = setOf(
 )
 
 private enum class Direction { Down, Up, Left, Right }
+private enum class ExitAction { MainMenu, ExitGame }
 
 @Composable
 fun WorldScreen(
     starter: ChimeraSpecies?,
+    initialPlayerColumn: Int = 1,
+    initialPlayerRow: Int = 1,
+    hasUnsavedChanges: Boolean = false,
+    onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
+    onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onBackToMainMenu: () -> Unit,
     onExitGame: () -> Unit,
     onWildEncounter: (ChimeraSpecies) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    var playerColumn by remember { mutableIntStateOf(1) }
-    var playerRow by remember { mutableIntStateOf(1) }
-    var targetColumn by remember { mutableIntStateOf(1) }
-    var targetRow by remember { mutableIntStateOf(1) }
+    var playerColumn by remember { mutableIntStateOf(initialPlayerColumn) }
+    var playerRow by remember { mutableIntStateOf(initialPlayerRow) }
+    var targetColumn by remember { mutableIntStateOf(initialPlayerColumn) }
+    var targetRow by remember { mutableIntStateOf(initialPlayerRow) }
     var direction by remember { mutableStateOf(Direction.Down) }
     var requestedDirection by remember { mutableStateOf<Direction?>(null) }
     var isMoving by remember { mutableStateOf(false) }
@@ -100,6 +109,9 @@ fun WorldScreen(
     var lastGrassTile by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var isGameMenuOpen by remember { mutableStateOf(false) }
     var isSettingsOpen by remember { mutableStateOf(false) }
+    var pendingExitAction by remember { mutableStateOf<ExitAction?>(null) }
+    var pendingExitRequiresSave by remember { mutableStateOf(false) }
+    var showSaveMessage by remember { mutableStateOf(false) }
     val groundTexture = ImageBitmap.imageResource(id = R.drawable.lava_ground)
     val grassTexture = ImageBitmap.imageResource(id = R.drawable.rock_grass_tile)
 
@@ -118,6 +130,13 @@ fun WorldScreen(
         while (true) {
             animationFrame++
             delay(if (isMoving) MovingFrameDelayMs else IdleFrameDelayMs)
+        }
+    }
+
+    LaunchedEffect(showSaveMessage) {
+        if (showSaveMessage) {
+            delay(1600L)
+            showSaveMessage = false
         }
     }
 
@@ -154,6 +173,7 @@ fun WorldScreen(
             playerColumn = nextTile.first
             playerRow = nextTile.second
             isMoving = false
+            onPlayerPositionChanged(playerColumn, playerRow)
 
             if (nextTile in grassTiles) {
                 if (nextTile != lastGrassTile) {
@@ -277,14 +297,54 @@ fun WorldScreen(
         if (isGameMenuOpen) {
             InGameMenuOverlay(
                 showSettings = isSettingsOpen,
+                pendingExitAction = pendingExitAction,
+                pendingExitRequiresSave = pendingExitRequiresSave,
+                showSaveMessage = showSaveMessage,
                 onResume = {
                     isSettingsOpen = false
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
                     isGameMenuOpen = false
                 },
                 onSettings = { isSettingsOpen = true },
                 onBackFromSettings = { isSettingsOpen = false },
-                onMainMenu = onBackToMainMenu,
-                onExitGame = onExitGame
+                onSaveGame = {
+                    onSaveGame(playerColumn, playerRow)
+                    showSaveMessage = true
+                },
+                onMainMenu = {
+                    pendingExitAction = ExitAction.MainMenu
+                    pendingExitRequiresSave = hasUnsavedChanges
+                },
+                onExitGame = {
+                    pendingExitAction = ExitAction.ExitGame
+                    pendingExitRequiresSave = hasUnsavedChanges
+                },
+                onCancelExit = {
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
+                },
+                onExitWithSave = {
+                    val exitAction = pendingExitAction
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
+                    onSaveGame(playerColumn, playerRow)
+                    when (exitAction) {
+                        ExitAction.MainMenu -> onBackToMainMenu()
+                        ExitAction.ExitGame -> onExitGame()
+                        null -> Unit
+                    }
+                },
+                onExitWithoutSave = {
+                    val exitAction = pendingExitAction
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
+                    when (exitAction) {
+                        ExitAction.MainMenu -> onBackToMainMenu()
+                        ExitAction.ExitGame -> onExitGame()
+                        null -> Unit
+                    }
+                }
             )
         }
     }
@@ -323,11 +383,18 @@ private fun SmallWorldMenuButton(
 @Composable
 private fun InGameMenuOverlay(
     showSettings: Boolean,
+    pendingExitAction: ExitAction?,
+    pendingExitRequiresSave: Boolean,
+    showSaveMessage: Boolean,
     onResume: () -> Unit,
     onSettings: () -> Unit,
     onBackFromSettings: () -> Unit,
+    onSaveGame: () -> Unit,
     onMainMenu: () -> Unit,
-    onExitGame: () -> Unit
+    onExitGame: () -> Unit,
+    onCancelExit: () -> Unit,
+    onExitWithSave: () -> Unit,
+    onExitWithoutSave: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
 
@@ -339,20 +406,47 @@ private fun InGameMenuOverlay(
     ) {
         Column(
             modifier = Modifier
-                .width(280.dp)
+                .width(350.dp)
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = if (showSettings) "Settings" else "Game Menu",
+                text = when {
+                    pendingExitAction != null && pendingExitRequiresSave -> "Save Progress?"
+                    pendingExitAction != null -> "Are You Sure?"
+                    showSettings -> "Settings"
+                    else -> "Game Menu"
+                },
                 color = colors.primary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = CinzelFamily
             )
 
-            if (showSettings) {
+            if (pendingExitAction != null && pendingExitRequiresSave) {
+                Text(
+                    text = "Do you want to save before leaving?",
+                    color = colors.onSurface.copy(alpha = 0.78f),
+                    fontSize = 12.sp,
+                    fontFamily = CinzelFamily
+                )
+                MenuButton(text = "Save", onClick = onExitWithSave)
+                MenuButton(text = "Don't Save", onClick = onExitWithoutSave)
+                MenuButton(text = "Cancel", onClick = onCancelExit)
+            } else if (pendingExitAction != null) {
+                Text(
+                    text = when (pendingExitAction) {
+                        ExitAction.MainMenu -> "Return to the main menu?"
+                        ExitAction.ExitGame -> "Exit the game?"
+                    },
+                    color = colors.onSurface.copy(alpha = 0.78f),
+                    fontSize = 12.sp,
+                    fontFamily = CinzelFamily
+                )
+                MenuButton(text = "Yes", onClick = onExitWithoutSave)
+                MenuButton(text = "Cancel", onClick = onCancelExit)
+            } else if (showSettings) {
                 Text(
                     text = "Audio and gameplay options will appear here.",
                     color = colors.onSurface.copy(alpha = 0.78f),
@@ -362,11 +456,72 @@ private fun InGameMenuOverlay(
                 MenuButton(text = "Back", onClick = onBackFromSettings)
             } else {
                 MenuButton(text = "Resume", onClick = onResume)
+                MenuButton(text = "Save", onClick = onSaveGame)
                 MenuButton(text = "Settings", onClick = onSettings)
                 MenuButton(text = "Main Menu", onClick = onMainMenu)
                 MenuButton(text = "Exit Game", onClick = onExitGame)
             }
         }
+        if (showSaveMessage) {
+            SaveMessagePlate(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 18.dp, bottom = 18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SaveMessagePlate(modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    val gradientBrush = Brush.horizontalGradient(
+        colors = listOf(
+            colors.secondary.copy(alpha = 0.6f),
+            colors.primary.copy(alpha = 0.9f),
+            colors.secondary.copy(alpha = 0.6f)
+        )
+    )
+
+    Box(
+        modifier = modifier
+            .width(184.dp)
+            .height(42.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val cut = size.height * 0.25f
+            val path = Path().apply {
+                moveTo(cut, 0f)
+                lineTo(size.width - cut, 0f)
+                lineTo(size.width, cut)
+                lineTo(size.width, size.height - cut)
+                lineTo(size.width - cut, size.height)
+                lineTo(cut, size.height)
+                lineTo(0f, size.height - cut)
+                lineTo(0f, cut)
+                close()
+            }
+
+            drawPath(
+                path = path,
+                color = colors.background.copy(alpha = 0.75f)
+            )
+            drawPath(
+                path = path,
+                brush = gradientBrush,
+                style = Stroke(width = 2f)
+            )
+        }
+
+        Text(
+            text = "Progress Saved",
+            color = colors.primary,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            fontFamily = CinzelFamily
+        )
     }
 }
 

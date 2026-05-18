@@ -58,6 +58,7 @@ private const val HeldStepDelayMs = 65L
 private const val JoystickDeadZone = 0.35f
 private const val MovingFrameDelayMs = 160L
 private const val IdleFrameDelayMs = 320L
+private const val WorldZoom = 1.18f
 
 private val grassTiles = setOf(
     3 to 2, 4 to 2, 5 to 2, 12 to 2, 13 to 2, 14 to 2,
@@ -156,19 +157,25 @@ fun WorldScreen(
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
         val heightPx = with(density) { maxHeight.toPx() }
-        val tileWidth = widthPx / MapColumns
-        val tileHeight = heightPx / MapRows
+        val tileWidth = widthPx / MapColumns * WorldZoom
+        val tileHeight = heightPx / MapRows * WorldZoom
+        val mapWidth = tileWidth * MapColumns
+        val mapHeight = tileHeight * MapRows
+        val mapLeft = (widthPx / 2f - (animatedColumn + 0.5f) * tileWidth)
+            .coerceIn(widthPx - mapWidth, 0f)
+        val mapTop = (heightPx / 2f - (animatedRow + 0.5f) * tileHeight)
+            .coerceIn(heightPx - mapHeight, 0f)
         val spriteBaseSize = minOf(tileWidth, tileHeight)
-        val spriteWidth = spriteBaseSize * 0.92f
-        val spriteHeight = spriteBaseSize * 1.42f
-        val playerCenterX = (animatedColumn + 0.5f) * tileWidth
-        val playerCenterY = (animatedRow + 0.5f) * tileHeight
+        val spriteWidth = spriteBaseSize * 1.06f
+        val spriteHeight = spriteBaseSize * 1.62f
+        val playerCenterX = mapLeft + (animatedColumn + 0.5f) * tileWidth
+        val playerCenterY = mapTop + (animatedRow + 0.5f) * tileHeight
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             for (row in 0 until MapRows) {
                 for (column in 0 until MapColumns) {
-                    val left = column * tileWidth
-                    val top = row * tileHeight
+                    val left = mapLeft + column * tileWidth
+                    val top = mapTop + row * tileHeight
                     val isGrass = column to row in grassTiles
                     val tileDstSize = IntSize(
                         width = (tileWidth + 1f).roundToInt(),
@@ -205,7 +212,7 @@ fun WorldScreen(
                 .offset {
                     IntOffset(
                         x = (playerCenterX - spriteWidth / 2f).roundToInt(),
-                        y = (playerCenterY - spriteHeight * 0.88f).roundToInt()
+                        y = (playerCenterY - spriteHeight * 0.76f).roundToInt()
                     )
                 }
                 .size(

@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(onExitGame: () -> Unit) {
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedStarter by remember { mutableStateOf<ChimeraSpecies?>(null) }
+    var starterNickname by remember { mutableStateOf("") }
     var trainerName by remember { mutableStateOf("") }
     var wildEncounter by remember { mutableStateOf<ChimeraSpecies?>(null) }
 
@@ -61,8 +62,9 @@ fun AppNavigation(onExitGame: () -> Unit) {
             onBack = { currentScreen = "main_menu" }
         )
         "starter_selection" -> StarterSelectionScreen(
-            onStarterSelected = { starter ->
+            onStarterSelected = { starter, nickname ->
                 selectedStarter = starter
+                starterNickname = nickname
                 currentScreen = "world"
             },
             onBack = { currentScreen = "trainer_name" }
@@ -78,6 +80,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
         )
         "battle" -> BattleScreen(
             playerSpecies = selectedStarter,
+            playerName = starterNickname.ifBlank { null },
             wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
             onRun = { currentScreen = "world" }
         )

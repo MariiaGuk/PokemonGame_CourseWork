@@ -39,11 +39,12 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 @Composable
 fun BattleScreen(
     playerSpecies: ChimeraSpecies?,
+    playerName: String? = null,
     wildSpecies: ChimeraSpecies,
     onRun: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val playerName = playerSpecies?.battleName() ?: "Partner"
+    val playerDisplayName = playerName ?: playerSpecies?.battleName() ?: "Partner"
     val wildName = wildSpecies.battleName()
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -75,7 +76,7 @@ fun BattleScreen(
                 .background(Color.Black.copy(alpha = 0.08f))
         ) {
             StatusPlate(
-                name = playerName,
+                name = playerDisplayName,
                 level = 5,
                 currentHp = 20,
                 maxHp = 20,

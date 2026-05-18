@@ -7,14 +7,21 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -37,12 +45,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.abs
@@ -74,6 +84,8 @@ private enum class Direction { Down, Up, Left, Right }
 @Composable
 fun WorldScreen(
     starter: ChimeraSpecies?,
+    onBackToMainMenu: () -> Unit,
+    onExitGame: () -> Unit,
     onWildEncounter: (ChimeraSpecies) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -86,6 +98,8 @@ fun WorldScreen(
     var isMoving by remember { mutableStateOf(false) }
     var animationFrame by remember { mutableIntStateOf(0) }
     var lastGrassTile by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var isGameMenuOpen by remember { mutableStateOf(false) }
+    var isSettingsOpen by remember { mutableStateOf(false) }
     val groundTexture = ImageBitmap.imageResource(id = R.drawable.lava_ground)
     val grassTexture = ImageBitmap.imageResource(id = R.drawable.rock_grass_tile)
 
@@ -109,6 +123,13 @@ fun WorldScreen(
 
     LaunchedEffect(Unit) {
         while (true) {
+            if (isGameMenuOpen) {
+                requestedDirection = null
+                isMoving = false
+                delay(16L)
+                continue
+            }
+
             val nextDirection = requestedDirection
             if (nextDirection == null) {
                 delay(16L)
@@ -224,27 +245,128 @@ fun WorldScreen(
                 }
         )
 
-        Text(
-            text = "Wild grass can trigger battles",
-            color = colors.primary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = CinzelFamily,
+        Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(16.dp)
-                .background(colors.surface.copy(alpha = 0.7f), CircleShape)
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-        )
+                .padding(14.dp)
+                .width(92.dp)
+                .height(34.dp)
+        ) {
+            SmallWorldMenuButton(
+                text = "Menu",
+                onClick = {
+                    requestedDirection = null
+                    isMoving = false
+                    isSettingsOpen = false
+                    isGameMenuOpen = true
+                }
+            )
+        }
 
         Joystick(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 28.dp, bottom = 24.dp),
             onDirectionChanged = { x, y ->
-                requestedDirection = joystickDirection(x, y)
+                if (!isGameMenuOpen) {
+                    requestedDirection = joystickDirection(x, y)
+                }
             }
         )
+
+        if (isGameMenuOpen) {
+            InGameMenuOverlay(
+                showSettings = isSettingsOpen,
+                onResume = {
+                    isSettingsOpen = false
+                    isGameMenuOpen = false
+                },
+                onSettings = { isSettingsOpen = true },
+                onBackFromSettings = { isSettingsOpen = false },
+                onMainMenu = onBackToMainMenu,
+                onExitGame = onExitGame
+            )
+        }
+    }
+}
+
+@Composable
+private fun SmallWorldMenuButton(
+    text: String,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(6.dp))
+            .background(colors.surface.copy(alpha = 0.42f))
+            .border(1.dp, colors.primary.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { onClick() })
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        BasicText(
+            text = text,
+            style = TextStyle(
+                color = colors.primary.copy(alpha = 0.9f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = CinzelFamily
+            )
+        )
+    }
+}
+
+@Composable
+private fun InGameMenuOverlay(
+    showSettings: Boolean,
+    onResume: () -> Unit,
+    onSettings: () -> Unit,
+    onBackFromSettings: () -> Unit,
+    onMainMenu: () -> Unit,
+    onExitGame: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.36f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .width(280.dp)
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = if (showSettings) "Settings" else "Game Menu",
+                color = colors.primary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = CinzelFamily
+            )
+
+            if (showSettings) {
+                Text(
+                    text = "Audio and gameplay options will appear here.",
+                    color = colors.onSurface.copy(alpha = 0.78f),
+                    fontSize = 12.sp,
+                    fontFamily = CinzelFamily
+                )
+                MenuButton(text = "Back", onClick = onBackFromSettings)
+            } else {
+                MenuButton(text = "Resume", onClick = onResume)
+                MenuButton(text = "Settings", onClick = onSettings)
+                MenuButton(text = "Main Menu", onClick = onMainMenu)
+                MenuButton(text = "Exit Game", onClick = onExitGame)
+            }
+        }
     }
 }
 

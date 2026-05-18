@@ -58,7 +58,7 @@ private const val HeldStepDelayMs = 65L
 private const val JoystickDeadZone = 0.35f
 private const val MovingFrameDelayMs = 160L
 private const val IdleFrameDelayMs = 320L
-private const val WorldZoom = 1.18f
+private const val WorldZoom = 1.28f
 
 private val grassTiles = setOf(
     3 to 2, 4 to 2, 5 to 2, 12 to 2, 13 to 2, 14 to 2,

@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedStarter by remember { mutableStateOf<ChimeraSpecies?>(null) }
+    var wildEncounter by remember { mutableStateOf<ChimeraSpecies?>(null) }
 
     when (currentScreen) {
         "splash" -> SplashScreen(onFinished = { currentScreen = "main_menu" })
@@ -59,8 +60,15 @@ fun AppNavigation() {
         )
         "world" -> WorldScreen(
             starter = selectedStarter,
-            onWildEncounter = {}
+            onWildEncounter = { wildSpecies ->
+                wildEncounter = wildSpecies
+                currentScreen = "battle"
+            }
         )
-        "battle" -> BattleScreen()
+        "battle" -> BattleScreen(
+            playerSpecies = selectedStarter,
+            wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
+            onRun = { currentScreen = "world" }
+        )
     }
 }

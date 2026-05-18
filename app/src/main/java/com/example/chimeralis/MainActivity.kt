@@ -98,7 +98,8 @@ fun AppNavigation(onExitGame: () -> Unit) {
             onContinue = {
                 saves = saveStore.loadAll()
                 currentScreen = "continue"
-            }
+            },
+            onExitGame = onExitGame
         )
         "continue" -> ContinueScreen(
             saves = saves,

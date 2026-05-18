@@ -16,6 +16,7 @@ import com.example.chimeralis.ui.screens.BattleScreen
 import com.example.chimeralis.ui.screens.MainMenuScreen
 import com.example.chimeralis.ui.screens.SplashScreen
 import com.example.chimeralis.ui.screens.StarterSelectionScreen
+import com.example.chimeralis.ui.screens.TrainerNameScreen
 import com.example.chimeralis.ui.screens.WorldScreen
 import com.example.chimeralis.ui.theme.ChimeralisTheme
 
@@ -43,20 +44,28 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(onExitGame: () -> Unit) {
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedStarter by remember { mutableStateOf<ChimeraSpecies?>(null) }
+    var trainerName by remember { mutableStateOf("") }
     var wildEncounter by remember { mutableStateOf<ChimeraSpecies?>(null) }
 
     when (currentScreen) {
         "splash" -> SplashScreen(onFinished = { currentScreen = "main_menu" })
         "main_menu" -> MainMenuScreen(
-            onNewGame = { currentScreen = "starter_selection" },
+            onNewGame = { currentScreen = "trainer_name" },
             onContinue = { /* пізніше */ }
+        )
+        "trainer_name" -> TrainerNameScreen(
+            onNameConfirmed = { name ->
+                trainerName = name
+                currentScreen = "starter_selection"
+            },
+            onBack = { currentScreen = "main_menu" }
         )
         "starter_selection" -> StarterSelectionScreen(
             onStarterSelected = { starter ->
                 selectedStarter = starter
                 currentScreen = "world"
             },
-            onBack = { currentScreen = "main_menu" }
+            onBack = { currentScreen = "trainer_name" }
         )
         "world" -> WorldScreen(
             starter = selectedStarter,

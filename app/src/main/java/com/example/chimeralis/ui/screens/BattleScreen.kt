@@ -77,6 +77,8 @@ fun BattleScreen(
             StatusPlate(
                 name = playerName,
                 level = 5,
+                currentHp = 20,
+                maxHp = 20,
                 modifier = Modifier
                     .width(statusWidth)
                     .offset(
@@ -88,6 +90,8 @@ fun BattleScreen(
             StatusPlate(
                 name = wildName,
                 level = 3,
+                currentHp = 15,
+                maxHp = 15,
                 modifier = Modifier
                     .width(statusWidth)
                     .offset(
@@ -151,9 +155,12 @@ private fun BattleFighter(
 private fun StatusPlate(
     name: String,
     level: Int,
+    currentHp: Int,
+    maxHp: Int,
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
+    val hpRatio = (currentHp.toFloat() / maxHp.toFloat()).coerceIn(0f, 1f)
 
     Column(
         modifier = modifier
@@ -161,13 +168,27 @@ private fun StatusPlate(
             .background(colors.surface.copy(alpha = 0.82f))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Text(
-            text = "$name  Lv.$level",
-            color = colors.primary,
-            fontFamily = CinzelFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$name  Lv.$level",
+                color = colors.primary,
+                fontFamily = CinzelFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp
+            )
+
+            Text(
+                text = "$currentHp/$maxHp",
+                color = colors.primary,
+                fontFamily = CinzelFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(5.dp))
 
@@ -180,7 +201,7 @@ private fun StatusPlate(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.86f)
+                    .fillMaxWidth(hpRatio)
                     .fillMaxHeight()
                     .background(Color(0xFF66C96A))
             )

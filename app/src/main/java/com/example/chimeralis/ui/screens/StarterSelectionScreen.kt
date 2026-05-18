@@ -17,20 +17,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,10 +59,13 @@ private data class StarterOption(
 
 @Composable
 fun StarterSelectionScreen(
-    onStarterSelected: (ChimeraSpecies) -> Unit,
+    onStarterSelected: (ChimeraSpecies, String) -> Unit,
     onBack: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
+    var selectedStarter by remember { mutableStateOf<StarterOption?>(null) }
+    var pokemonName by remember { mutableStateOf(TextFieldValue("")) }
+    var isPokemonNameFocused by remember { mutableStateOf(false) }
     val starters = listOf(
         StarterOption(
             species = ChimeraSpecies.Sunflare,
@@ -136,7 +147,11 @@ fun StarterSelectionScreen(
                 starters.forEach { starter ->
                     StarterCard(
                         starter = starter,
-                        onClick = { onStarterSelected(starter.species) },
+                        onClick = {
+                            selectedStarter = starter
+                            pokemonName = TextFieldValue(starter.species.defaultName())
+                            isPokemonNameFocused = false
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
@@ -146,6 +161,135 @@ fun StarterSelectionScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
             MenuButton(text = "Back", onClick = onBack)
+        }
+
+        selectedStarter?.let { starter ->
+            PokemonNameOverlay(
+                starter = starter,
+                name = pokemonName,
+                isNameFocused = isPokemonNameFocused,
+                onNameChanged = { value ->
+                    if (value.text.length <= MaxPokemonNameLength) {
+                        pokemonName = value
+                    }
+                },
+                onFocusChanged = { focused -> isPokemonNameFocused = focused },
+                onBack = {
+                    selectedStarter = null
+                    pokemonName = TextFieldValue("")
+                    isPokemonNameFocused = false
+                },
+                onConfirm = {
+                    val finalName = pokemonName.text.trim().ifBlank { starter.species.defaultName() }
+                    onStarterSelected(starter.species, finalName)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PokemonNameOverlay(
+    starter: StarterOption,
+    name: TextFieldValue,
+    isNameFocused: Boolean,
+    onNameChanged: (TextFieldValue) -> Unit,
+    onFocusChanged: (Boolean) -> Unit,
+    onBack: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                }
+        )
+
+        Column(
+            modifier = Modifier
+                .width(340.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(colors.surface.copy(alpha = 0.86f))
+                .border(1.dp, starter.accent.copy(alpha = 0.75f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 22.dp, vertical = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Name Your Partner",
+                color = colors.primary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = CinzelFamily,
+                textAlign = TextAlign.Center
+            )
+
+            Image(
+                painter = painterResource(id = starter.imageRes),
+                contentDescription = starter.species.defaultName(),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .height(92.dp)
+                    .fillMaxWidth()
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(240.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(colors.background.copy(alpha = 0.55f))
+                    .border(1.dp, colors.primary.copy(alpha = 0.52f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                BasicTextField(
+                    value = name,
+                    onValueChange = onNameChanged,
+                    singleLine = true,
+                    modifier = Modifier.onFocusChanged { onFocusChanged(it.isFocused) },
+                    textStyle = TextStyle(
+                        color = colors.primary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = CinzelFamily,
+                        textAlign = TextAlign.Center
+                    ),
+                    decorationBox = { innerTextField ->
+                        if (name.text.isBlank() && !isNameFocused) {
+                            Text(
+                                text = "Enter name",
+                                color = colors.primary.copy(alpha = 0.45f),
+                                fontSize = 16.sp,
+                                fontFamily = CinzelFamily,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        innerTextField()
+                    }
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                MenuButton(text = "Back", onClick = onBack)
+                MenuButton(text = "Confirm", onClick = onConfirm)
+            }
         }
     }
 }
@@ -248,6 +392,16 @@ private fun ChimeraType.battleTrait(): String = when (this) {
     ChimeraType.WATER -> "Tough defender"
     ChimeraType.NORMAL -> "Balanced fighter"
 }
+
+private fun ChimeraSpecies.defaultName(): String = when (this) {
+    ChimeraSpecies.Sunflare -> "Sunflare"
+    ChimeraSpecies.Solflare -> "Solflare"
+    ChimeraSpecies.Solignis -> "Solignis"
+    ChimeraSpecies.Sylvhorn -> "Sylvhorn"
+    ChimeraSpecies.Aquantis -> "Aquantis"
+}
+
+private const val MaxPokemonNameLength = 12
 
 @Composable
 private fun StatsGrid(

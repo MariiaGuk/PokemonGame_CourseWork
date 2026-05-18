@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ChimeralisTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    AppNavigation()
+                    AppNavigation(onExitGame = ::finish)
                 }
             }
         }
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(onExitGame: () -> Unit) {
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedStarter by remember { mutableStateOf<ChimeraSpecies?>(null) }
     var wildEncounter by remember { mutableStateOf<ChimeraSpecies?>(null) }
@@ -60,6 +60,8 @@ fun AppNavigation() {
         )
         "world" -> WorldScreen(
             starter = selectedStarter,
+            onBackToMainMenu = { currentScreen = "main_menu" },
+            onExitGame = onExitGame,
             onWildEncounter = { wildSpecies ->
                 wildEncounter = wildSpecies
                 currentScreen = "battle"

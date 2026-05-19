@@ -112,6 +112,7 @@ fun WorldScreen(
     var pendingExitAction by remember { mutableStateOf<ExitAction?>(null) }
     var pendingExitRequiresSave by remember { mutableStateOf(false) }
     var showSaveMessage by remember { mutableStateOf(false) }
+    var isWildEncounterStarting by remember { mutableStateOf(false) }
     val groundTexture = ImageBitmap.imageResource(id = R.drawable.lava_ground)
     val grassTexture = ImageBitmap.imageResource(id = R.drawable.rock_grass_tile)
 
@@ -142,7 +143,7 @@ fun WorldScreen(
 
     LaunchedEffect(Unit) {
         while (true) {
-            if (isGameMenuOpen) {
+            if (isGameMenuOpen || isWildEncounterStarting) {
                 requestedDirection = null
                 isMoving = false
                 delay(16L)
@@ -179,6 +180,9 @@ fun WorldScreen(
                 if (nextTile != lastGrassTile) {
                     lastGrassTile = nextTile
                     if (Random.nextFloat() < EncounterChance) {
+                        requestedDirection = null
+                        isMoving = false
+                        isWildEncounterStarting = true
                         onWildEncounter(randomWildChimera(starter))
                     }
                 }
@@ -288,7 +292,7 @@ fun WorldScreen(
                 .align(Alignment.BottomStart)
                 .padding(start = 28.dp, bottom = 24.dp),
             onDirectionChanged = { x, y ->
-                if (!isGameMenuOpen) {
+                if (!isGameMenuOpen && !isWildEncounterStarting) {
                     requestedDirection = joystickDirection(x, y)
                 }
             }

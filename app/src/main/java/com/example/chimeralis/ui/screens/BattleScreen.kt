@@ -20,6 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +37,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
+import com.example.chimeralis.logic.battle.BattleAction
+import com.example.chimeralis.logic.battle.BattleManager
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.items.Inventory
+import com.example.chimeralis.logic.trainers.NPC
+import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
@@ -44,15 +55,27 @@ fun BattleScreen(
     onRun: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val playerDisplayName = playerName ?: playerSpecies?.battleName() ?: "Partner"
-    val wildName = wildSpecies.battleName()
+    val battleManager = remember(playerSpecies, playerName, wildSpecies) {
+        createBattleManager(
+            playerSpecies = playerSpecies ?: ChimeraSpecies.Sunflare,
+            playerName = playerName,
+            wildSpecies = wildSpecies
+        )
+    }
+    var panelMode by remember(battleManager) { mutableStateOf(BattlePanelMode.Actions) }
+    var battleMessage by remember(battleManager) {
+        mutableStateOf("A wild ${battleManager.enemyChimera.name} appeared!")
+    }
+    var uiVersion by remember(battleManager) { mutableIntStateOf(0) }
+    val refreshKey = uiVersion
+    val playerChimera = battleManager.playerChimera
+    val wildChimera = battleManager.enemyChimera
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenWidth = maxWidth
-        val panelHeight = 112.dp
-        val bottomPadding = 14.dp
+        val panelHeight = 100.dp
         val statusWidth = 310.dp
-        val platformY = minOf(maxHeight * 0.68f, maxHeight - panelHeight - bottomPadding - 42.dp)
+        val platformY = minOf(maxHeight * 0.68f, maxHeight - panelHeight - 42.dp)
         val playerPlatformX = maxWidth * 0.35f
         val wildPlatformX = maxWidth * 0.70f
         val spriteSize = minOf(maxWidth * 0.25f, maxHeight * 0.45f)
@@ -76,10 +99,11 @@ fun BattleScreen(
                 .background(Color.Black.copy(alpha = 0.08f))
         ) {
             StatusPlate(
-                name = playerDisplayName,
-                level = 5,
-                currentHp = 20,
-                maxHp = 20,
+                name = playerChimera.name,
+                level = playerChimera.level,
+                currentHp = playerChimera.stats.currentHp,
+                maxHp = playerChimera.stats.maxHp,
+                refreshKey = refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
                     .offset(
@@ -89,10 +113,11 @@ fun BattleScreen(
             )
 
             StatusPlate(
-                name = wildName,
-                level = 3,
-                currentHp = 15,
-                maxHp = 15,
+                name = wildChimera.name,
+                level = wildChimera.level,
+                currentHp = wildChimera.stats.currentHp,
+                maxHp = wildChimera.stats.maxHp,
+                refreshKey = refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
                     .offset(
@@ -102,7 +127,7 @@ fun BattleScreen(
             )
 
             BattleFighter(
-                imageRes = playerSpecies?.battleImageRes() ?: R.drawable.starter_fire,
+                imageRes = playerChimera.species.battleImageRes(),
                 mirrored = true,
                 spriteSize = spriteSize,
                 modifier = Modifier.offset(
@@ -112,7 +137,7 @@ fun BattleScreen(
             )
 
             BattleFighter(
-                imageRes = wildSpecies.battleImageRes(),
+                imageRes = wildChimera.species.battleImageRes(),
                 mirrored = false,
                 spriteSize = spriteSize,
                 modifier = Modifier.offset(
@@ -122,12 +147,34 @@ fun BattleScreen(
             )
 
             BattlePanel(
-                message = "A wild $wildName appeared!",
-                onRun = onRun,
+                message = battleMessage,
+                mode = panelMode,
+                moves = playerChimera.moves,
+                isBattleActive = battleManager.isBattleActive,
+                onFight = { panelMode = BattlePanelMode.Moves },
+                onMoveSelected = { move ->
+                    val log = battleManager.performTurn(BattleAction.UseMove(move))
+                    battleMessage = log.joinToString("\n")
+                    panelMode = BattlePanelMode.Log
+                    uiVersion++
+                },
+                onRun = {
+                    val log = battleManager.performTurn(BattleAction.Run)
+                    battleMessage = log.joinToString("\n")
+                    panelMode = BattlePanelMode.Log
+                    uiVersion++
+                },
+                onBackToActions = { panelMode = BattlePanelMode.Actions },
+                onContinue = {
+                    if (battleManager.isBattleActive) {
+                        panelMode = BattlePanelMode.Actions
+                    } else {
+                        onRun()
+                    }
+                },
                 colors = colors,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 22.dp, vertical = bottomPadding)
             )
         }
     }
@@ -158,10 +205,11 @@ private fun StatusPlate(
     level: Int,
     currentHp: Int,
     maxHp: Int,
+    refreshKey: Int,
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
-    val hpRatio = (currentHp.toFloat() / maxHp.toFloat()).coerceIn(0f, 1f)
+    val hpRatio = ((currentHp + refreshKey * 0).toFloat() / maxHp.toFloat()).coerceIn(0f, 1f)
 
     Column(
         modifier = modifier
@@ -213,43 +261,147 @@ private fun StatusPlate(
 @Composable
 private fun BattlePanel(
     message: String,
+    mode: BattlePanelMode,
+    moves: List<com.example.chimeralis.logic.chimeras.moves.Move>,
+    isBattleActive: Boolean,
+    onFight: () -> Unit,
+    onMoveSelected: (com.example.chimeralis.logic.chimeras.moves.Move) -> Unit,
     onRun: () -> Unit,
+    onBackToActions: () -> Unit,
+    onContinue: () -> Unit,
     colors: androidx.compose.material3.ColorScheme,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(112.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .height(100.dp)
             .background(colors.surface.copy(alpha = 0.9f))
-            .padding(12.dp),
+            .padding(25.dp,7.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = message,
-            color = colors.onSurface,
-            fontFamily = CinzelFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            modifier = Modifier.weight(1f)
-        )
+        BattleMessage(text = message, modifier = Modifier.weight(1f))
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MenuButton(text = "Fight", onClick = {})
-                MenuButton(text = "Bag", onClick = {})
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MenuButton(text = "Team", onClick = {})
-                MenuButton(text = "Run", onClick = onRun)
+        when (mode) {
+            BattlePanelMode.Actions -> BattleActionButtons(
+                onFight = onFight,
+                onRun = onRun
+            )
+            BattlePanelMode.Moves -> MoveButtons(
+                moves = moves,
+                onMoveSelected = onMoveSelected,
+                onBack = onBackToActions
+            )
+            BattlePanelMode.Log -> {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MenuButton(
+                        text = if (isBattleActive) "Continue" else "Finish",
+                        onClick = onContinue
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun BattleMessage(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Text(
+        text = text,
+        color = colors.onSurface,
+        fontFamily = CinzelFamily,
+        fontSize = 13.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 4.sp,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun BattleActionButtons(
+    onFight: () -> Unit,
+    onRun: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MenuButton(text = "Fight", onClick = onFight)
+            MenuButton(text = "Bag", onClick = {})
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MenuButton(text = "Team", onClick = {})
+            MenuButton(text = "Run", onClick = onRun)
+        }
+    }
+}
+
+@Composable
+private fun MoveButtons(
+    moves: List<com.example.chimeralis.logic.chimeras.moves.Move>,
+    onMoveSelected: (com.example.chimeralis.logic.chimeras.moves.Move) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        moves.chunked(2).forEach { rowMoves ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                rowMoves.forEach { move ->
+                    MenuButton(
+                        text = "${move.name} ${move.pp}/${move.maxPp}",
+                        onClick = {
+                            if (move.pp > 0) {
+                                onMoveSelected(move)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        MenuButton(text = "Back", onClick = onBack)
+    }
+}
+
+private enum class BattlePanelMode {
+    Actions,
+    Moves,
+    Log
+}
+
+private fun createBattleManager(
+    playerSpecies: ChimeraSpecies,
+    playerName: String?,
+    wildSpecies: ChimeraSpecies
+): BattleManager {
+    val playerChimera = ChimeraFactory.createChimera(playerSpecies, level = 5)
+    if (!playerName.isNullOrBlank()) {
+        playerChimera.rename(playerName)
+    }
+
+    val wildChimera = ChimeraFactory.createChimera(wildSpecies, level = 3)
+    val player = Player(
+        name = "Player",
+        team = mutableListOf(playerChimera),
+        inventory = Inventory()
+    )
+    val enemy = NPC(
+        name = "Wild",
+        team = mutableListOf(wildChimera)
+    )
+
+    return BattleManager(player = player, enemy = enemy)
 }
 
 private fun ChimeraSpecies.battleName(): String = when (this) {

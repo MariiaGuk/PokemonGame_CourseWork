@@ -57,9 +57,19 @@ class BattleManager(
 
     private fun enemyTurn(log: MutableList<String>) {
         val enemyMove = enemyChimera.moves.random() //Maybe implement ai logic in the future
+        val beforeTargetStats = playerChimera.stats.snapshot()
+        val beforeUserStats = enemyChimera.stats.snapshot()
         enemyMove.execute(enemyChimera, playerChimera)
         log.add("Enemy ${enemyChimera.name} used ${enemyMove.name}!")
-        log.add("Your ${playerChimera.name} has ${playerChimera.stats.currentHp} HP.")
+        appendBattleChanges(
+            log = log,
+            targetLabel = "Your ${playerChimera.name}",
+            targetBefore = beforeTargetStats,
+            targetAfter = playerChimera.stats.snapshot(),
+            userLabel = "Enemy ${enemyChimera.name}",
+            userBefore = beforeUserStats,
+            userAfter = enemyChimera.stats.snapshot()
+        )
 
         if (!playerChimera.stats.isAlive()) {
             if (player.isDefeated()) {
@@ -70,9 +80,19 @@ class BattleManager(
     }
 
     private fun playerTurn(playerMove: Move, log: MutableList<String>) {
+        val beforeTargetStats = enemyChimera.stats.snapshot()
+        val beforeUserStats = playerChimera.stats.snapshot()
         playerMove.execute(playerChimera, enemyChimera)
         log.add("Your ${playerChimera.name} used ${playerMove.name}!")
-        log.add("Enemy ${enemyChimera.name} has ${enemyChimera.stats.currentHp} HP.")
+        appendBattleChanges(
+            log = log,
+            targetLabel = "Enemy ${enemyChimera.name}",
+            targetBefore = beforeTargetStats,
+            targetAfter = enemyChimera.stats.snapshot(),
+            userLabel = "Your ${playerChimera.name}",
+            userBefore = beforeUserStats,
+            userAfter = playerChimera.stats.snapshot()
+        )
 
         if (!enemyChimera.stats.isAlive()) {
             if (enemy.isDefeated()) {
@@ -109,4 +129,78 @@ class BattleManager(
             enemyTurn(log)
         }
     }
+
+    private fun appendBattleChanges(
+        log: MutableList<String>,
+        targetLabel: String,
+        targetBefore: StatsSnapshot,
+        targetAfter: StatsSnapshot,
+        userLabel: String,
+        userBefore: StatsSnapshot,
+        userAfter: StatsSnapshot
+    ) {
+        val oldSize = log.size
+
+        appendHpChange(log, targetLabel, targetBefore, targetAfter)
+        appendStatChanges(log, targetLabel, targetBefore, targetAfter)
+        appendHpChange(log, userLabel, userBefore, userAfter)
+        appendStatChanges(log, userLabel, userBefore, userAfter)
+
+        if (log.size == oldSize) {
+            log.add("But it had no effect!")
+        }
+    }
+
+    private fun appendHpChange(
+        log: MutableList<String>,
+        label: String,
+        before: StatsSnapshot,
+        after: StatsSnapshot
+    ) {
+        if (before.currentHp != after.currentHp) {
+            log.add("$label has ${after.currentHp}/${after.maxHp} HP.")
+        }
+    }
+
+    private fun appendStatChanges(
+        log: MutableList<String>,
+        label: String,
+        before: StatsSnapshot,
+        after: StatsSnapshot
+    ) {
+        appendStatChange(log, label, "attack", before.attack, after.attack)
+        appendStatChange(log, label, "defence", before.defence, after.defence)
+        appendStatChange(log, label, "speed", before.speed, after.speed)
+    }
+
+    private fun appendStatChange(
+        log: MutableList<String>,
+        label: String,
+        statName: String,
+        before: Int,
+        after: Int
+    ) {
+        when {
+            after < before -> log.add("$label's $statName fell!")
+            after > before -> log.add("$label's $statName rose!")
+        }
+    }
+
+    private fun com.example.chimeralis.logic.chimeras.Stats.snapshot(): StatsSnapshot {
+        return StatsSnapshot(
+            currentHp = currentHp,
+            maxHp = maxHp,
+            attack = attack,
+            defence = defence,
+            speed = speed
+        )
+    }
+
+    private data class StatsSnapshot(
+        val currentHp: Int,
+        val maxHp: Int,
+        val attack: Int,
+        val defence: Int,
+        val speed: Int
+    )
 }

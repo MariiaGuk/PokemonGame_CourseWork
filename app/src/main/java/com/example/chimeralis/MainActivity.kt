@@ -4,10 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -23,6 +28,7 @@ import com.example.chimeralis.ui.screens.StarterSelectionScreen
 import com.example.chimeralis.ui.screens.TrainerNameScreen
 import com.example.chimeralis.ui.screens.WorldScreen
 import com.example.chimeralis.ui.theme.ChimeralisTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +66,28 @@ fun AppNavigation(onExitGame: () -> Unit) {
     var trainerNameError by remember { mutableStateOf<String?>(null) }
     var wildEncounter by remember { mutableStateOf<ChimeraSpecies?>(null) }
     var saves by remember { mutableStateOf(saveStore.loadAll()) }
+    var isScreenTransitionRunning by remember { mutableStateOf(false) }
+    val transitionWhiteAlpha = remember { Animatable(0f) }
+    val transitionScope = rememberCoroutineScope()
     val hasUnsavedChanges = playerColumn != lastSavedColumn || playerRow != lastSavedRow
+
+    fun transitionTo(screen: String) {
+        if (isScreenTransitionRunning) return
+
+        transitionScope.launch {
+            isScreenTransitionRunning = true
+            transitionWhiteAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 360)
+            )
+            currentScreen = screen
+            transitionWhiteAlpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 420)
+            )
+            isScreenTransitionRunning = false
+        }
+    }
 
     fun saveCurrentGame(column: Int = playerColumn, row: Int = playerRow) {
         val starter = selectedStarter ?: return
@@ -81,104 +108,114 @@ fun AppNavigation(onExitGame: () -> Unit) {
         saves = saveStore.loadAll()
     }
 
-    when (currentScreen) {
-        "splash" -> SplashScreen(onFinished = { currentScreen = "main_menu" })
-        "main_menu" -> MainMenuScreen(
-            onNewGame = {
-                trainerName = ""
-                trainerNameError = null
-                selectedStarter = null
-                starterNickname = ""
-                playerColumn = 1
-                playerRow = 1
-                lastSavedColumn = 1
-                lastSavedRow = 1
-                currentScreen = "trainer_name"
-            },
-            onContinue = {
-                saves = saveStore.loadAll()
-                currentScreen = "continue"
-            },
-            onExitGame = onExitGame
-        )
-        "continue" -> ContinueScreen(
-            saves = saves,
-            onLoad = { save ->
-                trainerName = save.trainerName
-                selectedStarter = save.starterSpecies
-                starterNickname = save.starterNickname
-                playerColumn = save.playerColumn
-                playerRow = save.playerRow
-                lastSavedColumn = save.playerColumn
-                lastSavedRow = save.playerRow
-                wildEncounter = null
-                currentScreen = "world"
-            },
-            onDelete = { save ->
-                saveStore.delete(save.trainerName)
-                saves = saveStore.loadAll()
-            },
-            onBack = { currentScreen = "main_menu" }
-        )
-        "trainer_name" -> TrainerNameScreen(
-            onNameConfirmed = { name ->
-                if (saveStore.hasSaveForTrainer(name)) {
-                    trainerNameError = "A trainer with this name already exists."
-                } else {
-                    trainerName = name
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (currentScreen) {
+            "splash" -> SplashScreen(onFinished = { currentScreen = "main_menu" })
+            "main_menu" -> MainMenuScreen(
+                onNewGame = {
+                    trainerName = ""
                     trainerNameError = null
-                    currentScreen = "starter_selection"
+                    selectedStarter = null
+                    starterNickname = ""
+                    playerColumn = 1
+                    playerRow = 1
+                    lastSavedColumn = 1
+                    lastSavedRow = 1
+                    currentScreen = "trainer_name"
+                },
+                onContinue = {
+                    saves = saveStore.loadAll()
+                    currentScreen = "continue"
+                },
+                onExitGame = onExitGame
+            )
+            "continue" -> ContinueScreen(
+                saves = saves,
+                onLoad = { save ->
+                    trainerName = save.trainerName
+                    selectedStarter = save.starterSpecies
+                    starterNickname = save.starterNickname
+                    playerColumn = save.playerColumn
+                    playerRow = save.playerRow
+                    lastSavedColumn = save.playerColumn
+                    lastSavedRow = save.playerRow
+                    wildEncounter = null
+                    currentScreen = "world"
+                },
+                onDelete = { save ->
+                    saveStore.delete(save.trainerName)
+                    saves = saveStore.loadAll()
+                },
+                onBack = { currentScreen = "main_menu" }
+            )
+            "trainer_name" -> TrainerNameScreen(
+                onNameConfirmed = { name ->
+                    if (saveStore.hasSaveForTrainer(name)) {
+                        trainerNameError = "A trainer with this name already exists."
+                    } else {
+                        trainerName = name
+                        trainerNameError = null
+                        currentScreen = "starter_selection"
+                    }
+                },
+                onBack = {
+                    trainerNameError = null
+                    currentScreen = "main_menu"
+                },
+                errorMessage = trainerNameError,
+                onNameEdited = { trainerNameError = null }
+            )
+            "starter_selection" -> StarterSelectionScreen(
+                onStarterSelected = { starter, nickname ->
+                    selectedStarter = starter
+                    starterNickname = nickname
+                    playerColumn = 1
+                    playerRow = 1
+                    lastSavedColumn = 1
+                    lastSavedRow = 1
+                    saveCurrentGame(column = 1, row = 1)
+                    currentScreen = "world"
+                },
+                onBack = { currentScreen = "trainer_name" }
+            )
+            "world" -> WorldScreen(
+                starter = selectedStarter,
+                initialPlayerColumn = playerColumn,
+                initialPlayerRow = playerRow,
+                hasUnsavedChanges = hasUnsavedChanges,
+                onPlayerPositionChanged = { column, row ->
+                    playerColumn = column
+                    playerRow = row
+                },
+                onSaveGame = { column, row ->
+                    playerColumn = column
+                    playerRow = row
+                    saveCurrentGame(column, row)
+                },
+                onBackToMainMenu = {
+                    currentScreen = "main_menu"
+                },
+                onExitGame = onExitGame,
+                onWildEncounter = { wildSpecies ->
+                    wildEncounter = wildSpecies
+                    transitionTo("battle")
                 }
-            },
-            onBack = {
-                trainerNameError = null
-                currentScreen = "main_menu"
-            },
-            errorMessage = trainerNameError,
-            onNameEdited = { trainerNameError = null }
-        )
-        "starter_selection" -> StarterSelectionScreen(
-            onStarterSelected = { starter, nickname ->
-                selectedStarter = starter
-                starterNickname = nickname
-                playerColumn = 1
-                playerRow = 1
-                lastSavedColumn = 1
-                lastSavedRow = 1
-                saveCurrentGame(column = 1, row = 1)
-                currentScreen = "world"
-            },
-            onBack = { currentScreen = "trainer_name" }
-        )
-        "world" -> WorldScreen(
-            starter = selectedStarter,
-            initialPlayerColumn = playerColumn,
-            initialPlayerRow = playerRow,
-            hasUnsavedChanges = hasUnsavedChanges,
-            onPlayerPositionChanged = { column, row ->
-                playerColumn = column
-                playerRow = row
-            },
-            onSaveGame = { column, row ->
-                playerColumn = column
-                playerRow = row
-                saveCurrentGame(column, row)
-            },
-            onBackToMainMenu = {
-                currentScreen = "main_menu"
-            },
-            onExitGame = onExitGame,
-            onWildEncounter = { wildSpecies ->
-                wildEncounter = wildSpecies
-                currentScreen = "battle"
-            }
-        )
-        "battle" -> BattleScreen(
-            playerSpecies = selectedStarter,
-            playerName = starterNickname.ifBlank { null },
-            wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
-            onRun = { currentScreen = "world" }
-        )
+            )
+            "battle" -> BattleScreen(
+                playerSpecies = selectedStarter,
+                playerName = starterNickname.ifBlank { null },
+                wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
+                onRun = { transitionTo("world") }
+            )
+        }
+
+        if (transitionWhiteAlpha.value > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White.copy(alpha = transitionWhiteAlpha.value))
+            )
+        }
     }
 }
 

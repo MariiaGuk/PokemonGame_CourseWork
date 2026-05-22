@@ -35,7 +35,7 @@ class Stats(
         this.attack = attack
         this.defence = defence
         this.speed = speed
-        this.currentHp = maxHp
+        this.currentHp = this.maxHp
     }
 
     enum class StatType {

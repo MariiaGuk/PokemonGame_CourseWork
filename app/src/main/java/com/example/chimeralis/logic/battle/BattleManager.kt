@@ -192,7 +192,10 @@ class BattleManager(
             maxHp = maxHp,
             attack = attack,
             defence = defence,
-            speed = speed
+            speed = speed,
+            attackStage = attackStage,
+            defenceStage = defenceStage,
+            speedStage = speedStage
         )
     }
 
@@ -201,6 +204,9 @@ class BattleManager(
         val maxHp: Int,
         val attack: Int,
         val defence: Int,
-        val speed: Int
+        val speed: Int,
+        val attackStage: Int,
+        val defenceStage: Int,
+        val speedStage: Int
     )
 }

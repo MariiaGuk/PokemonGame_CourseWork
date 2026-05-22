@@ -86,10 +86,10 @@ fun BattleScreen(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .offset(y = (-10).dp)
+                .offset(y = (10).dp)
                 .graphicsLayer {
-                    scaleX = 1.05f
-                    scaleY = 1.05f
+                    scaleX = 1.07f
+                    scaleY = 1.07f
                 }
         )
 
@@ -103,6 +103,9 @@ fun BattleScreen(
                 level = playerChimera.level,
                 currentHp = playerChimera.stats.currentHp,
                 maxHp = playerChimera.stats.maxHp,
+                attackStage = playerChimera.stats.attackStage,
+                defenceStage = playerChimera.stats.defenceStage,
+                speedStage = playerChimera.stats.speedStage,
                 refreshKey = refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
@@ -117,6 +120,9 @@ fun BattleScreen(
                 level = wildChimera.level,
                 currentHp = wildChimera.stats.currentHp,
                 maxHp = wildChimera.stats.maxHp,
+                attackStage = wildChimera.stats.attackStage,
+                defenceStage = wildChimera.stats.defenceStage,
+                speedStage = wildChimera.stats.speedStage,
                 refreshKey = refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
@@ -205,6 +211,9 @@ private fun StatusPlate(
     level: Int,
     currentHp: Int,
     maxHp: Int,
+    attackStage: Int,
+    defenceStage: Int,
+    speedStage: Int,
     refreshKey: Int,
     modifier: Modifier = Modifier
 ) {
@@ -255,6 +264,79 @@ private fun StatusPlate(
                     .background(Color(0xFF66C96A))
             )
         }
+
+        if (attackStage != 0 || defenceStage != 0 || speedStage != 0) {
+            Spacer(modifier = Modifier.height(7.dp))
+
+            StatStagesRow(
+                attackStage = attackStage,
+                defenceStage = defenceStage,
+                speedStage = speedStage
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatStagesRow(
+    attackStage: Int,
+    defenceStage: Int,
+    speedStage: Int
+) {
+    val stages = listOf(
+        "ATK" to attackStage,
+        "DEF" to defenceStage,
+        "SPD" to speedStage
+    ).filter { (_, value) -> value != 0 }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        stages.forEach { (label, value) ->
+            StatStageChip(
+                label = label,
+                value = value,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatStageChip(
+    label: String,
+    value: Int,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    val valueText = when {
+        value > 0 -> "+$value"
+        value < 0 -> value.toString()
+        else -> "0"
+    }
+    val chipColor = when {
+        value > 0 -> Color(0xFF2E6B3E)
+        value < 0 -> Color(0xFF7A2D2D)
+        else -> Color(0xFF2B190E)
+    }
+
+    Box(
+        modifier = modifier
+            .height(18.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(chipColor.copy(alpha = if (value == 0) 0.46f else 0.72f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "$label $valueText",
+            color = colors.primary,
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 8.sp,
+            letterSpacing = 1.sp,
+            maxLines = 1
+        )
     }
 }
 

@@ -29,6 +29,18 @@ class Stats(
         private set(value) {
             field = value.coerceIn(0, maxHp)
         }
+    var attackStage: Int = 0
+        private set(value) {
+            field = value.coerceIn(MIN_STAT_STAGE, MAX_STAT_STAGE)
+        }
+    var defenceStage: Int = 0
+        private set(value) {
+            field = value.coerceIn(MIN_STAT_STAGE, MAX_STAT_STAGE)
+        }
+    var speedStage: Int = 0
+        private set(value) {
+            field = value.coerceIn(MIN_STAT_STAGE, MAX_STAT_STAGE)
+        }
 
     init {
         this.maxHp = maxHp
@@ -52,9 +64,21 @@ class Stats(
 
     fun modifyStat(statType: StatType, amount: Int) {
         when (statType) {
-            StatType.ATTACK -> attack += amount
-            StatType.DEFENCE -> defence += amount
-            StatType.SPEED -> speed += amount
+            StatType.ATTACK -> {
+                val oldStage = attackStage
+                attackStage += amount
+                attack += attackStage - oldStage
+            }
+            StatType.DEFENCE -> {
+                val oldStage = defenceStage
+                defenceStage += amount
+                defence += defenceStage - oldStage
+            }
+            StatType.SPEED -> {
+                val oldStage = speedStage
+                speedStage += amount
+                speed += speedStage - oldStage
+            }
             StatType.MAX_HP -> {
                 maxHp += amount
                 currentHp = currentHp
@@ -75,4 +99,9 @@ class Stats(
     }
 
     fun isAlive(): Boolean = currentHp > 0
+
+    companion object {
+        private const val MIN_STAT_STAGE = -6
+        private const val MAX_STAT_STAGE = 6
+    }
 }

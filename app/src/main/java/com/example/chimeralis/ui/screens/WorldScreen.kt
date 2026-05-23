@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
@@ -75,6 +77,8 @@ private const val MovingFrameDelayMs = 160L
 private const val IdleFrameDelayMs = 320L
 private const val WorldZoom = 1.28f
 private const val MaxTeamSize = 6
+private const val WorldInventoryColumns = 3
+private const val WorldInventorySlotCount = 9
 
 private val grassTiles = setOf(
     3 to 2, 4 to 2, 5 to 2, 12 to 2, 13 to 2, 14 to 2,
@@ -92,11 +96,13 @@ private enum class ExitAction { MainMenu, ExitGame }
 fun WorldScreen(
     starter: ChimeraSpecies?,
     team: List<Chimera> = emptyList(),
+    inventoryItems: Map<Item, Int> = emptyMap(),
     initialPlayerColumn: Int = 1,
     initialPlayerRow: Int = 1,
     hasUnsavedChanges: Boolean = false,
     onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
     onSaveGame: (Int, Int) -> Unit = { _, _ -> },
+    onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
     onBackToMainMenu: () -> Unit,
     onExitGame: () -> Unit,
     onWildEncounter: (ChimeraSpecies) -> Unit
@@ -113,6 +119,7 @@ fun WorldScreen(
     var lastGrassTile by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var isGameMenuOpen by remember { mutableStateOf(false) }
     var isSettingsOpen by remember { mutableStateOf(false) }
+    var isInventoryOpen by remember { mutableStateOf(false) }
     var pendingExitAction by remember { mutableStateOf<ExitAction?>(null) }
     var pendingExitRequiresSave by remember { mutableStateOf(false) }
     var showSaveMessage by remember { mutableStateOf(false) }
@@ -147,7 +154,7 @@ fun WorldScreen(
 
     LaunchedEffect(Unit) {
         while (true) {
-            if (isGameMenuOpen || isWildEncounterStarting) {
+            if (isGameMenuOpen || isInventoryOpen || isWildEncounterStarting) {
                 requestedDirection = null
                 isMoving = false
                 delay(16L)
@@ -286,7 +293,27 @@ fun WorldScreen(
                     requestedDirection = null
                     isMoving = false
                     isSettingsOpen = false
+                    isInventoryOpen = false
                     isGameMenuOpen = true
+                }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(14.dp)
+                .width(76.dp)
+                .height(34.dp)
+        ) {
+            SmallWorldMenuButton(
+                text = "Bag",
+                onClick = {
+                    requestedDirection = null
+                    isMoving = false
+                    isSettingsOpen = false
+                    isGameMenuOpen = false
+                    isInventoryOpen = true
                 }
             )
         }
@@ -303,11 +330,25 @@ fun WorldScreen(
                 .align(Alignment.BottomStart)
                 .padding(start = 93.dp, bottom = 43.dp),
             onDirectionChanged = { x, y ->
-                if (!isGameMenuOpen && !isWildEncounterStarting) {
+                if (!isGameMenuOpen && !isInventoryOpen && !isWildEncounterStarting) {
                     requestedDirection = joystickDirection(x, y)
                 }
             }
         )
+
+        if (isInventoryOpen && !isGameMenuOpen) {
+            WorldInventoryPanel(
+                inventoryItems = inventoryItems,
+                target = team.firstOrNull(),
+                onUseInventoryItem = { item, chimera ->
+                    onUseInventoryItem(item, chimera)
+                },
+                onClose = { isInventoryOpen = false },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 56.dp, end = 14.dp)
+            )
+        }
 
         if (isGameMenuOpen) {
             InGameMenuOverlay(
@@ -317,12 +358,23 @@ fun WorldScreen(
                 showSaveMessage = showSaveMessage,
                 onResume = {
                     isSettingsOpen = false
+                    isInventoryOpen = false
                     pendingExitAction = null
                     pendingExitRequiresSave = false
                     isGameMenuOpen = false
                 },
-                onSettings = { isSettingsOpen = true },
-                onBackFromSettings = { isSettingsOpen = false },
+                onSettings = {
+                    isSettingsOpen = true
+                    isInventoryOpen = false
+                },
+                onInventory = {
+                    isInventoryOpen = true
+                    isSettingsOpen = false
+                    isGameMenuOpen = false
+                },
+                onBackFromSubmenu = {
+                    isSettingsOpen = false
+                },
                 onSaveGame = {
                     onSaveGame(playerColumn, playerRow)
                     showSaveMessage = true
@@ -486,7 +538,8 @@ private fun InGameMenuOverlay(
     showSaveMessage: Boolean,
     onResume: () -> Unit,
     onSettings: () -> Unit,
-    onBackFromSettings: () -> Unit,
+    onInventory: () -> Unit,
+    onBackFromSubmenu: () -> Unit,
     onSaveGame: () -> Unit,
     onMainMenu: () -> Unit,
     onExitGame: () -> Unit,
@@ -551,10 +604,11 @@ private fun InGameMenuOverlay(
                     fontSize = 12.sp,
                     fontFamily = CinzelFamily
                 )
-                MenuButton(text = "Back", onClick = onBackFromSettings)
+                MenuButton(text = "Back", onClick = onBackFromSubmenu)
             } else {
                 MenuButton(text = "Resume", onClick = onResume)
                 MenuButton(text = "Save", onClick = onSaveGame)
+                MenuButton(text = "Inventory", onClick = onInventory)
                 MenuButton(text = "Settings", onClick = onSettings)
                 MenuButton(text = "Main Menu", onClick = onMainMenu)
                 MenuButton(text = "Exit Game", onClick = onExitGame)
@@ -566,6 +620,165 @@ private fun InGameMenuOverlay(
                     .align(Alignment.BottomEnd)
                     .padding(end = 18.dp, bottom = 18.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun WorldInventoryPanel(
+    inventoryItems: Map<Item, Int>,
+    target: Chimera?,
+    onUseInventoryItem: (Item, Chimera) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    val filledSlots = inventoryItems.entries
+        .sortedBy { it.key.name }
+        .map { it.key to it.value }
+    val slots = buildList {
+        addAll(filledSlots)
+        repeat((WorldInventorySlotCount - filledSlots.size).coerceAtLeast(0)) {
+            add(null)
+        }
+    }.take(WorldInventorySlotCount)
+
+    Box(
+        modifier = modifier
+            .width(198.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(colors.surface.copy(alpha = 0.58f))
+            .border(1.dp, colors.primary.copy(alpha = 0.42f), RoundedCornerShape(8.dp))
+            .padding(8.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Inventory",
+                    color = colors.primary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = CinzelFamily
+                )
+
+                Box(
+                    modifier = Modifier
+                        .width(42.dp)
+                        .height(24.dp)
+                ) {
+                    SmallWorldMenuButton(text = "X", onClick = onClose)
+                }
+            }
+
+            slots.chunked(WorldInventoryColumns).forEach { rowSlots ->
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    rowSlots.forEach { slot ->
+                        WorldInventorySlot(
+                            slot = slot,
+                            target = target,
+                            onUseInventoryItem = onUseInventoryItem
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WorldInventorySlot(
+    slot: Pair<Item, Int>?,
+    target: Chimera?,
+    onUseInventoryItem: (Item, Chimera) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val item = slot?.first
+    val amount = slot?.second
+
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(7.dp))
+            .background(colors.background.copy(alpha = if (item == null) 0.22f else 0.48f))
+            .border(1.dp, colors.primary.copy(alpha = if (item == null) 0.22f else 0.48f), RoundedCornerShape(7.dp))
+            .pointerInput(item, target) {
+                detectTapGestures(
+                    onTap = {
+                        if (item != null && target != null) {
+                            onUseInventoryItem(item, target)
+                        }
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (item != null && amount != null) {
+            ItemIcon(item = item)
+
+            Text(
+                text = "x$amount",
+                color = colors.primary,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = CinzelFamily,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 4.dp, bottom = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ItemIcon(item: Item) {
+    val iconColor = when (item.name) {
+        "Potion" -> Color(0xFFE05A6F)
+        "Super Potion" -> Color(0xFF5CCBEA)
+        "Revive" -> Color(0xFFE0B84B)
+        else -> Color(0xFFB689FF)
+    }
+
+    Canvas(modifier = Modifier.size(34.dp)) {
+        val center = Offset(size.width / 2f, size.height / 2f)
+
+        when (item.name) {
+            "Revive" -> {
+                val path = Path().apply {
+                    moveTo(center.x, size.height * 0.1f)
+                    lineTo(size.width * 0.84f, center.y)
+                    lineTo(center.x, size.height * 0.9f)
+                    lineTo(size.width * 0.16f, center.y)
+                    close()
+                }
+                drawPath(path = path, color = iconColor)
+                drawPath(path = path, color = Color.White.copy(alpha = 0.42f), style = Stroke(width = 2f))
+            }
+            else -> {
+                drawCircle(
+                    color = iconColor.copy(alpha = 0.95f),
+                    radius = size.minDimension * 0.34f,
+                    center = Offset(center.x, size.height * 0.58f)
+                )
+                drawRect(
+                    color = iconColor.copy(alpha = 0.9f),
+                    topLeft = Offset(size.width * 0.38f, size.height * 0.18f),
+                    size = Size(size.width * 0.24f, size.height * 0.34f)
+                )
+                drawRect(
+                    color = Color.White.copy(alpha = 0.75f),
+                    topLeft = Offset(size.width * 0.34f, size.height * 0.11f),
+                    size = Size(size.width * 0.32f, size.height * 0.1f)
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.28f),
+                    radius = size.minDimension * 0.1f,
+                    center = Offset(size.width * 0.42f, size.height * 0.52f)
+                )
+            }
         }
     }
 }

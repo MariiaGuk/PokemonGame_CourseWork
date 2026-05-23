@@ -41,6 +41,7 @@ import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleManager
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.components.MenuButton
@@ -158,10 +159,18 @@ fun BattleScreen(
                 message = battleMessage,
                 mode = panelMode,
                 moves = playerChimera.moves,
+                inventoryItems = player.inventory.items,
                 isBattleActive = battleManager.isBattleActive,
                 onFight = { panelMode = BattlePanelMode.Moves },
+                onBag = { panelMode = BattlePanelMode.Bag },
                 onMoveSelected = { move ->
                     val log = battleManager.performTurn(BattleAction.UseMove(move))
+                    battleMessage = log.joinToString("\n")
+                    panelMode = BattlePanelMode.Log
+                    uiVersion++
+                },
+                onItemSelected = { item ->
+                    val log = battleManager.performTurn(BattleAction.UseItem(item))
                     battleMessage = log.joinToString("\n")
                     panelMode = BattlePanelMode.Log
                     uiVersion++
@@ -406,9 +415,12 @@ private fun BattlePanel(
     message: String,
     mode: BattlePanelMode,
     moves: List<com.example.chimeralis.logic.chimeras.moves.Move>,
+    inventoryItems: Map<Item, Int>,
     isBattleActive: Boolean,
     onFight: () -> Unit,
+    onBag: () -> Unit,
     onMoveSelected: (com.example.chimeralis.logic.chimeras.moves.Move) -> Unit,
+    onItemSelected: (Item) -> Unit,
     onRun: () -> Unit,
     onBackToActions: () -> Unit,
     onContinue: () -> Unit,
@@ -429,11 +441,17 @@ private fun BattlePanel(
         when (mode) {
             BattlePanelMode.Actions -> BattleActionButtons(
                 onFight = onFight,
+                onBag = onBag,
                 onRun = onRun
             )
             BattlePanelMode.Moves -> MoveButtons(
                 moves = moves,
                 onMoveSelected = onMoveSelected,
+                onBack = onBackToActions
+            )
+            BattlePanelMode.Bag -> BattleInventoryButtons(
+                inventoryItems = inventoryItems,
+                onItemSelected = onItemSelected,
                 onBack = onBackToActions
             )
             BattlePanelMode.Log -> {
@@ -472,6 +490,7 @@ private fun BattleMessage(
 @Composable
 private fun BattleActionButtons(
     onFight: () -> Unit,
+    onBag: () -> Unit,
     onRun: () -> Unit
 ) {
     Column(
@@ -480,12 +499,47 @@ private fun BattleActionButtons(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MenuButton(text = "Fight", onClick = onFight)
-            MenuButton(text = "Bag", onClick = {})
+            MenuButton(text = "Bag", onClick = onBag)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MenuButton(text = "Team", onClick = {})
             MenuButton(text = "Run", onClick = onRun)
         }
+    }
+}
+
+@Composable
+private fun BattleInventoryButtons(
+    inventoryItems: Map<Item, Int>,
+    onItemSelected: (Item) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (inventoryItems.isEmpty()) {
+            Text(
+                text = "Bag is empty",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontFamily = CinzelFamily,
+                fontSize = 12.sp,
+                letterSpacing = 2.sp
+            )
+        } else {
+            inventoryItems.entries.sortedBy { it.key.name }.chunked(2).forEach { rowItems ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    rowItems.forEach { (item, amount) ->
+                        MenuButton(
+                            text = "${item.name} x$amount",
+                            onClick = { onItemSelected(item) }
+                        )
+                    }
+                }
+            }
+        }
+
+        MenuButton(text = "Back", onClick = onBack)
     }
 }
 
@@ -520,6 +574,7 @@ private fun MoveButtons(
 private enum class BattlePanelMode {
     Actions,
     Moves,
+    Bag,
     Log
 }
 

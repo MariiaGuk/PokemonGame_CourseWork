@@ -204,6 +204,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
             )
             "world" -> WorldScreen(
                 starter = selectedStarter,
+                team = player?.team?.toList().orEmpty(),
                 initialPlayerColumn = playerColumn,
                 initialPlayerRow = playerRow,
                 hasUnsavedChanges = hasUnsavedChanges,

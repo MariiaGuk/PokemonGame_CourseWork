@@ -21,6 +21,8 @@ import com.example.chimeralis.data.GameSaveStore
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Inventory
+import com.example.chimeralis.logic.items.ItemFactory
+import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.screens.BattleScreen
 import com.example.chimeralis.ui.screens.ContinueScreen
@@ -186,7 +188,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     val newPlayer = Player(
                         name = trainerName,
                         team = mutableListOf(starterChimera),
-                        inventory = Inventory()
+                        inventory = createStartingInventory()
                     )
 
                     selectedStarter = starter
@@ -205,6 +207,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
             "world" -> WorldScreen(
                 starter = selectedStarter,
                 team = player?.team?.toList().orEmpty(),
+                inventoryItems = player?.inventory?.items.orEmpty(),
                 initialPlayerColumn = playerColumn,
                 initialPlayerRow = playerRow,
                 hasUnsavedChanges = hasUnsavedChanges,
@@ -216,6 +219,11 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     playerColumn = column
                     playerRow = row
                     saveCurrentGame(column, row)
+                },
+                onUseInventoryItem = { item, chimera ->
+                    if (player?.inventory?.useItem(item, chimera) == true) {
+                        teamVersion++
+                    }
                 },
                 onBackToMainMenu = {
                     currentScreen = "main_menu"
@@ -262,7 +270,7 @@ private fun ChimeraSpecies.battleName(): String = when (this) {
 }
 
 private fun Player.teamSignature(): String {
-    return team.joinToString(separator = "|") { chimera ->
+    val teamState = team.joinToString(separator = "|") { chimera ->
         listOf(
             chimera.species.battleName(),
             chimera.name,
@@ -274,5 +282,18 @@ private fun Player.teamSignature(): String {
             chimera.ivStats.defence,
             chimera.ivStats.speed
         ).joinToString(separator = ":")
+    }
+    val inventoryState = inventory.items.entries
+        .sortedBy { it.key.name }
+        .joinToString(separator = "|") { (item, amount) -> "${item.name}:$amount" }
+
+    return "$teamState#$inventoryState"
+}
+
+private fun createStartingInventory(): Inventory {
+    return Inventory().also { inventory ->
+        inventory.addItem(ItemFactory.createItem(ItemName.POTION), 3)
+        inventory.addItem(ItemFactory.createItem(ItemName.SUPER_POTION), 1)
+        inventory.addItem(ItemFactory.createItem(ItemName.REVIVE), 1)
     }
 }

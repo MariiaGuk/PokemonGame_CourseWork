@@ -62,6 +62,10 @@ class Stats(
         currentHp += amount
     }
 
+    fun restoreHp(amount: Int) {
+        currentHp = amount
+    }
+
     fun modifyStat(statType: StatType, amount: Int) {
         when (statType) {
             StatType.ATTACK -> {

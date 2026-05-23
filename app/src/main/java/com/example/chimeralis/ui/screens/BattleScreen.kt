@@ -41,7 +41,6 @@ import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleManager
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
-import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.components.MenuButton
@@ -49,16 +48,15 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 
 @Composable
 fun BattleScreen(
-    playerSpecies: ChimeraSpecies?,
-    playerName: String? = null,
+    player: Player,
+    battleKey: Any? = null,
     wildSpecies: ChimeraSpecies,
-    onRun: () -> Unit
+    onBattleFinished: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val battleManager = remember(playerSpecies, playerName, wildSpecies) {
+    val battleManager = remember(player, battleKey, wildSpecies) {
         createBattleManager(
-            playerSpecies = playerSpecies ?: ChimeraSpecies.Sunflare,
-            playerName = playerName,
+            player = player,
             wildSpecies = wildSpecies
         )
     }
@@ -103,6 +101,8 @@ fun BattleScreen(
                 level = playerChimera.level,
                 currentHp = playerChimera.stats.currentHp,
                 maxHp = playerChimera.stats.maxHp,
+                currentExp = playerChimera.exp,
+                expToNextLevel = playerChimera.expToNextLevel(),
                 attackStage = playerChimera.stats.attackStage,
                 defenceStage = playerChimera.stats.defenceStage,
                 speedStage = playerChimera.stats.speedStage,
@@ -120,6 +120,8 @@ fun BattleScreen(
                 level = wildChimera.level,
                 currentHp = wildChimera.stats.currentHp,
                 maxHp = wildChimera.stats.maxHp,
+                currentExp = null,
+                expToNextLevel = null,
                 attackStage = wildChimera.stats.attackStage,
                 defenceStage = wildChimera.stats.defenceStage,
                 speedStage = wildChimera.stats.speedStage,
@@ -175,7 +177,7 @@ fun BattleScreen(
                     if (battleManager.isBattleActive) {
                         panelMode = BattlePanelMode.Actions
                     } else {
-                        onRun()
+                        onBattleFinished()
                     }
                 },
                 colors = colors,
@@ -211,6 +213,8 @@ private fun StatusPlate(
     level: Int,
     currentHp: Int,
     maxHp: Int,
+    currentExp: Int?,
+    expToNextLevel: Int?,
     attackStage: Int,
     defenceStage: Int,
     speedStage: Int,
@@ -265,6 +269,15 @@ private fun StatusPlate(
             )
         }
 
+        if (currentExp != null && expToNextLevel != null) {
+            Spacer(modifier = Modifier.height(5.dp))
+
+            ExpBar(
+                currentExp = currentExp,
+                expToNextLevel = expToNextLevel
+            )
+        }
+
         if (attackStage != 0 || defenceStage != 0 || speedStage != 0) {
             Spacer(modifier = Modifier.height(7.dp))
 
@@ -274,6 +287,54 @@ private fun StatusPlate(
                 speedStage = speedStage
             )
         }
+    }
+}
+
+@Composable
+private fun ExpBar(
+    currentExp: Int,
+    expToNextLevel: Int
+) {
+    val colors = MaterialTheme.colorScheme
+    val expRatio = (currentExp.toFloat() / expToNextLevel.toFloat()).coerceIn(0f, 1f)
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "EXP",
+            color = colors.primary,
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 8.sp,
+            letterSpacing = 1.sp
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(4.dp)
+                .clip(RoundedCornerShape(99.dp))
+                .background(Color(0xFF2B190E))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(expRatio)
+                    .fillMaxHeight()
+                    .background(Color(0xFF5CCBEA))
+            )
+        }
+
+        Text(
+            text = "$currentExp/$expToNextLevel",
+            color = colors.primary,
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 8.sp,
+            letterSpacing = 1.sp
+        )
     }
 }
 
@@ -463,21 +524,10 @@ private enum class BattlePanelMode {
 }
 
 private fun createBattleManager(
-    playerSpecies: ChimeraSpecies,
-    playerName: String?,
+    player: Player,
     wildSpecies: ChimeraSpecies
 ): BattleManager {
-    val playerChimera = ChimeraFactory.createChimera(playerSpecies, level = 5)
-    if (!playerName.isNullOrBlank()) {
-        playerChimera.rename(playerName)
-    }
-
     val wildChimera = ChimeraFactory.createChimera(wildSpecies, level = 3)
-    val player = Player(
-        name = "Player",
-        team = mutableListOf(playerChimera),
-        inventory = Inventory()
-    )
     val enemy = NPC(
         name = "Wild",
         team = mutableListOf(wildChimera)
@@ -492,6 +542,10 @@ private fun ChimeraSpecies.battleName(): String = when (this) {
     ChimeraSpecies.Solignis -> "Solignis"
     ChimeraSpecies.Sylvhorn -> "Sylvhorn"
     ChimeraSpecies.Aquantis -> "Aquantis"
+}
+
+private fun com.example.chimeralis.logic.chimeras.Chimera.expToNextLevel(): Int {
+    return (level * level * level).coerceAtLeast(1)
 }
 
 private fun ChimeraSpecies.battleImageRes(): Int = when (this) {

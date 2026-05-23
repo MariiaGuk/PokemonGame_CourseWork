@@ -1,16 +1,32 @@
 package com.example.chimeralis.data
 
 import android.content.Context
+import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.Stats
+import com.example.chimeralis.logic.items.Inventory
+import com.example.chimeralis.logic.trainers.Player
+
+data class SavedChimera(
+    val species: ChimeraSpecies,
+    val nickname: String,
+    val level: Int,
+    val exp: Int,
+    val currentHp: Int,
+    val ivStats: Stats
+)
 
 data class GameSave(
     val trainerName: String,
-    val starterSpecies: ChimeraSpecies,
-    val starterNickname: String,
+    val team: List<SavedChimera>,
     val playerColumn: Int,
     val playerRow: Int,
     val updatedAt: Long
-)
+) {
+    val starterSpecies: ChimeraSpecies get() = team.first().species
+    val starterNickname: String get() = team.first().nickname
+}
 
 class GameSaveStore(context: Context) {
     private val prefs = context.getSharedPreferences(PrefsName, Context.MODE_PRIVATE)
@@ -32,12 +48,15 @@ class GameSaveStore(context: Context) {
         prefs.edit()
             .putStringSet(TrainerIdsKey, ids)
             .putString("$id.$TrainerNameKey", gameSave.trainerName)
-            .putString("$id.$StarterSpeciesKey", gameSave.starterSpecies.saveName())
-            .putString("$id.$StarterNicknameKey", gameSave.starterNickname)
+            .putInt("$id.$TeamSizeKey", gameSave.team.size)
             .putInt("$id.$PlayerColumnKey", gameSave.playerColumn)
             .putInt("$id.$PlayerRowKey", gameSave.playerRow)
             .putLong("$id.$UpdatedAtKey", gameSave.updatedAt)
             .apply()
+
+        gameSave.team.forEachIndexed { index, chimera ->
+            saveChimera(id, index, chimera)
+        }
     }
 
     fun delete(trainerName: String) {
@@ -47,8 +66,12 @@ class GameSaveStore(context: Context) {
         prefs.edit()
             .putStringSet(TrainerIdsKey, ids)
             .remove("$id.$TrainerNameKey")
+            .remove("$id.$TeamSizeKey")
             .remove("$id.$StarterSpeciesKey")
             .remove("$id.$StarterNicknameKey")
+            .remove("$id.$StarterLevelKey")
+            .remove("$id.$StarterExpKey")
+            .remove("$id.$StarterCurrentHpKey")
             .remove("$id.$PlayerColumnKey")
             .remove("$id.$PlayerRowKey")
             .remove("$id.$UpdatedAtKey")
@@ -57,21 +80,128 @@ class GameSaveStore(context: Context) {
 
     private fun load(id: String): GameSave? {
         val trainerName = prefs.getString("$id.$TrainerNameKey", null) ?: return null
-        val speciesName = prefs.getString("$id.$StarterSpeciesKey", null) ?: return null
-        val species = speciesName.toChimeraSpecies() ?: return null
-        val nickname = prefs.getString("$id.$StarterNicknameKey", null) ?: species.battleName()
+        val team = loadTeam(id).ifEmpty { return null }
         val playerColumn = prefs.getInt("$id.$PlayerColumnKey", 1)
         val playerRow = prefs.getInt("$id.$PlayerRowKey", 1)
         val updatedAt = prefs.getLong("$id.$UpdatedAtKey", 0L)
 
         return GameSave(
             trainerName = trainerName,
-            starterSpecies = species,
-            starterNickname = nickname,
+            team = team,
             playerColumn = playerColumn,
             playerRow = playerRow,
             updatedAt = updatedAt
         )
+    }
+
+    fun saveFromPlayer(
+        trainerName: String,
+        player: Player,
+        playerColumn: Int,
+        playerRow: Int
+    ) {
+        save(
+            GameSave(
+                trainerName = trainerName,
+                team = player.team.map { it.toSavedChimera() },
+                playerColumn = playerColumn,
+                playerRow = playerRow,
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
+    fun createPlayer(gameSave: GameSave): Player {
+        return Player(
+            name = gameSave.trainerName,
+            team = gameSave.team.map { it.toChimera() }.toMutableList(),
+            inventory = Inventory()
+        )
+    }
+
+    private fun saveChimera(id: String, index: Int, chimera: SavedChimera) {
+        val prefix = "$id.$TeamKey.$index"
+
+        prefs.edit()
+            .putString("$prefix.$SpeciesKey", chimera.species.saveName())
+            .putString("$prefix.$NicknameKey", chimera.nickname)
+            .putInt("$prefix.$LevelKey", chimera.level)
+            .putInt("$prefix.$ExpKey", chimera.exp)
+            .putInt("$prefix.$CurrentHpKey", chimera.currentHp)
+            .putInt("$prefix.$IvHpKey", chimera.ivStats.maxHp)
+            .putInt("$prefix.$IvAttackKey", chimera.ivStats.attack)
+            .putInt("$prefix.$IvDefenceKey", chimera.ivStats.defence)
+            .putInt("$prefix.$IvSpeedKey", chimera.ivStats.speed)
+            .apply()
+    }
+
+    private fun loadTeam(id: String): List<SavedChimera> {
+        val teamSize = prefs.getInt("$id.$TeamSizeKey", 0)
+        if (teamSize > 0) {
+            return (0 until teamSize).mapNotNull { loadChimera(id, it) }
+        }
+
+        return loadLegacyStarter(id)?.let(::listOf).orEmpty()
+    }
+
+    private fun loadChimera(id: String, index: Int): SavedChimera? {
+        val prefix = "$id.$TeamKey.$index"
+        val species = prefs.getString("$prefix.$SpeciesKey", null)?.toChimeraSpecies() ?: return null
+        val nickname = prefs.getString("$prefix.$NicknameKey", null) ?: species.battleName()
+
+        return SavedChimera(
+            species = species,
+            nickname = nickname,
+            level = prefs.getInt("$prefix.$LevelKey", 5).coerceAtLeast(1),
+            exp = prefs.getInt("$prefix.$ExpKey", 0).coerceAtLeast(0),
+            currentHp = prefs.getInt("$prefix.$CurrentHpKey", NoSavedHp).coerceAtLeast(0),
+            ivStats = Stats(
+                maxHp = prefs.getInt("$prefix.$IvHpKey", 0),
+                attack = prefs.getInt("$prefix.$IvAttackKey", 0),
+                defence = prefs.getInt("$prefix.$IvDefenceKey", 0),
+                speed = prefs.getInt("$prefix.$IvSpeedKey", 0)
+            )
+        )
+    }
+
+    private fun loadLegacyStarter(id: String): SavedChimera? {
+        val species = prefs.getString("$id.$StarterSpeciesKey", null)?.toChimeraSpecies() ?: return null
+        val savedCurrentHp = prefs.getInt("$id.$StarterCurrentHpKey", NoSavedHp)
+        val starter = ChimeraFactory.createChimera(species, prefs.getInt("$id.$StarterLevelKey", 5))
+
+        return SavedChimera(
+            species = species,
+            nickname = prefs.getString("$id.$StarterNicknameKey", null) ?: species.battleName(),
+            level = starter.level,
+            exp = prefs.getInt("$id.$StarterExpKey", 0).coerceAtLeast(0),
+            currentHp = savedCurrentHp.takeIf { it != NoSavedHp } ?: starter.stats.maxHp,
+            ivStats = starter.ivStats
+        )
+    }
+
+    private fun Chimera.toSavedChimera(): SavedChimera {
+        return SavedChimera(
+            species = species,
+            nickname = name,
+            level = level,
+            exp = exp,
+            currentHp = stats.currentHp,
+            ivStats = ivStats
+        )
+    }
+
+    private fun SavedChimera.toChimera(): Chimera {
+        return ChimeraFactory.createChimera(
+            species = species,
+            level = level,
+            ivStats = ivStats
+        ).also { chimera ->
+            chimera.rename(nickname)
+            if (exp > 0) {
+                chimera.gainExp(exp)
+            }
+            chimera.stats.restoreHp(currentHp)
+        }
     }
 
     private fun trainerIds(): Set<String> {
@@ -111,10 +241,25 @@ class GameSaveStore(context: Context) {
         const val PrefsName = "chimeralis_saves"
         const val TrainerIdsKey = "trainer_ids"
         const val TrainerNameKey = "trainer_name"
+        const val TeamSizeKey = "team_size"
+        const val TeamKey = "team"
+        const val SpeciesKey = "species"
+        const val NicknameKey = "nickname"
+        const val LevelKey = "level"
+        const val ExpKey = "exp"
+        const val CurrentHpKey = "current_hp"
+        const val IvHpKey = "iv_hp"
+        const val IvAttackKey = "iv_attack"
+        const val IvDefenceKey = "iv_defence"
+        const val IvSpeedKey = "iv_speed"
         const val StarterSpeciesKey = "starter_species"
         const val StarterNicknameKey = "starter_nickname"
+        const val StarterLevelKey = "starter_level"
+        const val StarterExpKey = "starter_exp"
+        const val StarterCurrentHpKey = "starter_current_hp"
         const val PlayerColumnKey = "player_column"
         const val PlayerRowKey = "player_row"
         const val UpdatedAtKey = "updated_at"
+        const val NoSavedHp = -1
     }
 }

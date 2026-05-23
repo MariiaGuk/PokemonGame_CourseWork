@@ -7,15 +7,17 @@ import com.example.chimeralis.logic.chimeras.moves.MoveName
  * Factory for every chimera in the game.
  */
 object ChimeraFactory {
-    private fun generateRandomIV(): Stats = Stats(
+    fun generateRandomIV(): Stats = Stats(
         maxHp = (0..15).random(),
         attack = (0..15).random(),
         defence = (0..15).random(),
         speed = (0..15).random()
     )
-    fun createChimera(species: ChimeraSpecies, level: Int = 1): Chimera {
-        val ivStats = generateRandomIV()
-
+    fun createChimera(
+        species: ChimeraSpecies,
+        level: Int = 1,
+        ivStats: Stats = generateRandomIV()
+    ): Chimera {
         return when (species) {
             ChimeraSpecies.Solignis -> Chimera(
                 name = "Solignis",

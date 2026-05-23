@@ -98,6 +98,7 @@ class BattleManager(
             if (enemy.isDefeated()) {
                 isBattleActive = false
                 log.add("You won!")
+                awardExperience(log, enemyChimera)
             }
         }
     }
@@ -128,6 +129,23 @@ class BattleManager(
             log.add("Can't escape!")
             enemyTurn(log)
         }
+    }
+
+    private fun awardExperience(log: MutableList<String>, defeatedChimera: Chimera) {
+        val experienceReward = calculateExperienceReward(defeatedChimera)
+        val previousLevel = playerChimera.level
+
+        playerChimera.gainExp(experienceReward)
+
+        log.add("${playerChimera.name} gained $experienceReward EXP.")
+
+        if (playerChimera.level > previousLevel) {
+            log.add("${playerChimera.name} grew to Lv.${playerChimera.level}!")
+        }
+    }
+
+    private fun calculateExperienceReward(defeatedChimera: Chimera): Int {
+        return (defeatedChimera.level * 12).coerceAtLeast(1)
     }
 
     private fun appendBattleChanges(

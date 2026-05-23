@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
+import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
@@ -72,6 +74,7 @@ private const val JoystickDeadZone = 0.35f
 private const val MovingFrameDelayMs = 160L
 private const val IdleFrameDelayMs = 320L
 private const val WorldZoom = 1.28f
+private const val MaxTeamSize = 6
 
 private val grassTiles = setOf(
     3 to 2, 4 to 2, 5 to 2, 12 to 2, 13 to 2, 14 to 2,
@@ -88,6 +91,7 @@ private enum class ExitAction { MainMenu, ExitGame }
 @Composable
 fun WorldScreen(
     starter: ChimeraSpecies?,
+    team: List<Chimera> = emptyList(),
     initialPlayerColumn: Int = 1,
     initialPlayerRow: Int = 1,
     hasUnsavedChanges: Boolean = false,
@@ -287,10 +291,17 @@ fun WorldScreen(
             )
         }
 
+        TeamSlots(
+            team = team,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 12.dp, bottom = 20.dp)
+        )
+
         Joystick(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 28.dp, bottom = 24.dp),
+                .padding(start = 93.dp, bottom = 43.dp),
             onDirectionChanged = { x, y ->
                 if (!isGameMenuOpen && !isWildEncounterStarting) {
                     requestedDirection = joystickDirection(x, y)
@@ -350,6 +361,89 @@ fun WorldScreen(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+private fun TeamSlots(
+    team: List<Chimera>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(7.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        repeat(MaxTeamSize) { index ->
+            TeamSlot(
+                chimera = team.getOrNull(index),
+                isActive = index == 0 && team.isNotEmpty()
+            )
+        }
+    }
+}
+
+@Composable
+private fun TeamSlot(
+    chimera: Chimera?,
+    isActive: Boolean
+) {
+    val colors = MaterialTheme.colorScheme
+    val hpRatio = chimera?.let {
+        (it.stats.currentHp.toFloat() / it.stats.maxHp.toFloat()).coerceIn(0f, 1f)
+    } ?: 0f
+    val frameAlpha = if (chimera == null) 0.22f else 0.58f
+    val contentAlpha = when {
+        chimera == null -> 0.18f
+        chimera.stats.isAlive() -> 1f
+        else -> 0.45f
+    }
+
+    Box(
+        modifier = Modifier
+            .size(42.dp)
+            .clip(RoundedCornerShape(7.dp))
+            .background(colors.surface.copy(alpha = frameAlpha))
+            .border(
+                width = if (isActive) 2.dp else 1.dp,
+                color = colors.primary.copy(alpha = if (isActive) 0.8f else 0.38f),
+                shape = RoundedCornerShape(7.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (chimera != null) {
+            Image(
+                painter = painterResource(id = chimera.species.teamImageRes()),
+                contentDescription = chimera.name,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(34.dp)
+                    .graphicsLayer { alpha = contentAlpha }
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 5.dp, vertical = 4.dp)
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Color(0xFF2B190E).copy(alpha = 0.9f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(hpRatio)
+                        .height(3.dp)
+                        .background(
+                            when {
+                                hpRatio > 0.5f -> Color(0xFF66C96A)
+                                hpRatio > 0.2f -> Color(0xFFE0B84B)
+                                else -> Color(0xFFD85A4A)
+                            }
+                        )
+                )
+            }
         }
     }
 }
@@ -670,6 +764,14 @@ private fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {
     ).filterNot { it == starter }
 
     return pool.random()
+}
+
+private fun ChimeraSpecies.teamImageRes(): Int = when (this) {
+    ChimeraSpecies.Sunflare,
+    ChimeraSpecies.Solflare,
+    ChimeraSpecies.Solignis -> R.drawable.starter_fire
+    ChimeraSpecies.Sylvhorn -> R.drawable.starter_grass
+    ChimeraSpecies.Aquantis -> R.drawable.starter_water
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBushTile(

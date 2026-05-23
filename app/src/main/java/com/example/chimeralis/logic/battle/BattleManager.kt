@@ -20,9 +20,19 @@ class BattleManager(
     private var escapeAttempts = 0
 
     fun performTurn(playerAction: BattleAction): List<String> {
-        val log = mutableListOf<String>()
+        return performTurnWithAnimations(playerAction).log
+    }
 
-        if (!isBattleActive) return listOf("The fight is over!")
+    fun performTurnWithAnimations(playerAction: BattleAction): BattleTurnResult {
+        val log = mutableListOf<String>()
+        val animations = mutableListOf<BattleMoveAnimation>()
+
+        if (!isBattleActive) {
+            return BattleTurnResult(
+                log = listOf("The fight is over!"),
+                animations = emptyList()
+            )
+        }
 
         when (playerAction) {
             is BattleAction.UseMove -> {
@@ -31,44 +41,53 @@ class BattleManager(
                         (playerChimera.stats.speed == enemyChimera.stats.speed && Math.random() < 0.5)
 
                 if (playerGoesFirst) {
-                    playerTurn(playerAction.move, log)
-                    if (isBattleActive) enemyTurn(log)
+                    animations.add(playerTurn(playerAction.move, log))
+                    if (isBattleActive) {
+                        animations.add(enemyTurn(log))
+                    }
                 }
                 else {
-                    enemyTurn(log)
-                    if (isBattleActive) playerTurn(playerAction.move, log)
+                    animations.add(enemyTurn(log))
+                    if (isBattleActive) {
+                        animations.add(playerTurn(playerAction.move, log))
+                    }
                 }
             }
             is BattleAction.UseItem -> {
                 useItem(playerAction.item, log)
-                enemyTurn(log)
+                animations.add(enemyTurn(log))
             }
             is BattleAction.SwitchChimera -> {
                 switchChimera(playerAction.chimera, log)
-                enemyTurn(log)
+                animations.add(enemyTurn(log))
             }
             is BattleAction.Run -> {
-                tryRun(log)
+                tryRun(log, animations)
             }
         }
 
-        return log
+        return BattleTurnResult(
+            log = log,
+            animations = animations
+        )
     }
 
-    private fun enemyTurn(log: MutableList<String>) {
+    private fun enemyTurn(log: MutableList<String>): BattleMoveAnimation {
         val enemyMove = enemyChimera.moves.random() //Maybe implement ai logic in the future
         val beforeTargetStats = playerChimera.stats.snapshot()
         val beforeUserStats = enemyChimera.stats.snapshot()
         enemyMove.execute(enemyChimera, playerChimera)
+        val afterTargetStats = playerChimera.stats.snapshot()
+        val afterUserStats = enemyChimera.stats.snapshot()
         log.add("Enemy ${enemyChimera.name} used ${enemyMove.name}!")
         appendBattleChanges(
             log = log,
             targetLabel = "Your ${playerChimera.name}",
             targetBefore = beforeTargetStats,
-            targetAfter = playerChimera.stats.snapshot(),
+            targetAfter = afterTargetStats,
             userLabel = "Enemy ${enemyChimera.name}",
             userBefore = beforeUserStats,
-            userAfter = enemyChimera.stats.snapshot()
+            userAfter = afterUserStats
         )
 
         if (!playerChimera.stats.isAlive()) {
@@ -77,21 +96,38 @@ class BattleManager(
                 log.add("You lost!")
             }
         }
+
+        return BattleMoveAnimation(
+            side = BattleSide.Enemy,
+            species = enemyChimera.species,
+            chimeraName = enemyChimera.name,
+            moveName = enemyMove.name,
+            feedbacks = collectMoveFeedbacks(
+                targetSide = BattleSide.Player,
+                targetBefore = beforeTargetStats,
+                targetAfter = afterTargetStats,
+                userSide = BattleSide.Enemy,
+                userBefore = beforeUserStats,
+                userAfter = afterUserStats
+            )
+        )
     }
 
-    private fun playerTurn(playerMove: Move, log: MutableList<String>) {
+    private fun playerTurn(playerMove: Move, log: MutableList<String>): BattleMoveAnimation {
         val beforeTargetStats = enemyChimera.stats.snapshot()
         val beforeUserStats = playerChimera.stats.snapshot()
         playerMove.execute(playerChimera, enemyChimera)
+        val afterTargetStats = enemyChimera.stats.snapshot()
+        val afterUserStats = playerChimera.stats.snapshot()
         log.add("Your ${playerChimera.name} used ${playerMove.name}!")
         appendBattleChanges(
             log = log,
             targetLabel = "Enemy ${enemyChimera.name}",
             targetBefore = beforeTargetStats,
-            targetAfter = enemyChimera.stats.snapshot(),
+            targetAfter = afterTargetStats,
             userLabel = "Your ${playerChimera.name}",
             userBefore = beforeUserStats,
-            userAfter = playerChimera.stats.snapshot()
+            userAfter = afterUserStats
         )
 
         if (!enemyChimera.stats.isAlive()) {
@@ -101,6 +137,21 @@ class BattleManager(
                 awardExperience(log, enemyChimera)
             }
         }
+
+        return BattleMoveAnimation(
+            side = BattleSide.Player,
+            species = playerChimera.species,
+            chimeraName = playerChimera.name,
+            moveName = playerMove.name,
+            feedbacks = collectMoveFeedbacks(
+                targetSide = BattleSide.Enemy,
+                targetBefore = beforeTargetStats,
+                targetAfter = afterTargetStats,
+                userSide = BattleSide.Player,
+                userBefore = beforeUserStats,
+                userAfter = afterUserStats
+            )
+        )
     }
 
     private fun useItem(item: Item, log: MutableList<String>){
@@ -113,7 +164,10 @@ class BattleManager(
         log.add("Go, ${chimera.name}!")
     }
 
-    private fun tryRun(log: MutableList<String>) {
+    private fun tryRun(
+        log: MutableList<String>,
+        animations: MutableList<BattleMoveAnimation>
+    ) {
         val playerSpeed = playerChimera.stats.speed
         val enemySpeed = enemyChimera.stats.speed
 
@@ -127,7 +181,7 @@ class BattleManager(
         }
         else {
             log.add("Can't escape!")
-            enemyTurn(log)
+            animations.add(enemyTurn(log))
         }
     }
 
@@ -166,6 +220,37 @@ class BattleManager(
 
         if (log.size == oldSize) {
             log.add("But it had no effect!")
+        }
+    }
+
+    private fun collectMoveFeedbacks(
+        targetSide: BattleSide,
+        targetBefore: StatsSnapshot,
+        targetAfter: StatsSnapshot,
+        userSide: BattleSide,
+        userBefore: StatsSnapshot,
+        userAfter: StatsSnapshot
+    ): List<BattleMoveFeedback> {
+        return buildList {
+            addFeedbacksForStatSnapshot(targetSide, targetBefore, targetAfter)
+            addFeedbacksForStatSnapshot(userSide, userBefore, userAfter)
+        }.distinct()
+    }
+
+    private fun MutableList<BattleMoveFeedback>.addFeedbacksForStatSnapshot(
+        side: BattleSide,
+        before: StatsSnapshot,
+        after: StatsSnapshot
+    ) {
+        if (after.currentHp < before.currentHp) {
+            add(BattleMoveFeedback(side, BattleMoveFeedbackType.Damage))
+        }
+
+        if (after.attack != before.attack ||
+            after.defence != before.defence ||
+            after.speed != before.speed
+        ) {
+            add(BattleMoveFeedback(side, BattleMoveFeedbackType.StatChange))
         }
     }
 

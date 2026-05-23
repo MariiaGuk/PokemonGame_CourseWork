@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -41,7 +44,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
 import com.example.chimeralis.logic.battle.BattleAction
+import com.example.chimeralis.logic.battle.BattleMoveFeedback
+import com.example.chimeralis.logic.battle.BattleMoveFeedbackType
+import com.example.chimeralis.logic.battle.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.BattleManager
+import com.example.chimeralis.logic.battle.BattleSide
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
@@ -50,12 +57,18 @@ import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 private const val MaxBattleTeamSize = 6
 private val BattlePanelHorizontalPadding = 30.dp
 private val BattleBackButtonSize = 38.dp
 private val BattleBackButtonGap = 14.dp
+private const val BattleMoveFrameMillis = 420L
+private const val IdleBattleMoveFrameMillis = 180L
+private const val SingleActionBattleMoveFrameMillis = 1000L
+private const val BattleFeedbackFrameMillis = 70L
+private const val BattleSpriteFrameAspectRatio = 1321f / 708f
 
 @Composable
 fun BattleScreen(
@@ -76,20 +89,37 @@ fun BattleScreen(
         mutableStateOf(listOf("A wild ${battleManager.enemyChimera.name} appeared!"))
     }
     var battleLogIndex by remember(battleManager) { mutableIntStateOf(0) }
+    var battleLogAnimations by remember(battleManager) {
+        mutableStateOf<Map<Int, BattleMoveAnimation>>(emptyMap())
+    }
+    var activeMoveAnimation by remember(battleManager) { mutableStateOf<BattleMoveAnimation?>(null) }
+    var activeMoveFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
+    var activeBattleFeedbacks by remember(battleManager) { mutableStateOf<List<BattleFeedback>>(emptyList()) }
+    var battleFeedbackFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
     var uiVersion by remember(battleManager) { mutableIntStateOf(0) }
     val refreshKey = uiVersion
     val playerChimera = battleManager.playerChimera
     val wildChimera = battleManager.enemyChimera
     val currentBattleMessage = battleLogMessages.getOrElse(battleLogIndex) { "" }
+    val isMoveAnimationPlaying = activeMoveAnimation != null
+    val isBattleFeedbackPlaying = activeBattleFeedbacks.isNotEmpty()
 
-    fun showBattleLog(messages: List<String>) {
+    fun showBattleLog(
+        messages: List<String>,
+        animations: List<BattleMoveAnimation> = emptyList()
+    ) {
         battleLogMessages = messages.ifEmpty { listOf("Nothing happened.") }
+        battleLogAnimations = mapAnimationsToLogMessages(messages, animations)
         battleLogIndex = 0
+        activeMoveAnimation = null
+        activeMoveFrameIndex = 0
+        activeBattleFeedbacks = emptyList()
+        battleFeedbackFrameIndex = 0
         panelMode = BattlePanelMode.Log
     }
 
     fun advanceBattleLog() {
-        if (panelMode != BattlePanelMode.Log) return
+        if (panelMode != BattlePanelMode.Log || isMoveAnimationPlaying || isBattleFeedbackPlaying) return
 
         if (battleLogIndex < battleLogMessages.lastIndex) {
             battleLogIndex++
@@ -100,11 +130,66 @@ fun BattleScreen(
         }
     }
 
+    fun showBattleResult(
+        log: List<String>,
+        animations: List<BattleMoveAnimation>
+    ) {
+        showBattleLog(log, animations)
+        uiVersion++
+    }
+
+    LaunchedEffect(panelMode, battleLogIndex, battleLogAnimations) {
+        val animation = if (panelMode == BattlePanelMode.Log) {
+            battleLogAnimations[battleLogIndex]
+        } else {
+            null
+        }
+
+        if (animation == null) {
+            activeMoveAnimation = null
+            activeMoveFrameIndex = 0
+            return@LaunchedEffect
+        }
+
+        activeMoveAnimation = animation
+        val frames = animation.animationFrames()
+        frames.forEachIndexed { frameIndex, frame ->
+            activeMoveFrameIndex = frameIndex
+            val feedbacks = frame.feedbacks.toBattleFeedbacks()
+
+            if (feedbacks.isEmpty()) {
+                delay(frame.durationMillis)
+            } else {
+                activeBattleFeedbacks = feedbacks
+                val feedbackTicks = (frame.durationMillis / BattleFeedbackFrameMillis)
+                    .toInt()
+                    .coerceAtLeast(1)
+                repeat(feedbackTicks) { feedbackFrameIndex ->
+                    battleFeedbackFrameIndex = feedbackFrameIndex
+                    delay(BattleFeedbackFrameMillis)
+                }
+                val remainingDelay = frame.durationMillis - feedbackTicks * BattleFeedbackFrameMillis
+                if (remainingDelay > 0L) {
+                    delay(remainingDelay)
+                }
+                activeBattleFeedbacks = emptyList()
+                battleFeedbackFrameIndex = 0
+            }
+        }
+
+        delay(90L)
+
+        activeMoveAnimation = null
+        activeMoveFrameIndex = 0
+        activeBattleFeedbacks = emptyList()
+        battleFeedbackFrameIndex = 0
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .then(
-                if (panelMode == BattlePanelMode.Log) {
+                if (panelMode == BattlePanelMode.Log && !isMoveAnimationPlaying && !isBattleFeedbackPlaying) {
                     Modifier.pointerInput(battleLogIndex, battleLogMessages, battleManager.isBattleActive) {
                         detectTapGestures(onTap = { advanceBattleLog() })
                     }
@@ -118,8 +203,23 @@ fun BattleScreen(
         val statusWidth = 310.dp
         val platformY = minOf(maxHeight * 0.68f, maxHeight - panelHeight - 42.dp)
         val playerPlatformX = maxWidth * 0.35f
-        val wildPlatformX = maxWidth * 0.70f
+        val wildPlatformX = maxWidth * 0.65f
         val spriteSize = minOf(maxWidth * 0.25f, maxHeight * 0.45f)
+        val playerAnimation = activeMoveAnimation?.takeIf { it.side == BattleSide.Player }
+        val wildAnimation = activeMoveAnimation?.takeIf { it.side == BattleSide.Enemy }
+        val playerFrameResources = playerAnimation?.animationFrames()
+        val wildFrameResources = wildAnimation?.animationFrames()
+        val playerImageRes = playerFrameResources?.getOrNull(activeMoveFrameIndex)?.imageRes
+            ?: playerChimera.species.battleImageRes()
+        val wildImageRes = wildFrameResources?.getOrNull(activeMoveFrameIndex)?.imageRes
+            ?: wildChimera.species.battleImageRes()
+        val spriteFrameWidth = spriteSize * BattleSpriteFrameAspectRatio
+        val playerFeedback = activeBattleFeedbacks.firstOrNull { it.side == BattleSide.Player }
+        val wildFeedback = activeBattleFeedbacks.firstOrNull { it.side == BattleSide.Enemy }
+        val playerFeedbackOffset = playerFeedback.shakeOffset(battleFeedbackFrameIndex)
+        val wildFeedbackOffset = wildFeedback.shakeOffset(battleFeedbackFrameIndex)
+        val playerTintColor = playerFeedback.tintColor()
+        val wildTintColor = wildFeedback.tintColor()
 
         Image(
             painter = painterResource(id = R.drawable.battle_arena),
@@ -178,21 +278,27 @@ fun BattleScreen(
             )
 
             BattleFighter(
-                imageRes = playerChimera.species.battleImageRes(),
+                imageRes = playerImageRes,
                 mirrored = true,
-                spriteSize = spriteSize,
+                spriteWidth = spriteFrameWidth,
+                spriteHeight = spriteSize,
+                effectOffsetX = playerFeedbackOffset,
+                tintColor = playerTintColor,
                 modifier = Modifier.offset(
-                    x = playerPlatformX - spriteSize / 1.5f,
+                    x = playerPlatformX - spriteFrameWidth / 2f,
                     y = platformY - spriteSize * 0.75f
                 )
             )
 
             BattleFighter(
-                imageRes = wildChimera.species.battleImageRes(),
+                imageRes = wildImageRes,
                 mirrored = false,
-                spriteSize = spriteSize,
+                spriteWidth = spriteFrameWidth,
+                spriteHeight = spriteSize,
+                effectOffsetX = wildFeedbackOffset,
+                tintColor = wildTintColor,
                 modifier = Modifier.offset(
-                    x = wildPlatformX - spriteSize / 1.5f,
+                    x = wildPlatformX - spriteFrameWidth / 2f,
                     y = platformY - spriteSize * 0.75f
                 )
             )
@@ -208,24 +314,20 @@ fun BattleScreen(
                 onBag = { panelMode = BattlePanelMode.Bag },
                 onTeam = { panelMode = BattlePanelMode.Team },
                 onMoveSelected = { move ->
-                    val log = battleManager.performTurn(BattleAction.UseMove(move))
-                    showBattleLog(log)
-                    uiVersion++
+                    val result = battleManager.performTurnWithAnimations(BattleAction.UseMove(move))
+                    showBattleResult(result.log, result.animations)
                 },
                 onSwitchSelected = { chimera ->
-                    val log = battleManager.performTurn(BattleAction.SwitchChimera(chimera))
-                    showBattleLog(log)
-                    uiVersion++
+                    val result = battleManager.performTurnWithAnimations(BattleAction.SwitchChimera(chimera))
+                    showBattleResult(result.log, result.animations)
                 },
                 onItemSelected = { item ->
-                    val log = battleManager.performTurn(BattleAction.UseItem(item))
-                    showBattleLog(log)
-                    uiVersion++
+                    val result = battleManager.performTurnWithAnimations(BattleAction.UseItem(item))
+                    showBattleResult(result.log, result.animations)
                 },
                 onRun = {
-                    val log = battleManager.performTurn(BattleAction.Run)
-                    showBattleLog(log)
-                    uiVersion++
+                    val result = battleManager.performTurnWithAnimations(BattleAction.Run)
+                    showBattleResult(result.log, result.animations)
                 },
                 onBackToActions = { panelMode = BattlePanelMode.Actions },
                 colors = colors,
@@ -240,15 +342,21 @@ fun BattleScreen(
 private fun BattleFighter(
     imageRes: Int,
     mirrored: Boolean,
-    spriteSize: Dp,
+    spriteWidth: Dp,
+    spriteHeight: Dp,
+    effectOffsetX: Dp = 0.dp,
+    tintColor: Color? = null,
     modifier: Modifier = Modifier
 ) {
     Image(
         painter = painterResource(id = imageRes),
         contentDescription = null,
         contentScale = ContentScale.Fit,
+        colorFilter = tintColor?.let { ColorFilter.tint(it, BlendMode.SrcAtop) },
         modifier = modifier
-            .size(spriteSize)
+            .offset(x = effectOffsetX)
+            .width(spriteWidth)
+            .height(spriteHeight)
             .graphicsLayer {
                 scaleX = if (mirrored) -1f else 1f
             }
@@ -824,12 +932,177 @@ private fun MoveButtons(
     }
 }
 
+private data class BattleFeedback(
+    val side: BattleSide,
+    val type: BattleFeedbackType
+)
+
+private enum class BattleFeedbackType {
+    Damage,
+    StatChange
+}
+
 private enum class BattlePanelMode {
     Actions,
     Moves,
     Bag,
     Team,
     Log
+}
+
+private fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> {
+    return map { feedback ->
+        BattleFeedback(
+            side = feedback.side,
+            type = when (feedback.type) {
+                BattleMoveFeedbackType.Damage -> BattleFeedbackType.Damage
+                BattleMoveFeedbackType.StatChange -> BattleFeedbackType.StatChange
+            }
+        )
+    }
+}
+
+private fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
+    if (this?.type != BattleFeedbackType.Damage) return 0.dp
+
+    return when (frameIndex % 4) {
+        0 -> (-7).dp
+        1 -> 7.dp
+        2 -> (-4).dp
+        else -> 4.dp
+    }
+}
+
+private fun BattleFeedback?.tintColor(): Color? {
+    return when (this?.type) {
+        BattleFeedbackType.Damage -> Color(0xFFFF3535).copy(alpha = 0.42f)
+        BattleFeedbackType.StatChange -> Color(0xFF49A7FF).copy(alpha = 0.42f)
+        null -> null
+    }
+}
+
+private fun mapAnimationsToLogMessages(
+    messages: List<String>,
+    animations: List<BattleMoveAnimation>
+): Map<Int, BattleMoveAnimation> {
+    val mappedAnimations = mutableMapOf<Int, BattleMoveAnimation>()
+    var searchStart = 0
+
+    animations.forEach { animation ->
+        val message = animation.message()
+        val messageIndex = messages
+            .withIndex()
+            .drop(searchStart)
+            .firstOrNull { (_, value) -> value == message }
+            ?.index
+
+        if (messageIndex != null) {
+            mappedAnimations[messageIndex] = animation
+            searchStart = messageIndex + 1
+        }
+    }
+
+    return mappedAnimations
+}
+
+private fun BattleMoveAnimation.message(): String {
+    val owner = when (side) {
+        BattleSide.Player -> "Your"
+        BattleSide.Enemy -> "Enemy"
+    }
+
+    return "$owner $chimeraName used $moveName!"
+}
+
+private data class BattleAnimationFrame(
+    val imageRes: Int,
+    val durationMillis: Long,
+    val feedbacks: List<BattleMoveFeedback> = emptyList()
+)
+
+private fun BattleMoveAnimation.animationFrames(): List<BattleAnimationFrame> {
+    val baseFrame = species.battleImageRes()
+    val moveKey = moveName.lowercase().replace(" ", "")
+
+    val actionFrames = when (species) {
+        ChimeraSpecies.Sunflare,
+        ChimeraSpecies.Solflare,
+        ChimeraSpecies.Solignis -> when (moveKey) {
+            "ember" -> listOf(
+                R.drawable.starter_fire_ember_1,
+                R.drawable.starter_fire_ember_2
+            )
+            "growl" -> listOf(
+                R.drawable.starter_fire_growl
+            )
+            "tackle" -> listOf(
+                R.drawable.starter_fire_tackle_1,
+                R.drawable.starter_fire_tackle_2
+            )
+            else -> emptyList()
+        }
+        ChimeraSpecies.Sylvhorn -> when (moveKey) {
+            "growl" -> listOf(
+                R.drawable.starter_grass_growl
+            )
+            "tackle" -> listOf(
+                R.drawable.starter_grass_tackle_1,
+                R.drawable.starter_grass_tackle_2
+            )
+            else -> emptyList()
+        }
+        ChimeraSpecies.Aquantis -> when (moveKey) {
+            "tailwhip" -> listOf(
+                R.drawable.starter_water_tailwhip_1,
+                R.drawable.starter_water_tailwhip_2
+            )
+            "tackle" -> listOf(
+                R.drawable.starter_water_tackle_1,
+                R.drawable.starter_water_tackle_2
+            )
+            else -> emptyList()
+        }
+    }
+
+    if (actionFrames.isEmpty()) {
+        return listOf(
+            BattleAnimationFrame(
+                imageRes = baseFrame,
+                durationMillis = SingleActionBattleMoveFrameMillis,
+                feedbacks = feedbacks
+            )
+        )
+    }
+
+    val actionFrameDuration = if (actionFrames.size == 1) {
+        SingleActionBattleMoveFrameMillis
+    } else {
+        BattleMoveFrameMillis
+    }
+
+    return buildList {
+        add(
+            BattleAnimationFrame(
+                imageRes = baseFrame,
+                durationMillis = IdleBattleMoveFrameMillis
+            )
+        )
+        actionFrames.forEach { imageRes ->
+            add(
+                BattleAnimationFrame(
+                    imageRes = imageRes,
+                    durationMillis = actionFrameDuration,
+                    feedbacks = feedbacks
+                )
+            )
+        }
+        add(
+            BattleAnimationFrame(
+                imageRes = baseFrame,
+                durationMillis = IdleBattleMoveFrameMillis
+            )
+        )
+    }
 }
 
 private fun createBattleManager(

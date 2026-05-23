@@ -468,16 +468,18 @@ private fun TeamSlot(
             Image(
                 painter = painterResource(id = chimera.species.teamImageRes()),
                 contentDescription = chimera.name,
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(34.dp)
+                    .align(Alignment.Center)
+                    .offset(x = (-2).dp, y = -2.dp)
+                    .size(38.dp)
                     .graphicsLayer { alpha = contentAlpha }
             )
 
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 5.dp, vertical = 4.dp)
+                    .padding(horizontal = 5.dp, vertical = 3.dp)
                     .fillMaxWidth()
                     .height(3.dp)
                     .clip(RoundedCornerShape(99.dp))

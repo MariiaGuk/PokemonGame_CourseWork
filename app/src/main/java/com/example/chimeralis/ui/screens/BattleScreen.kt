@@ -37,12 +37,14 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
+import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleMoveFeedback
 import com.example.chimeralis.logic.battle.BattleMoveFeedbackType
@@ -68,6 +70,8 @@ private const val BattleMoveFrameMillis = 420L
 private const val IdleBattleMoveFrameMillis = 180L
 private const val SingleActionBattleMoveFrameMillis = 1000L
 private const val BattleFeedbackFrameMillis = 70L
+private const val BattleIntroInputLockMillis = 1200L
+private const val BattleEndInputLockMillis = 500L
 private const val BattleSpriteFrameAspectRatio = 1321f / 708f
 
 @Composable
@@ -78,6 +82,7 @@ fun BattleScreen(
     onBattleFinished: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
     val battleManager = remember(player, battleKey, wildSpecies) {
         createBattleManager(
             player = player,
@@ -96,6 +101,8 @@ fun BattleScreen(
     var activeMoveFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
     var activeBattleFeedbacks by remember(battleManager) { mutableStateOf<List<BattleFeedback>>(emptyList()) }
     var battleFeedbackFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
+    var isBattleIntroLocked by remember(battleManager) { mutableStateOf(true) }
+    var isBattleExitPending by remember(battleManager) { mutableStateOf(false) }
     var uiVersion by remember(battleManager) { mutableIntStateOf(0) }
     val refreshKey = uiVersion
     val playerChimera = battleManager.playerChimera
@@ -103,6 +110,7 @@ fun BattleScreen(
     val currentBattleMessage = battleLogMessages.getOrElse(battleLogIndex) { "" }
     val isMoveAnimationPlaying = activeMoveAnimation != null
     val isBattleFeedbackPlaying = activeBattleFeedbacks.isNotEmpty()
+    val isBattleInputLocked = isBattleIntroLocked || isBattleExitPending
 
     fun showBattleLog(
         messages: List<String>,
@@ -119,14 +127,20 @@ fun BattleScreen(
     }
 
     fun advanceBattleLog() {
-        if (panelMode != BattlePanelMode.Log || isMoveAnimationPlaying || isBattleFeedbackPlaying) return
+        if (panelMode != BattlePanelMode.Log ||
+            isMoveAnimationPlaying ||
+            isBattleFeedbackPlaying ||
+            isBattleInputLocked
+        ) {
+            return
+        }
 
         if (battleLogIndex < battleLogMessages.lastIndex) {
             battleLogIndex++
         } else if (battleManager.isBattleActive) {
             panelMode = BattlePanelMode.Actions
         } else {
-            onBattleFinished()
+            isBattleExitPending = true
         }
     }
 
@@ -136,6 +150,18 @@ fun BattleScreen(
     ) {
         showBattleLog(log, animations)
         uiVersion++
+    }
+
+    LaunchedEffect(battleManager) {
+        delay(BattleIntroInputLockMillis)
+        isBattleIntroLocked = false
+    }
+
+    LaunchedEffect(isBattleExitPending) {
+        if (!isBattleExitPending) return@LaunchedEffect
+
+        delay(BattleEndInputLockMillis)
+        onBattleFinished()
     }
 
     LaunchedEffect(panelMode, battleLogIndex, battleLogAnimations) {
@@ -185,11 +211,28 @@ fun BattleScreen(
         battleFeedbackFrameIndex = 0
     }
 
+    LaunchedEffect(panelMode, battleLogIndex, currentBattleMessage) {
+        if (panelMode != BattlePanelMode.Log) return@LaunchedEffect
+
+        when {
+            currentBattleMessage == "Got away safely!" -> {
+                GameSoundPlayer.play(context, R.raw.ran_away)
+            }
+            " grew to Lv." in currentBattleMessage -> {
+                GameSoundPlayer.play(context, R.raw.level_up)
+            }
+        }
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .then(
-                if (panelMode == BattlePanelMode.Log && !isMoveAnimationPlaying && !isBattleFeedbackPlaying) {
+                if (panelMode == BattlePanelMode.Log &&
+                    !isMoveAnimationPlaying &&
+                    !isBattleFeedbackPlaying &&
+                    !isBattleInputLocked
+                ) {
                     Modifier.pointerInput(battleLogIndex, battleLogMessages, battleManager.isBattleActive) {
                         detectTapGestures(onTap = { advanceBattleLog() })
                     }
@@ -651,6 +694,7 @@ private fun BattleBackArrowButton(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
@@ -659,7 +703,12 @@ private fun BattleBackArrowButton(
             .background(colors.background.copy(alpha = 0.42f))
             .border(1.dp, colors.primary.copy(alpha = 0.55f), RoundedCornerShape(5.dp))
             .pointerInput(Unit) {
-                detectTapGestures(onTap = { onClick() })
+                detectTapGestures(
+                    onTap = {
+                        GameSoundPlayer.play(context, R.raw.button_click)
+                        onClick()
+                    }
+                )
             },
         contentAlignment = Alignment.Center
     ) {

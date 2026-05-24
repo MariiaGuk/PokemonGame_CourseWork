@@ -46,16 +46,19 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
+import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Item
@@ -75,6 +78,7 @@ private const val HeldStepDelayMs = 65L
 private const val JoystickDeadZone = 0.35f
 private const val MovingFrameDelayMs = 160L
 private const val IdleFrameDelayMs = 320L
+private const val WorldReturnInputLockMs = 1400L
 private const val WorldZoom = 1.28f
 private const val MaxTeamSize = 6
 private const val WorldInventoryColumns = 3
@@ -97,6 +101,8 @@ fun WorldScreen(
     starter: ChimeraSpecies?,
     team: List<Chimera> = emptyList(),
     inventoryItems: Map<Item, Int> = emptyMap(),
+    worldTransitionScale: Float = 1f,
+    inputLockKey: Int = 0,
     initialPlayerColumn: Int = 1,
     initialPlayerRow: Int = 1,
     hasUnsavedChanges: Boolean = false,
@@ -120,10 +126,14 @@ fun WorldScreen(
     var isGameMenuOpen by remember { mutableStateOf(false) }
     var isSettingsOpen by remember { mutableStateOf(false) }
     var isInventoryOpen by remember { mutableStateOf(false) }
+    var selectedInventoryItem by remember { mutableStateOf<Item?>(null) }
     var pendingExitAction by remember { mutableStateOf<ExitAction?>(null) }
     var pendingExitRequiresSave by remember { mutableStateOf(false) }
     var showSaveMessage by remember { mutableStateOf(false) }
     var isWildEncounterStarting by remember { mutableStateOf(false) }
+    var isWorldInputLocked by remember { mutableStateOf(false) }
+    var itemTargetSelection by remember { mutableStateOf<Item?>(null) }
+    var pendingItemUseConfirmation by remember { mutableStateOf<Pair<Item, Chimera>?>(null) }
     val groundTexture = ImageBitmap.imageResource(id = R.drawable.lava_ground)
     val grassTexture = ImageBitmap.imageResource(id = R.drawable.rock_grass_tile)
 
@@ -152,9 +162,25 @@ fun WorldScreen(
         }
     }
 
+    LaunchedEffect(inputLockKey) {
+        if (inputLockKey == 0) return@LaunchedEffect
+
+        requestedDirection = null
+        isMoving = false
+        isWorldInputLocked = true
+        delay(WorldReturnInputLockMs)
+        isWorldInputLocked = false
+    }
+
     LaunchedEffect(Unit) {
         while (true) {
-            if (isGameMenuOpen || isInventoryOpen || isWildEncounterStarting) {
+            if (isGameMenuOpen ||
+                isInventoryOpen ||
+                isWildEncounterStarting ||
+                isWorldInputLocked ||
+                itemTargetSelection != null ||
+                pendingItemUseConfirmation != null
+            ) {
                 requestedDirection = null
                 isMoving = false
                 delay(16L)
@@ -227,58 +253,67 @@ fun WorldScreen(
         val playerCenterX = mapLeft + (animatedColumn + 0.5f) * tileWidth
         val playerCenterY = mapTop + (animatedRow + 0.5f) * tileHeight
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            for (row in 0 until MapRows) {
-                for (column in 0 until MapColumns) {
-                    val left = mapLeft + column * tileWidth
-                    val top = mapTop + row * tileHeight
-                    val isGrass = column to row in grassTiles
-                    val tileDstSize = IntSize(
-                        width = (tileWidth + 1f).roundToInt(),
-                        height = (tileHeight + 1f).roundToInt()
-                    )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = worldTransitionScale
+                    scaleY = worldTransitionScale
+                }
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                for (row in 0 until MapRows) {
+                    for (column in 0 until MapColumns) {
+                        val left = mapLeft + column * tileWidth
+                        val top = mapTop + row * tileHeight
+                        val isGrass = column to row in grassTiles
+                        val tileDstSize = IntSize(
+                            width = (tileWidth + 1f).roundToInt(),
+                            height = (tileHeight + 1f).roundToInt()
+                        )
 
-                    if (isGrass) {
-                        drawImage(
-                            image = grassTexture,
-                            srcOffset = IntOffset.Zero,
-                            srcSize = IntSize(grassTexture.width, grassTexture.height),
-                            dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-                            dstSize = tileDstSize
-                        )
-                    } else {
-                        drawImage(
-                            image = groundTexture,
-                            srcOffset = IntOffset.Zero,
-                            srcSize = IntSize(groundTexture.width, groundTexture.height),
-                            dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-                            dstSize = tileDstSize
-                        )
+                        if (isGrass) {
+                            drawImage(
+                                image = grassTexture,
+                                srcOffset = IntOffset.Zero,
+                                srcSize = IntSize(grassTexture.width, grassTexture.height),
+                                dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
+                                dstSize = tileDstSize
+                            )
+                        } else {
+                            drawImage(
+                                image = groundTexture,
+                                srcOffset = IntOffset.Zero,
+                                srcSize = IntSize(groundTexture.width, groundTexture.height),
+                                dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
+                                dstSize = tileDstSize
+                            )
+                        }
+
                     }
-
                 }
             }
-        }
 
-        Image(
-            painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),
-            contentDescription = "Player",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .offset {
-                    IntOffset(
-                        x = (playerCenterX - spriteWidth / 2f).roundToInt(),
-                        y = (playerCenterY - spriteHeight * 0.76f).roundToInt()
+            Image(
+                painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),
+                contentDescription = "Player",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            x = (playerCenterX - spriteWidth / 2f).roundToInt(),
+                            y = (playerCenterY - spriteHeight * 0.76f).roundToInt()
+                        )
+                    }
+                    .size(
+                        width = with(density) { spriteWidth.toDp() },
+                        height = with(density) { spriteHeight.toDp() }
                     )
-                }
-                .size(
-                    width = with(density) { spriteWidth.toDp() },
-                    height = with(density) { spriteHeight.toDp() }
-                )
-                .graphicsLayer {
-                    scaleX = if (direction == Direction.Left) -1f else 1f
-                }
-        )
+                    .graphicsLayer {
+                        scaleX = if (direction == Direction.Left) -1f else 1f
+                    }
+            )
+        }
 
         Box(
             modifier = Modifier
@@ -290,6 +325,8 @@ fun WorldScreen(
             SmallWorldMenuButton(
                 text = "Menu",
                 onClick = {
+                    if (isWorldInputLocked) return@SmallWorldMenuButton
+
                     requestedDirection = null
                     isMoving = false
                     isSettingsOpen = false
@@ -309,10 +346,13 @@ fun WorldScreen(
             SmallWorldMenuButton(
                 text = "Bag",
                 onClick = {
+                    if (isWorldInputLocked) return@SmallWorldMenuButton
+
                     requestedDirection = null
                     isMoving = false
                     isSettingsOpen = false
                     isGameMenuOpen = false
+                    selectedInventoryItem = null
                     isInventoryOpen = true
                 }
             )
@@ -322,7 +362,7 @@ fun WorldScreen(
             team = team,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 12.dp, bottom = 20.dp)
+                .padding(start = 39.dp, bottom = 20.dp)
         )
 
         Joystick(
@@ -330,7 +370,13 @@ fun WorldScreen(
                 .align(Alignment.BottomStart)
                 .padding(start = 93.dp, bottom = 43.dp),
             onDirectionChanged = { x, y ->
-                if (!isGameMenuOpen && !isInventoryOpen && !isWildEncounterStarting) {
+                if (!isGameMenuOpen &&
+                    !isInventoryOpen &&
+                    !isWildEncounterStarting &&
+                    !isWorldInputLocked &&
+                    itemTargetSelection == null &&
+                    pendingItemUseConfirmation == null
+                ) {
                     requestedDirection = joystickDirection(x, y)
                 }
             }
@@ -339,15 +385,42 @@ fun WorldScreen(
         if (isInventoryOpen && !isGameMenuOpen) {
             WorldInventoryPanel(
                 inventoryItems = inventoryItems,
-                target = team.firstOrNull(),
-                onUseInventoryItem = { item, chimera ->
-                    onUseInventoryItem(item, chimera)
+                selectedItem = selectedInventoryItem,
+                onSelectedItemChanged = { item ->
+                    selectedInventoryItem = item
                 },
-                onClose = { isInventoryOpen = false },
+                onClose = {
+                    selectedInventoryItem = null
+                    isInventoryOpen = false
+                },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 56.dp, end = 14.dp)
             )
+        }
+
+        if (isInventoryOpen && !isGameMenuOpen) {
+            selectedInventoryItem?.let { item ->
+                val amount = inventoryItems[item]
+                if (amount != null) {
+                    InventoryItemDetailsPlate(
+                        item = item,
+                        amount = amount,
+                        onUse = {
+                            requestedDirection = null
+                            isMoving = false
+                            selectedInventoryItem = null
+                            isInventoryOpen = false
+                            itemTargetSelection = item
+                            pendingItemUseConfirmation = null
+                        },
+                        onCancel = {
+                            selectedInventoryItem = null
+                        },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
         }
 
         if (isGameMenuOpen) {
@@ -366,11 +439,6 @@ fun WorldScreen(
                 onSettings = {
                     isSettingsOpen = true
                     isInventoryOpen = false
-                },
-                onInventory = {
-                    isInventoryOpen = true
-                    isSettingsOpen = false
-                    isGameMenuOpen = false
                 },
                 onBackFromSubmenu = {
                     isSettingsOpen = false
@@ -414,13 +482,44 @@ fun WorldScreen(
                 }
             )
         }
+
+        itemTargetSelection?.let { item ->
+            ItemTargetSelectionOverlay(
+                item = item,
+                team = team,
+                onChimeraSelected = { chimera ->
+                    pendingItemUseConfirmation = item to chimera
+                },
+                onCancel = {
+                    itemTargetSelection = null
+                    pendingItemUseConfirmation = null
+                }
+            )
+        }
+
+        pendingItemUseConfirmation?.let { (item, chimera) ->
+            ConfirmItemUseDialog(
+                item = item,
+                chimera = chimera,
+                onConfirm = {
+                    onUseInventoryItem(item, chimera)
+                    itemTargetSelection = null
+                    pendingItemUseConfirmation = null
+                },
+                onCancel = {
+                    pendingItemUseConfirmation = null
+                }
+            )
+        }
     }
 }
 
 @Composable
 private fun TeamSlots(
     team: List<Chimera>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectionMode: Boolean = false,
+    onChimeraSelected: (Chimera) -> Unit = {}
 ) {
     Column(
         modifier = modifier,
@@ -430,7 +529,9 @@ private fun TeamSlots(
         repeat(MaxTeamSize) { index ->
             TeamSlot(
                 chimera = team.getOrNull(index),
-                isActive = index == 0 && team.isNotEmpty()
+                isActive = index == 0 && team.isNotEmpty(),
+                selectionMode = selectionMode,
+                onChimeraSelected = onChimeraSelected
             )
         }
     }
@@ -439,7 +540,9 @@ private fun TeamSlots(
 @Composable
 private fun TeamSlot(
     chimera: Chimera?,
-    isActive: Boolean
+    isActive: Boolean,
+    selectionMode: Boolean,
+    onChimeraSelected: (Chimera) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val hpRatio = chimera?.let {
@@ -458,10 +561,25 @@ private fun TeamSlot(
             .clip(RoundedCornerShape(7.dp))
             .background(colors.surface.copy(alpha = frameAlpha))
             .border(
-                width = if (isActive) 2.dp else 1.dp,
-                color = colors.primary.copy(alpha = if (isActive) 0.8f else 0.38f),
+                width = if (isActive || selectionMode) 2.dp else 1.dp,
+                color = colors.primary.copy(
+                    alpha = when {
+                        selectionMode && chimera != null -> 0.92f
+                        isActive -> 0.8f
+                        else -> 0.38f
+                    }
+                ),
                 shape = RoundedCornerShape(7.dp)
-            ),
+            )
+            .pointerInput(chimera, selectionMode) {
+                detectTapGestures(
+                    onTap = {
+                        if (selectionMode && chimera != null) {
+                            onChimeraSelected(chimera)
+                        }
+                    }
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
         if (chimera != null) {
@@ -508,6 +626,7 @@ private fun SmallWorldMenuButton(
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -516,7 +635,12 @@ private fun SmallWorldMenuButton(
             .background(colors.surface.copy(alpha = 0.42f))
             .border(1.dp, colors.primary.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
             .pointerInput(Unit) {
-                detectTapGestures(onTap = { onClick() })
+                detectTapGestures(
+                    onTap = {
+                        GameSoundPlayer.play(context, R.raw.button_click)
+                        onClick()
+                    }
+                )
             },
         contentAlignment = Alignment.Center
     ) {
@@ -533,6 +657,112 @@ private fun SmallWorldMenuButton(
 }
 
 @Composable
+private fun ItemTargetSelectionOverlay(
+    item: Item,
+    team: List<Chimera>,
+    onChimeraSelected: (Chimera) -> Unit,
+    onCancel: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.62f))
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(260.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(colors.surface.copy(alpha = 0.78f))
+                .border(1.dp, colors.primary.copy(alpha = 0.46f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = item.name,
+                color = colors.primary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = CinzelFamily
+            )
+
+            Text(
+                text = "Choose a chimera",
+                color = colors.onSurface.copy(alpha = 0.78f),
+                fontSize = 12.sp,
+                fontFamily = CinzelFamily
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(92.dp)
+                    .height(28.dp)
+            ) {
+                SmallWorldMenuButton(text = "Cancel", onClick = onCancel)
+            }
+        }
+
+        TeamSlots(
+            team = team,
+            selectionMode = true,
+            onChimeraSelected = onChimeraSelected,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 39.dp, bottom = 20.dp)
+        )
+    }
+}
+
+@Composable
+private fun ConfirmItemUseDialog(
+    item: Item,
+    chimera: Chimera,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.18f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .width(280.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(colors.surface.copy(alpha = 0.9f))
+                .border(1.dp, colors.primary.copy(alpha = 0.54f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Use ${item.name}?",
+                color = colors.primary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = CinzelFamily
+            )
+
+            Text(
+                text = "Use on ${chimera.name}?",
+                color = colors.onSurface.copy(alpha = 0.78f),
+                fontSize = 12.sp,
+                fontFamily = CinzelFamily
+            )
+
+            MenuButton(text = "Use", onClick = onConfirm)
+            MenuButton(text = "Cancel", onClick = onCancel)
+        }
+    }
+}
+
+@Composable
 private fun InGameMenuOverlay(
     showSettings: Boolean,
     pendingExitAction: ExitAction?,
@@ -540,7 +770,6 @@ private fun InGameMenuOverlay(
     showSaveMessage: Boolean,
     onResume: () -> Unit,
     onSettings: () -> Unit,
-    onInventory: () -> Unit,
     onBackFromSubmenu: () -> Unit,
     onSaveGame: () -> Unit,
     onMainMenu: () -> Unit,
@@ -610,7 +839,6 @@ private fun InGameMenuOverlay(
             } else {
                 MenuButton(text = "Resume", onClick = onResume)
                 MenuButton(text = "Save", onClick = onSaveGame)
-                MenuButton(text = "Inventory", onClick = onInventory)
                 MenuButton(text = "Settings", onClick = onSettings)
                 MenuButton(text = "Main Menu", onClick = onMainMenu)
                 MenuButton(text = "Exit Game", onClick = onExitGame)
@@ -629,8 +857,8 @@ private fun InGameMenuOverlay(
 @Composable
 private fun WorldInventoryPanel(
     inventoryItems: Map<Item, Int>,
-    target: Chimera?,
-    onUseInventoryItem: (Item, Chimera) -> Unit,
+    selectedItem: Item?,
+    onSelectedItemChanged: (Item?) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -644,6 +872,13 @@ private fun WorldInventoryPanel(
             add(null)
         }
     }.take(WorldInventorySlotCount)
+
+    LaunchedEffect(inventoryItems, selectedItem) {
+        val item = selectedItem
+        if (item != null && item !in inventoryItems.keys) {
+            onSelectedItemChanged(null)
+        }
+    }
 
     Box(
         modifier = modifier
@@ -681,8 +916,10 @@ private fun WorldInventoryPanel(
                     rowSlots.forEach { slot ->
                         WorldInventorySlot(
                             slot = slot,
-                            target = target,
-                            onUseInventoryItem = onUseInventoryItem
+                            isSelected = slot?.first == selectedItem,
+                            onSelected = { item ->
+                                onSelectedItemChanged(item)
+                            }
                         )
                     }
                 }
@@ -692,10 +929,67 @@ private fun WorldInventoryPanel(
 }
 
 @Composable
+private fun InventoryItemDetailsPlate(
+    item: Item,
+    amount: Int,
+    onUse: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        modifier = modifier
+            .width(260.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(colors.surface.copy(alpha = 0.72f))
+            .border(1.dp, colors.primary.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(9.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "${item.name} x$amount",
+            color = colors.primary,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Black,
+            fontFamily = CinzelFamily,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = item.description(),
+            color = colors.onSurface.copy(alpha = 0.82f),
+            fontSize = 12.sp,
+            lineHeight = 15.sp,
+            fontFamily = CinzelFamily,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            MenuButton(
+                text = "Use",
+                onClick = onUse
+            )
+            MenuButton(
+                text = "Cancel",
+                onClick = onCancel
+            )
+        }
+    }
+}
+
+@Composable
 private fun WorldInventorySlot(
     slot: Pair<Item, Int>?,
-    target: Chimera?,
-    onUseInventoryItem: (Item, Chimera) -> Unit
+    isSelected: Boolean,
+    onSelected: (Item) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val item = slot?.first
@@ -706,12 +1000,22 @@ private fun WorldInventorySlot(
             .size(56.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(colors.background.copy(alpha = if (item == null) 0.22f else 0.48f))
-            .border(1.dp, colors.primary.copy(alpha = if (item == null) 0.22f else 0.48f), RoundedCornerShape(7.dp))
-            .pointerInput(item, target) {
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = colors.primary.copy(
+                    alpha = when {
+                        isSelected -> 0.86f
+                        item == null -> 0.22f
+                        else -> 0.48f
+                    }
+                ),
+                shape = RoundedCornerShape(7.dp)
+            )
+            .pointerInput(item) {
                 detectTapGestures(
                     onTap = {
-                        if (item != null && target != null) {
-                            onUseInventoryItem(item, target)
+                        if (item != null) {
+                            onSelected(item)
                         }
                     }
                 )
@@ -782,6 +1086,15 @@ private fun ItemIcon(item: Item) {
                 )
             }
         }
+    }
+}
+
+private fun Item.description(): String {
+    return when (name) {
+        "Potion" -> "Restores 20 HP to one chimera."
+        "Super Potion" -> "Restores 60 HP to one chimera."
+        "Revive" -> "Revives a fainted chimera."
+        else -> "Can be used on a chimera."
     }
 }
 

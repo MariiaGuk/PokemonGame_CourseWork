@@ -108,6 +108,7 @@ fun WorldScreen(
     starter: ChimeraSpecies?,
     team: List<Chimera> = emptyList(),
     inventoryItems: Map<Item, Int> = emptyMap(),
+    canStartBattles: Boolean = true,
     field: WorldField = WorldField.Lava,
     showShiftNpc: Boolean = false,
     shiftNpcIntroSeen: Boolean = false,
@@ -259,7 +260,7 @@ fun WorldScreen(
             if (nextTile in grassTiles) {
                 if (nextTile != lastGrassTile) {
                     lastGrassTile = nextTile
-                    if (Random.nextFloat() < EncounterChance) {
+                    if (canStartBattles && Random.nextFloat() < EncounterChance) {
                         requestedDirection = null
                         isMoving = false
                         isWildEncounterStarting = true
@@ -1574,7 +1575,7 @@ private fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {
         ChimeraSpecies.Sunflare,
         ChimeraSpecies.Sylvhorn,
         ChimeraSpecies.Aquantis
-    ).filterNot { it == starter }
+    )
 
     return pool.random()
 }

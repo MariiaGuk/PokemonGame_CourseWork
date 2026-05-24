@@ -19,7 +19,7 @@ class DamageEffect(private val power: Int): IMoveEffect
 
             val baseDamage = (((2.0 * attacker.level / 5.0 + 2) * power * attacker.stats.attack / target.stats.defence) / 50.0 + 2)
 
-            return (baseDamage * effectiveness * stab).toInt()
+            return (baseDamage * effectiveness * stab).toInt().coerceAtLeast(1)
         }
     }
 }

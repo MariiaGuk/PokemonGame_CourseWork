@@ -13,15 +13,19 @@ class Stats(
         private set(value) {
             field = value.coerceAtLeast(1)
         }
-    var attack: Int = attack
+    private var baseAttack: Int = attack.coerceAtLeast(1)
+    private var baseDefence: Int = defence.coerceAtLeast(1)
+    private var baseSpeed: Int = speed.coerceAtLeast(1)
+
+    var attack: Int = baseAttack
         private set(value) {
             field = value.coerceAtLeast(1)
         }
-    var defence: Int = defence
+    var defence: Int = baseDefence
         private set(value) {
             field = value.coerceAtLeast(1)
         }
-    var speed: Int = speed
+    var speed: Int = baseSpeed
         private set(value) {
             field = value.coerceAtLeast(1)
         }
@@ -44,9 +48,9 @@ class Stats(
 
     init {
         this.maxHp = maxHp
-        this.attack = attack
-        this.defence = defence
-        this.speed = speed
+        setStat(StatType.ATTACK, attack)
+        setStat(StatType.DEFENCE, defence)
+        setStat(StatType.SPEED, speed)
         this.currentHp = this.maxHp
     }
 
@@ -69,19 +73,16 @@ class Stats(
     fun modifyStat(statType: StatType, amount: Int) {
         when (statType) {
             StatType.ATTACK -> {
-                val oldStage = attackStage
                 attackStage += amount
-                attack += attackStage - oldStage
+                attack = stagedStat(baseAttack, attackStage)
             }
             StatType.DEFENCE -> {
-                val oldStage = defenceStage
                 defenceStage += amount
-                defence += defenceStage - oldStage
+                defence = stagedStat(baseDefence, defenceStage)
             }
             StatType.SPEED -> {
-                val oldStage = speedStage
                 speedStage += amount
-                speed += speedStage - oldStage
+                speed = stagedStat(baseSpeed, speedStage)
             }
             StatType.MAX_HP -> {
                 maxHp += amount
@@ -92,9 +93,18 @@ class Stats(
 
     fun setStat(statType: StatType, amount: Int) {
         when (statType) {
-            StatType.ATTACK -> attack = amount
-            StatType.DEFENCE -> defence = amount
-            StatType.SPEED -> speed = amount
+            StatType.ATTACK -> {
+                baseAttack = amount.coerceAtLeast(1)
+                attack = stagedStat(baseAttack, attackStage)
+            }
+            StatType.DEFENCE -> {
+                baseDefence = amount.coerceAtLeast(1)
+                defence = stagedStat(baseDefence, defenceStage)
+            }
+            StatType.SPEED -> {
+                baseSpeed = amount.coerceAtLeast(1)
+                speed = stagedStat(baseSpeed, speedStage)
+            }
             StatType.MAX_HP -> {
                 maxHp = amount
                 currentHp = currentHp
@@ -102,10 +112,23 @@ class Stats(
         }
     }
 
+    fun resetBattleStages() {
+        attackStage = 0
+        defenceStage = 0
+        speedStage = 0
+        attack = stagedStat(baseAttack, attackStage)
+        defence = stagedStat(baseDefence, defenceStage)
+        speed = stagedStat(baseSpeed, speedStage)
+    }
+
     fun isAlive(): Boolean = currentHp > 0
 
     companion object {
-        private const val MIN_STAT_STAGE = -6
-        private const val MAX_STAT_STAGE = 6
+        private const val MIN_STAT_STAGE = -3
+        private const val MAX_STAT_STAGE = 3
+
+        private fun stagedStat(baseValue: Int, stage: Int): Int {
+            return (baseValue + stage).coerceAtLeast(1)
+        }
     }
 }

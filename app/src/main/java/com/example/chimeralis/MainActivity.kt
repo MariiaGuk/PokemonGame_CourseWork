@@ -90,6 +90,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
     val battleZoomScale = remember { Animatable(1f) }
     val transitionScope = rememberCoroutineScope()
     val teamSignature = player?.teamSignature().orEmpty() + "|$teamVersion"
+    val canStartBattles = player?.isDefeated() == false
     val hasUnsavedChanges = playerColumn != lastSavedColumn ||
             playerRow != lastSavedRow ||
             teamSignature != lastSavedTeamSignature
@@ -268,6 +269,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    canStartBattles = canStartBattles,
                     field = WorldField.Lava,
                     showShiftNpc = true,
                     shiftNpcIntroSeen = shiftNpcIntroSeen,
@@ -311,6 +313,8 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     },
                     onExitGame = onExitGame,
                     onWildEncounter = { wildSpecies ->
+                        if (player?.isDefeated() != false) return@WorldScreen
+
                         wildEncounter = wildSpecies
                         returnWorldScreen = "world"
                         transitionTo("battle")
@@ -320,6 +324,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    canStartBattles = canStartBattles,
                     field = WorldField.Grass,
                     showShiftNpc = true,
                     shiftNpcIntroSeen = shiftNpcIntroSeen,
@@ -363,24 +368,30 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     },
                     onExitGame = onExitGame,
                     onWildEncounter = { wildSpecies ->
+                        if (player?.isDefeated() != false) return@WorldScreen
+
                         wildEncounter = wildSpecies
                         returnWorldScreen = "grass_field"
                         transitionTo("battle")
                     }
                 )
                 "battle" -> player?.let { currentPlayer ->
-                    BattleScreen(
-                        player = currentPlayer,
-                        battleKey = wildEncounter,
-                        wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
-                        onBattleFinished = {
-                            teamVersion++
-                            selectedStarter = currentPlayer.activeChimera.species
-                            starterNickname = currentPlayer.activeChimera.name
-                            worldInputLockKey++
-                            transitionTo(returnWorldScreen)
-                        }
-                    )
+                    if (currentPlayer.isDefeated()) {
+                        currentScreen = returnWorldScreen
+                    } else {
+                        BattleScreen(
+                            player = currentPlayer,
+                            battleKey = wildEncounter,
+                            wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
+                            onBattleFinished = {
+                                teamVersion++
+                                selectedStarter = currentPlayer.activeChimera.species
+                                starterNickname = currentPlayer.activeChimera.name
+                                worldInputLockKey++
+                                transitionTo(returnWorldScreen)
+                            }
+                        )
+                    }
                 } ?: run {
                     currentScreen = returnWorldScreen
                 }

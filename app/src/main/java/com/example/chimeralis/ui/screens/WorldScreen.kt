@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,17 +63,17 @@ import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Item
+import com.example.chimeralis.ui.components.GameSettingsPanel
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 import kotlin.math.hypot
-import kotlin.math.roundToInt
 import kotlin.random.Random
+import kotlin.math.roundToInt
 
 private const val MapColumns = 18
 private const val MapRows = 10
-private const val EncounterChance = 0.22f
 private const val StepDurationMs = 280
 private const val HeldStepDelayMs = 65L
 private const val JoystickDeadZone = 0.35f
@@ -117,6 +118,16 @@ fun WorldScreen(
     initialPlayerColumn: Int = 1,
     initialPlayerRow: Int = 1,
     hasUnsavedChanges: Boolean = false,
+    musicEnabled: Boolean = true,
+    musicVolume: Float = 1f,
+    soundEnabled: Boolean = true,
+    soundVolume: Float = 1f,
+    encounterChance: Float = 0.22f,
+    onMusicEnabledChanged: (Boolean) -> Unit = {},
+    onMusicVolumeChanged: (Float) -> Unit = {},
+    onSoundEnabledChanged: (Boolean) -> Unit = {},
+    onSoundVolumeChanged: (Float) -> Unit = {},
+    onEncounterChanceChanged: (Float) -> Unit = {},
     onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
     onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
@@ -136,7 +147,6 @@ fun WorldScreen(
     var requestedDirection by remember { mutableStateOf<Direction?>(null) }
     var isMoving by remember { mutableStateOf(false) }
     var animationFrame by remember { mutableIntStateOf(0) }
-    var lastGrassTile by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var isGameMenuOpen by remember { mutableStateOf(false) }
     var isSettingsOpen by remember { mutableStateOf(false) }
     var isInventoryOpen by remember { mutableStateOf(false) }
@@ -165,6 +175,10 @@ fun WorldScreen(
     val canInteractWithShiftNpc = showShiftNpc &&
             !isShiftNpcDialogOpen &&
             abs(playerColumn - shiftNpcTile.first) + abs(playerRow - shiftNpcTile.second) == 1
+    val currentEncounterChance by rememberUpdatedState(encounterChance)
+    val currentCanStartBattles by rememberUpdatedState(canStartBattles)
+    val currentStarter by rememberUpdatedState(starter)
+    val currentOnWildEncounter by rememberUpdatedState(onWildEncounter)
 
     val animatedColumn by animateFloatAsState(
         targetValue = targetColumn.toFloat(),
@@ -257,18 +271,17 @@ fun WorldScreen(
             isMoving = false
             onPlayerPositionChanged(playerColumn, playerRow)
 
-            if (nextTile in grassTiles) {
-                if (nextTile != lastGrassTile) {
-                    lastGrassTile = nextTile
-                    if (canStartBattles && Random.nextFloat() < EncounterChance) {
-                        requestedDirection = null
-                        isMoving = false
-                        isWildEncounterStarting = true
-                        onWildEncounter(randomWildChimera(starter))
-                    }
-                }
-            } else {
-                lastGrassTile = null
+            val chance = currentEncounterChance.coerceIn(0f, 1f)
+            val shouldStartEncounter = nextTile in grassTiles &&
+                    currentCanStartBattles &&
+                    chance > 0f &&
+                    (chance >= 1f || Random.nextFloat() < chance)
+
+            if (shouldStartEncounter) {
+                requestedDirection = null
+                isMoving = false
+                isWildEncounterStarting = true
+                currentOnWildEncounter(randomWildChimera(currentStarter))
             }
 
             delay(1L)
@@ -526,6 +539,11 @@ fun WorldScreen(
                 pendingExitAction = pendingExitAction,
                 pendingExitRequiresSave = pendingExitRequiresSave,
                 showSaveMessage = showSaveMessage,
+                musicEnabled = musicEnabled,
+                musicVolume = musicVolume,
+                soundEnabled = soundEnabled,
+                soundVolume = soundVolume,
+                encounterChance = encounterChance,
                 onResume = {
                     isSettingsOpen = false
                     isInventoryOpen = false
@@ -537,6 +555,11 @@ fun WorldScreen(
                     isSettingsOpen = true
                     isInventoryOpen = false
                 },
+                onMusicEnabledChanged = onMusicEnabledChanged,
+                onMusicVolumeChanged = onMusicVolumeChanged,
+                onSoundEnabledChanged = onSoundEnabledChanged,
+                onSoundVolumeChanged = onSoundVolumeChanged,
+                onEncounterChanceChanged = onEncounterChanceChanged,
                 onBackFromSubmenu = {
                     isSettingsOpen = false
                 },
@@ -1010,8 +1033,18 @@ private fun InGameMenuOverlay(
     pendingExitAction: ExitAction?,
     pendingExitRequiresSave: Boolean,
     showSaveMessage: Boolean,
+    musicEnabled: Boolean,
+    musicVolume: Float,
+    soundEnabled: Boolean,
+    soundVolume: Float,
+    encounterChance: Float,
     onResume: () -> Unit,
     onSettings: () -> Unit,
+    onMusicEnabledChanged: (Boolean) -> Unit,
+    onMusicVolumeChanged: (Float) -> Unit,
+    onSoundEnabledChanged: (Boolean) -> Unit,
+    onSoundVolumeChanged: (Float) -> Unit,
+    onEncounterChanceChanged: (Float) -> Unit,
     onBackFromSubmenu: () -> Unit,
     onSaveGame: () -> Unit,
     onMainMenu: () -> Unit,
@@ -1025,15 +1058,18 @@ private fun InGameMenuOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {})
+            }
             .background(Color.Black.copy(alpha = 0.36f)),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .width(350.dp)
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .width(420.dp)
+                .padding(horizontal = 24.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             Text(
                 text = when {
@@ -1043,7 +1079,7 @@ private fun InGameMenuOverlay(
                     else -> "Game Menu"
                 },
                 color = colors.primary,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = CinzelFamily
             )
@@ -1071,11 +1107,17 @@ private fun InGameMenuOverlay(
                 MenuButton(text = "Yes", onClick = onExitWithoutSave)
                 MenuButton(text = "Cancel", onClick = onCancelExit)
             } else if (showSettings) {
-                Text(
-                    text = "Audio and gameplay options will appear here.",
-                    color = colors.onSurface.copy(alpha = 0.78f),
-                    fontSize = 12.sp,
-                    fontFamily = CinzelFamily
+                GameSettingsPanel(
+                    musicEnabled = musicEnabled,
+                    musicVolume = musicVolume,
+                    soundEnabled = soundEnabled,
+                    soundVolume = soundVolume,
+                    encounterChance = encounterChance,
+                    onMusicEnabledChanged = onMusicEnabledChanged,
+                    onMusicVolumeChanged = onMusicVolumeChanged,
+                    onSoundEnabledChanged = onSoundEnabledChanged,
+                    onSoundVolumeChanged = onSoundVolumeChanged,
+                    onEncounterChanceChanged = onEncounterChanceChanged
                 )
                 MenuButton(text = "Back", onClick = onBackFromSubmenu)
             } else {

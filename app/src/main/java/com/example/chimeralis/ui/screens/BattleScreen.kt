@@ -101,6 +101,7 @@ fun BattleScreen(
     var activeMoveFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
     var activeBattleFeedbacks by remember(battleManager) { mutableStateOf<List<BattleFeedback>>(emptyList()) }
     var battleFeedbackFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
+    var hiddenFaintedSides by remember(battleManager) { mutableStateOf<Set<BattleSide>>(emptySet()) }
     var isBattleIntroLocked by remember(battleManager) { mutableStateOf(true) }
     var isBattleExitPending by remember(battleManager) { mutableStateOf(false) }
     var uiVersion by remember(battleManager) { mutableIntStateOf(0) }
@@ -178,7 +179,9 @@ fun BattleScreen(
         }
 
         activeMoveAnimation = animation
+        GameSoundPlayer.play(context, R.raw.attack_sound)
         val frames = animation.animationFrames()
+        var playedFaintSound = false
         frames.forEachIndexed { frameIndex, frame ->
             activeMoveFrameIndex = frameIndex
             val feedbacks = frame.feedbacks.toBattleFeedbacks()
@@ -186,6 +189,10 @@ fun BattleScreen(
             if (feedbacks.isEmpty()) {
                 delay(frame.durationMillis)
             } else {
+                if (!playedFaintSound && feedbacks.any { it.type == BattleFeedbackType.Faint }) {
+                    GameSoundPlayer.play(context, R.raw.dying_sound)
+                    playedFaintSound = true
+                }
                 activeBattleFeedbacks = feedbacks
                 val feedbackTicks = (frame.durationMillis / BattleFeedbackFrameMillis)
                     .toInt()
@@ -197,6 +204,13 @@ fun BattleScreen(
                 val remainingDelay = frame.durationMillis - feedbackTicks * BattleFeedbackFrameMillis
                 if (remainingDelay > 0L) {
                     delay(remainingDelay)
+                }
+                val faintedSides = feedbacks
+                    .filter { it.type == BattleFeedbackType.Faint }
+                    .map { it.side }
+                    .toSet()
+                if (faintedSides.isNotEmpty()) {
+                    hiddenFaintedSides = hiddenFaintedSides + faintedSides
                 }
                 activeBattleFeedbacks = emptyList()
                 battleFeedbackFrameIndex = 0
@@ -222,6 +236,12 @@ fun BattleScreen(
                 GameSoundPlayer.play(context, R.raw.level_up)
             }
         }
+    }
+
+    LaunchedEffect(playerChimera, playerChimera.stats.currentHp, wildChimera, wildChimera.stats.currentHp) {
+        hiddenFaintedSides = hiddenFaintedSides
+            .let { sides -> if (playerChimera.stats.currentHp > 0) sides - BattleSide.Player else sides }
+            .let { sides -> if (wildChimera.stats.currentHp > 0) sides - BattleSide.Enemy else sides }
     }
 
     BoxWithConstraints(
@@ -261,8 +281,28 @@ fun BattleScreen(
         val wildFeedback = activeBattleFeedbacks.firstOrNull { it.side == BattleSide.Enemy }
         val playerFeedbackOffset = playerFeedback.shakeOffset(battleFeedbackFrameIndex)
         val wildFeedbackOffset = wildFeedback.shakeOffset(battleFeedbackFrameIndex)
+        val playerDropOffset = playerFeedback.faintDropOffset(battleFeedbackFrameIndex)
+        val wildDropOffset = wildFeedback.faintDropOffset(battleFeedbackFrameIndex)
         val playerTintColor = playerFeedback.tintColor()
         val wildTintColor = wildFeedback.tintColor()
+        val playerFaintPending = activeMoveAnimation.hasFaintFeedback(BattleSide.Player) &&
+                BattleSide.Player !in hiddenFaintedSides
+        val wildFaintPending = activeMoveAnimation.hasFaintFeedback(BattleSide.Enemy) &&
+                BattleSide.Enemy !in hiddenFaintedSides
+        val playerAlpha = fighterAlpha(
+            currentHp = playerChimera.stats.currentHp,
+            hasPendingFaint = playerFaintPending,
+            isHiddenAfterFaint = BattleSide.Player in hiddenFaintedSides,
+            activeFeedback = playerFeedback,
+            frameIndex = battleFeedbackFrameIndex
+        )
+        val wildAlpha = fighterAlpha(
+            currentHp = wildChimera.stats.currentHp,
+            hasPendingFaint = wildFaintPending,
+            isHiddenAfterFaint = BattleSide.Enemy in hiddenFaintedSides,
+            activeFeedback = wildFeedback,
+            frameIndex = battleFeedbackFrameIndex
+        )
 
         Image(
             painter = painterResource(id = R.drawable.battle_arena),
@@ -326,7 +366,9 @@ fun BattleScreen(
                 spriteWidth = spriteFrameWidth,
                 spriteHeight = spriteSize,
                 effectOffsetX = playerFeedbackOffset,
+                effectOffsetY = playerDropOffset,
                 tintColor = playerTintColor,
+                alpha = playerAlpha,
                 modifier = Modifier.offset(
                     x = playerPlatformX - spriteFrameWidth / 2f,
                     y = platformY - spriteSize * 0.75f
@@ -339,7 +381,9 @@ fun BattleScreen(
                 spriteWidth = spriteFrameWidth,
                 spriteHeight = spriteSize,
                 effectOffsetX = wildFeedbackOffset,
+                effectOffsetY = wildDropOffset,
                 tintColor = wildTintColor,
+                alpha = wildAlpha,
                 modifier = Modifier.offset(
                     x = wildPlatformX - spriteFrameWidth / 2f,
                     y = platformY - spriteSize * 0.75f
@@ -388,7 +432,9 @@ private fun BattleFighter(
     spriteWidth: Dp,
     spriteHeight: Dp,
     effectOffsetX: Dp = 0.dp,
+    effectOffsetY: Dp = 0.dp,
     tintColor: Color? = null,
+    alpha: Float = 1f,
     modifier: Modifier = Modifier
 ) {
     Image(
@@ -397,11 +443,12 @@ private fun BattleFighter(
         contentScale = ContentScale.Fit,
         colorFilter = tintColor?.let { ColorFilter.tint(it, BlendMode.SrcAtop) },
         modifier = modifier
-            .offset(x = effectOffsetX)
+            .offset(x = effectOffsetX, y = effectOffsetY)
             .width(spriteWidth)
             .height(spriteHeight)
             .graphicsLayer {
                 scaleX = if (mirrored) -1f else 1f
+                this.alpha = alpha
             }
     )
 }
@@ -988,6 +1035,7 @@ private data class BattleFeedback(
 
 private enum class BattleFeedbackType {
     Damage,
+    Faint,
     StatChange
 }
 
@@ -1005,6 +1053,7 @@ private fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> {
             side = feedback.side,
             type = when (feedback.type) {
                 BattleMoveFeedbackType.Damage -> BattleFeedbackType.Damage
+                BattleMoveFeedbackType.Faint -> BattleFeedbackType.Faint
                 BattleMoveFeedbackType.StatChange -> BattleFeedbackType.StatChange
             }
         )
@@ -1012,7 +1061,7 @@ private fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> {
 }
 
 private fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
-    if (this?.type != BattleFeedbackType.Damage) return 0.dp
+    if (this?.type != BattleFeedbackType.Damage && this?.type != BattleFeedbackType.Faint) return 0.dp
 
     return when (frameIndex % 4) {
         0 -> (-7).dp
@@ -1022,12 +1071,47 @@ private fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
     }
 }
 
+private fun BattleFeedback?.faintDropOffset(frameIndex: Int): Dp {
+    if (this?.type != BattleFeedbackType.Faint) return 0.dp
+
+    return (34f * faintProgress(frameIndex)).dp
+}
+
 private fun BattleFeedback?.tintColor(): Color? {
     return when (this?.type) {
         BattleFeedbackType.Damage -> Color(0xFFFF3535).copy(alpha = 0.42f)
+        BattleFeedbackType.Faint -> Color(0xFFFF3535).copy(alpha = 0.48f)
         BattleFeedbackType.StatChange -> Color(0xFF49A7FF).copy(alpha = 0.42f)
         null -> null
     }
+}
+
+private fun fighterAlpha(
+    currentHp: Int,
+    hasPendingFaint: Boolean,
+    isHiddenAfterFaint: Boolean,
+    activeFeedback: BattleFeedback?,
+    frameIndex: Int
+): Float {
+    if (activeFeedback?.type == BattleFeedbackType.Faint) {
+        return (1f - faintProgress(frameIndex)).coerceIn(0f, 1f)
+    }
+
+    if (isHiddenAfterFaint || (currentHp <= 0 && !hasPendingFaint)) {
+        return 0f
+    }
+
+    return 1f
+}
+
+private fun faintProgress(frameIndex: Int): Float {
+    return (frameIndex / 6f).coerceIn(0f, 1f)
+}
+
+private fun BattleMoveAnimation?.hasFaintFeedback(side: BattleSide): Boolean {
+    return this?.feedbacks?.any {
+        it.side == side && it.type == BattleMoveFeedbackType.Faint
+    } == true
 }
 
 private fun mapAnimationsToLogMessages(

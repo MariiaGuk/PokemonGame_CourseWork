@@ -41,6 +41,8 @@ object GameSoundPlayer {
         preload(context, R.raw.save_game)
         preload(context, R.raw.ran_away)
         preload(context, R.raw.level_up)
+        preload(context, R.raw.attack_sound)
+        preload(context, R.raw.dying_sound)
     }
 
     fun play(context: Context, @RawRes soundResId: Int) {

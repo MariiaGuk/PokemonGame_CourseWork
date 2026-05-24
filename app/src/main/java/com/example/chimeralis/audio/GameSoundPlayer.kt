@@ -14,6 +14,8 @@ object GameSoundPlayer {
     private val soundIds = mutableMapOf<Int, Int>()
     private val loadedSounds = mutableSetOf<Int>()
     private val pendingSounds = mutableSetOf<Int>()
+    private var isEnabled: Boolean = true
+    private var volume: Float = 1f
 
     fun initialize(context: Context) {
         if (soundPool != null) return
@@ -31,8 +33,8 @@ object GameSoundPlayer {
                 pool.setOnLoadCompleteListener { loadedPool, sampleId, status ->
                     if (status != 0) return@setOnLoadCompleteListener
                     loadedSounds.add(sampleId)
-                    if (pendingSounds.remove(sampleId)) {
-                        loadedPool.play(sampleId, 1f, 1f, 1, 0, 1f)
+                    if (isEnabled && pendingSounds.remove(sampleId)) {
+                        loadedPool.play(sampleId, volume, volume, 1, 0, 1f)
                     }
                 }
             }
@@ -45,16 +47,26 @@ object GameSoundPlayer {
         preload(context, R.raw.dying_sound)
     }
 
-    fun play(context: Context, @RawRes soundResId: Int) {
+    fun play(context: Context, @RawRes soundResId: Int, force: Boolean = false) {
+        if ((!isEnabled && !force) || volume <= 0f) return
+
         initialize(context.applicationContext)
 
         val pool = soundPool ?: return
         val soundId = soundIds[soundResId] ?: preload(context, soundResId)
 
         if (soundId in loadedSounds) {
-            pool.play(soundId, 1f, 1f, 1, 0, 1f)
+            pool.play(soundId, volume, volume, 1, 0, 1f)
         } else {
             pendingSounds.add(soundId)
+        }
+    }
+
+    fun configure(enabled: Boolean, soundVolume: Float) {
+        isEnabled = enabled
+        volume = soundVolume.coerceIn(0f, 1f)
+        if (!isEnabled) {
+            pendingSounds.clear()
         }
     }
 
@@ -77,8 +89,17 @@ object GameSoundPlayer {
 }
 
 @Composable
-fun GameSoundEffects() {
+fun GameSoundEffects(
+    enabled: Boolean = true,
+    volume: Float = 1f
+) {
     val context = LocalContext.current
+
+    DisposableEffect(enabled, volume) {
+        GameSoundPlayer.configure(enabled, volume)
+
+        onDispose {}
+    }
 
     DisposableEffect(Unit) {
         GameSoundPlayer.initialize(context.applicationContext)

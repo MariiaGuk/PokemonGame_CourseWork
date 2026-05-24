@@ -86,6 +86,11 @@ fun AppNavigation(onExitGame: () -> Unit) {
     var wildEncounter by remember { mutableStateOf<ChimeraSpecies?>(null) }
     var saves by remember { mutableStateOf(saveStore.loadAll()) }
     var isScreenTransitionRunning by remember { mutableStateOf(false) }
+    var musicEnabled by remember { mutableStateOf(true) }
+    var musicVolume by remember { mutableFloatStateOf(0.62f) }
+    var soundEnabled by remember { mutableStateOf(true) }
+    var soundVolume by remember { mutableFloatStateOf(1f) }
+    var encounterChance by remember { mutableFloatStateOf(0.22f) }
     val transitionWhiteAlpha = remember { Animatable(0f) }
     val battleZoomScale = remember { Animatable(1f) }
     val transitionScope = rememberCoroutineScope()
@@ -101,8 +106,15 @@ fun AppNavigation(onExitGame: () -> Unit) {
         }
     }
 
-    GameMusic(currentScreen = musicScreen)
-    GameSoundEffects()
+    GameMusic(
+        currentScreen = musicScreen,
+        enabled = musicEnabled,
+        volume = musicVolume
+    )
+    GameSoundEffects(
+        enabled = soundEnabled,
+        volume = soundVolume
+    )
 
     fun transitionTo(screen: String) {
         if (isScreenTransitionRunning) return
@@ -171,6 +183,16 @@ fun AppNavigation(onExitGame: () -> Unit) {
             when (currentScreen) {
                 "splash" -> SplashScreen(onFinished = { currentScreen = "main_menu" })
                 "main_menu" -> MainMenuScreen(
+                    musicEnabled = musicEnabled,
+                    musicVolume = musicVolume,
+                    soundEnabled = soundEnabled,
+                    soundVolume = soundVolume,
+                    encounterChance = encounterChance,
+                    onMusicEnabledChanged = { musicEnabled = it },
+                    onMusicVolumeChanged = { musicVolume = it },
+                    onSoundEnabledChanged = { soundEnabled = it },
+                    onSoundVolumeChanged = { soundVolume = it },
+                    onEncounterChanceChanged = { encounterChance = it },
                     onNewGame = {
                         trainerName = ""
                         trainerNameError = null
@@ -278,6 +300,16 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     initialPlayerColumn = playerColumn,
                     initialPlayerRow = playerRow,
                     hasUnsavedChanges = hasUnsavedChanges,
+                    musicEnabled = musicEnabled,
+                    musicVolume = musicVolume,
+                    soundEnabled = soundEnabled,
+                    soundVolume = soundVolume,
+                    encounterChance = encounterChance,
+                    onMusicEnabledChanged = { musicEnabled = it },
+                    onMusicVolumeChanged = { musicVolume = it },
+                    onSoundEnabledChanged = { soundEnabled = it },
+                    onSoundVolumeChanged = { soundVolume = it },
+                    onEncounterChanceChanged = { encounterChance = it },
                     onPlayerPositionChanged = { column, row ->
                         playerColumn = column
                         playerRow = row
@@ -333,6 +365,16 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     initialPlayerColumn = playerColumn,
                     initialPlayerRow = playerRow,
                     hasUnsavedChanges = hasUnsavedChanges,
+                    musicEnabled = musicEnabled,
+                    musicVolume = musicVolume,
+                    soundEnabled = soundEnabled,
+                    soundVolume = soundVolume,
+                    encounterChance = encounterChance,
+                    onMusicEnabledChanged = { musicEnabled = it },
+                    onMusicVolumeChanged = { musicVolume = it },
+                    onSoundEnabledChanged = { soundEnabled = it },
+                    onSoundVolumeChanged = { soundVolume = it },
+                    onEncounterChanceChanged = { encounterChance = it },
                     onPlayerPositionChanged = { column, row ->
                         playerColumn = column
                         playerRow = row
@@ -409,16 +451,24 @@ fun AppNavigation(onExitGame: () -> Unit) {
 }
 
 @Composable
-private fun GameMusic(currentScreen: String) {
+private fun GameMusic(
+    currentScreen: String,
+    enabled: Boolean,
+    volume: Float
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val musicResId = currentScreen.musicResId()
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
-    DisposableEffect(musicResId) {
+    DisposableEffect(musicResId, enabled) {
+        if (!enabled) {
+            mediaPlayer = null
+            onDispose {}
+        } else {
         val player = MediaPlayer.create(context.applicationContext, musicResId).apply {
             isLooping = true
-            setVolume(0.62f, 0.62f)
+            setVolume(volume, volume)
             start()
         }
 
@@ -433,13 +483,21 @@ private fun GameMusic(currentScreen: String) {
                 mediaPlayer = null
             }
         }
+        }
     }
 
-    DisposableEffect(lifecycleOwner, mediaPlayer) {
+    LaunchedEffect(mediaPlayer, enabled, volume) {
+        mediaPlayer?.setVolume(
+            if (enabled) volume.coerceIn(0f, 1f) else 0f,
+            if (enabled) volume.coerceIn(0f, 1f) else 0f
+        )
+    }
+
+    DisposableEffect(lifecycleOwner, mediaPlayer, enabled) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> mediaPlayer?.pause()
-                Lifecycle.Event.ON_RESUME -> mediaPlayer?.start()
+                Lifecycle.Event.ON_RESUME -> if (enabled) mediaPlayer?.start()
                 else -> Unit
             }
         }

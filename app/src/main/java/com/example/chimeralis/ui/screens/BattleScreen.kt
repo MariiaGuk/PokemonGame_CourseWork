@@ -162,6 +162,10 @@ fun BattleScreen(
         if (!isBattleExitPending) return@LaunchedEffect
 
         delay(BattleEndInputLockMillis)
+        player.team.forEach { chimera ->
+            chimera.stats.resetBattleStages()
+        }
+        wildChimera.stats.resetBattleStages()
         onBattleFinished()
     }
 

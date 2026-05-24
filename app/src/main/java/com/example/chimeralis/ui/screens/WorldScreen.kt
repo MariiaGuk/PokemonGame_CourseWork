@@ -72,7 +72,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
-private const val MapColumns = 18
+private const val MapColumns = 21
 private const val MapRows = 10
 private const val StepDurationMs = 280
 private const val HeldStepDelayMs = 65L
@@ -84,7 +84,7 @@ private const val WorldZoom = 1.28f
 private const val MaxTeamSize = 6
 private const val WorldInventoryColumns = 3
 private const val WorldInventorySlotCount = 9
-private const val LavaShiftNpcColumn = 16
+private const val LavaShiftNpcColumn = 19
 private const val LavaShiftNpcRow = 5
 private const val GrassShiftNpcColumn = 1
 private const val GrassShiftNpcRow = 5
@@ -92,14 +92,62 @@ private const val ShiftNpcIdleFrameDelayMs = 720L
 
 enum class WorldField { Lava, Grass }
 
-private val grassTiles = setOf(
-    3 to 2, 4 to 2, 5 to 2, 12 to 2, 13 to 2, 14 to 2,
-    3 to 3, 4 to 3, 5 to 3, 12 to 3, 13 to 3, 14 to 3,
-    7 to 5, 8 to 5, 9 to 5, 10 to 5,
-    7 to 6, 8 to 6, 9 to 6, 10 to 6,
-    2 to 7, 3 to 7, 14 to 7, 15 to 7,
-    2 to 8, 3 to 8, 14 to 8, 15 to 8
+private data class TownBuilding(
+    val imageRes: Int,
+    val column: Int,
+    val row: Int,
+    val columns: Int = 4,
+    val rows: Int = 4
 )
+
+private val grassTiles = setOf(
+    3 to 2, 4 to 2, 5 to 2,
+    3 to 3, 4 to 3, 5 to 3,
+    12 to 2, 13 to 2, 14 to 2, 15 to 2, 16 to 2, 17 to 2, 18 to 2, 19 to 2,
+    12 to 3, 13 to 3, 14 to 3, 15 to 3, 16 to 3, 17 to 3, 18 to 3, 19 to 3,
+    7 to 5, 8 to 5, 9 to 5,
+    7 to 6, 8 to 6, 9 to 6,
+    11 to 7, 12 to 7, 13 to 7, 14 to 7,
+    11 to 8, 12 to 8, 13 to 8, 14 to 8,
+    2 to 7, 3 to 7, 18 to 7, 19 to 7,
+    2 to 8, 3 to 8, 18 to 8, 19 to 8
+)
+
+private val grassTownBuildings = listOf(
+    TownBuilding(imageRes = R.drawable.town_building_library, column = 1, row = 1, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.pokecenter, column = 6, row = 1, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.pokestore, column = 11, row = 1, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.town_building_shop, column = 16, row = 1, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.town_building_hotel, column = 1, row = 6, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.town_building_bank, column = 6, row = 6, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.town_building_cafe, column = 11, row = 6, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.town_building_hair_salon, column = 16, row = 6, columns = 4, rows = 3)
+)
+
+private val grassTownBuildingTiles = grassTownBuildings
+    .flatMap { building ->
+        (building.column until building.column + building.columns).flatMap { column ->
+            (building.row until building.row + building.rows).map { row -> column to row }
+        }
+    }
+    .toSet()
+
+private val grassTownPathTiles = buildSet {
+    for (column in 0 until MapColumns) {
+        add(column to 0)
+        add(column to 4)
+        add(column to 5)
+        add(column to 9)
+    }
+
+    for (row in 0 until MapRows) {
+        add(0 to row)
+        add(5 to row)
+        add(10 to row)
+        add(15 to row)
+        add(20 to row)
+    }
+}
 
 private enum class Direction { Down, Up, Left, Right }
 private enum class ExitAction { MainMenu, ExitGame }
@@ -166,6 +214,7 @@ fun WorldScreen(
     val grassTexture = ImageBitmap.imageResource(
         id = if (field == WorldField.Grass) R.drawable.bush_field_tile else R.drawable.rock_grass_tile
     )
+    val pathTexture = ImageBitmap.imageResource(id = R.drawable.path_field_overlay)
     val shiftNpcTile = if (field == WorldField.Grass) {
         GrassShiftNpcColumn to GrassShiftNpcRow
     } else {
@@ -261,6 +310,16 @@ fun WorldScreen(
                 continue
             }
 
+            if (field == WorldField.Grass && nextTile !in grassTownPathTiles) {
+                delay(HeldStepDelayMs)
+                continue
+            }
+
+            if (field == WorldField.Grass && nextTile in grassTownBuildingTiles) {
+                delay(HeldStepDelayMs)
+                continue
+            }
+
             targetColumn = nextTile.first
             targetRow = nextTile.second
             isMoving = true
@@ -272,7 +331,11 @@ fun WorldScreen(
             onPlayerPositionChanged(playerColumn, playerRow)
 
             val chance = currentEncounterChance.coerceIn(0f, 1f)
-            val shouldStartEncounter = nextTile in grassTiles &&
+            val isWildGrassTile = field != WorldField.Grass &&
+                    nextTile in grassTiles &&
+                    !(field == WorldField.Grass && nextTile in grassTownPathTiles) &&
+                    !(field == WorldField.Grass && nextTile in grassTownBuildingTiles)
+            val shouldStartEncounter = isWildGrassTile &&
                     currentCanStartBattles &&
                     chance > 0f &&
                     (chance >= 1f || Random.nextFloat() < chance)
@@ -328,6 +391,44 @@ fun WorldScreen(
                 scaleX = if (field == WorldField.Grass) -1f else 1f
             }
         val shouldDrawShiftNpcBeforePlayer = showShiftNpc && animatedRow > shiftNpcTile.second
+        @Composable
+        fun TownBuildings(drawOverPlayer: Boolean) {
+            if (field != WorldField.Grass) return
+
+            grassTownBuildings.forEach { building ->
+                val shouldDrawOverPlayer = animatedRow < building.row
+                if (shouldDrawOverPlayer != drawOverPlayer) return@forEach
+
+                val painter = painterResource(id = building.imageRes)
+                val buildingWidth = tileWidth * building.columns
+                val fallbackHeight = tileHeight * building.rows
+                val intrinsicSize = painter.intrinsicSize
+                val buildingHeight = if (intrinsicSize.width > 0f && intrinsicSize.height > 0f) {
+                    buildingWidth * intrinsicSize.height / intrinsicSize.width
+                } else {
+                    fallbackHeight
+                }
+                val left = mapLeft + building.column * tileWidth
+                val bottom = mapTop + (building.row + building.rows) * tileHeight
+                val top = bottom - buildingHeight
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                x = left.roundToInt(),
+                                y = top.roundToInt()
+                            )
+                        }
+                        .size(
+                            width = with(density) { buildingWidth.toDp() },
+                            height = with(density) { buildingHeight.toDp() }
+                        )
+                )
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -342,25 +443,38 @@ fun WorldScreen(
                     for (column in 0 until MapColumns) {
                         val left = mapLeft + column * tileWidth
                         val top = mapTop + row * tileHeight
-                        val isGrass = column to row in grassTiles
+                        val tile = column to row
+                        val isPath = field == WorldField.Grass && tile in grassTownPathTiles
+                        val isGrass = field != WorldField.Grass &&
+                                tile in grassTiles &&
+                                !(field == WorldField.Grass && tile in grassTownBuildingTiles) &&
+                                !isPath
                         val tileDstSize = IntSize(
                             width = (tileWidth + 1f).roundToInt(),
                             height = (tileHeight + 1f).roundToInt()
                         )
 
-                        if (isGrass) {
+                        drawImage(
+                            image = groundTexture,
+                            srcOffset = IntOffset.Zero,
+                            srcSize = IntSize(groundTexture.width, groundTexture.height),
+                            dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
+                            dstSize = tileDstSize
+                        )
+
+                        if (isPath) {
+                            drawImage(
+                                image = pathTexture,
+                                srcOffset = IntOffset.Zero,
+                                srcSize = IntSize(pathTexture.width, pathTexture.height),
+                                dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
+                                dstSize = tileDstSize
+                            )
+                        } else if (isGrass) {
                             drawImage(
                                 image = grassTexture,
                                 srcOffset = IntOffset.Zero,
                                 srcSize = IntSize(grassTexture.width, grassTexture.height),
-                                dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-                                dstSize = tileDstSize
-                            )
-                        } else {
-                            drawImage(
-                                image = groundTexture,
-                                srcOffset = IntOffset.Zero,
-                                srcSize = IntSize(groundTexture.width, groundTexture.height),
                                 dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
                                 dstSize = tileDstSize
                             )
@@ -369,6 +483,8 @@ fun WorldScreen(
                     }
                 }
             }
+
+            TownBuildings(drawOverPlayer = false)
 
             if (shouldDrawShiftNpcBeforePlayer) {
                 ShiftNpcWorldSprite(
@@ -403,6 +519,8 @@ fun WorldScreen(
                     modifier = npcModifier
                 )
             }
+
+            TownBuildings(drawOverPlayer = true)
         }
 
         Box(

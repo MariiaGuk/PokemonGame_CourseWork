@@ -36,6 +36,7 @@ import com.example.chimeralis.ui.screens.MainMenuScreen
 import com.example.chimeralis.ui.screens.SplashScreen
 import com.example.chimeralis.ui.screens.StarterSelectionScreen
 import com.example.chimeralis.ui.screens.TrainerNameScreen
+import com.example.chimeralis.ui.screens.WorldField
 import com.example.chimeralis.ui.screens.WorldScreen
 import com.example.chimeralis.ui.theme.ChimeralisTheme
 import kotlinx.coroutines.delay
@@ -67,6 +68,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
     val saveStore = remember(context) { GameSaveStore(context.applicationContext) }
 
     var currentScreen by remember { mutableStateOf("splash") }
+    var returnWorldScreen by remember { mutableStateOf("world") }
     var musicScreen by remember { mutableStateOf("splash") }
     var selectedStarter by remember { mutableStateOf<ChimeraSpecies?>(null) }
     var starterNickname by remember { mutableStateOf("") }
@@ -76,6 +78,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
     var playerColumn by remember { mutableIntStateOf(1) }
     var playerRow by remember { mutableIntStateOf(1) }
     var worldInputLockKey by remember { mutableIntStateOf(0) }
+    var shiftNpcIntroSeen by remember { mutableStateOf(false) }
     var lastSavedColumn by remember { mutableIntStateOf(1) }
     var lastSavedRow by remember { mutableIntStateOf(1) }
     var lastSavedTeamSignature by remember { mutableStateOf("") }
@@ -174,10 +177,12 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         starterNickname = ""
                         player = null
                         teamVersion = 0
-                    playerColumn = 1
-                    playerRow = 1
-                    worldInputLockKey = 0
-                    lastSavedColumn = 1
+                        playerColumn = 1
+                        playerRow = 1
+                        worldInputLockKey = 0
+                        shiftNpcIntroSeen = false
+                        returnWorldScreen = "world"
+                        lastSavedColumn = 1
                         lastSavedRow = 1
                         lastSavedTeamSignature = ""
                         currentScreen = "trainer_name"
@@ -197,10 +202,12 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         teamVersion = 0
                         selectedStarter = loadedPlayer.activeChimera.species
                         starterNickname = loadedPlayer.activeChimera.name
-                    playerColumn = save.playerColumn
-                    playerRow = save.playerRow
-                    worldInputLockKey = 0
-                    lastSavedColumn = save.playerColumn
+                        playerColumn = save.playerColumn
+                        playerRow = save.playerRow
+                        worldInputLockKey = 0
+                        shiftNpcIntroSeen = false
+                        returnWorldScreen = "world"
+                        lastSavedColumn = save.playerColumn
                         lastSavedRow = save.playerRow
                         lastSavedTeamSignature = loadedPlayer.teamSignature() + "|0"
                         wildEncounter = null
@@ -245,10 +252,12 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         starterNickname = starterChimera.name
                         player = newPlayer
                         teamVersion = 0
-                    playerColumn = 1
-                    playerRow = 1
-                    worldInputLockKey = 0
-                    lastSavedColumn = 1
+                        playerColumn = 1
+                        playerRow = 1
+                        worldInputLockKey = 0
+                        shiftNpcIntroSeen = false
+                        returnWorldScreen = "world"
+                        lastSavedColumn = 1
                         lastSavedRow = 1
                         saveCurrentGame(column = 1, row = 1)
                         currentScreen = "world"
@@ -259,6 +268,9 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    field = WorldField.Lava,
+                    showShiftNpc = true,
+                    shiftNpcIntroSeen = shiftNpcIntroSeen,
                     worldTransitionScale = battleZoomScale.value,
                     inputLockKey = worldInputLockKey,
                     initialPlayerColumn = playerColumn,
@@ -268,16 +280,31 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         playerColumn = column
                         playerRow = row
                     },
-                onSaveGame = { column, row ->
-                    playerColumn = column
-                    playerRow = row
-                    saveCurrentGame(column, row)
-                    GameSoundPlayer.play(context, R.raw.save_game)
-                },
+                    onSaveGame = { column, row ->
+                        playerColumn = column
+                        playerRow = row
+                        saveCurrentGame(column, row)
+                        GameSoundPlayer.play(context, R.raw.save_game)
+                    },
                     onUseInventoryItem = { item, chimera ->
                         if (player?.inventory?.useItem(item, chimera) == true) {
                             teamVersion++
                         }
+                    },
+                    onTravelToGrassField = {
+                        playerColumn = 2
+                        playerRow = 5
+                        returnWorldScreen = "grass_field"
+                        transitionTo("grass_field")
+                    },
+                    onReturnToLavaField = {
+                        playerColumn = 15
+                        playerRow = 5
+                        returnWorldScreen = "world"
+                        transitionTo("world")
+                    },
+                    onShiftNpcIntroSeen = {
+                        shiftNpcIntroSeen = true
                     },
                     onBackToMainMenu = {
                         currentScreen = "main_menu"
@@ -285,6 +312,59 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     onExitGame = onExitGame,
                     onWildEncounter = { wildSpecies ->
                         wildEncounter = wildSpecies
+                        returnWorldScreen = "world"
+                        transitionTo("battle")
+                    }
+                )
+                "grass_field" -> WorldScreen(
+                    starter = selectedStarter,
+                    team = player?.team?.toList().orEmpty(),
+                    inventoryItems = player?.inventory?.items.orEmpty(),
+                    field = WorldField.Grass,
+                    showShiftNpc = true,
+                    shiftNpcIntroSeen = shiftNpcIntroSeen,
+                    worldTransitionScale = battleZoomScale.value,
+                    inputLockKey = worldInputLockKey,
+                    initialPlayerColumn = playerColumn,
+                    initialPlayerRow = playerRow,
+                    hasUnsavedChanges = hasUnsavedChanges,
+                    onPlayerPositionChanged = { column, row ->
+                        playerColumn = column
+                        playerRow = row
+                    },
+                    onSaveGame = { column, row ->
+                        playerColumn = column
+                        playerRow = row
+                        saveCurrentGame(column, row)
+                        GameSoundPlayer.play(context, R.raw.save_game)
+                    },
+                    onUseInventoryItem = { item, chimera ->
+                        if (player?.inventory?.useItem(item, chimera) == true) {
+                            teamVersion++
+                        }
+                    },
+                    onTravelToGrassField = {
+                        playerColumn = 2
+                        playerRow = 5
+                        returnWorldScreen = "grass_field"
+                        transitionTo("grass_field")
+                    },
+                    onReturnToLavaField = {
+                        playerColumn = 15
+                        playerRow = 5
+                        returnWorldScreen = "world"
+                        transitionTo("world")
+                    },
+                    onShiftNpcIntroSeen = {
+                        shiftNpcIntroSeen = true
+                    },
+                    onBackToMainMenu = {
+                        currentScreen = "main_menu"
+                    },
+                    onExitGame = onExitGame,
+                    onWildEncounter = { wildSpecies ->
+                        wildEncounter = wildSpecies
+                        returnWorldScreen = "grass_field"
                         transitionTo("battle")
                     }
                 )
@@ -298,11 +378,11 @@ fun AppNavigation(onExitGame: () -> Unit) {
                             selectedStarter = currentPlayer.activeChimera.species
                             starterNickname = currentPlayer.activeChimera.name
                             worldInputLockKey++
-                            transitionTo("world")
+                            transitionTo(returnWorldScreen)
                         }
                     )
                 } ?: run {
-                    currentScreen = "world"
+                    currentScreen = returnWorldScreen
                 }
             }
         }
@@ -363,7 +443,7 @@ private fun GameMusic(currentScreen: String) {
 
 private fun String.musicResId(): Int {
     return when (this) {
-        "world" -> R.raw.lava_field_theme
+        "world", "grass_field" -> R.raw.lava_field_theme
         "battle" -> R.raw.battle_theme
         else -> R.raw.main_menu_theme
     }

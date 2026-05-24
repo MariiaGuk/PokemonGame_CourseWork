@@ -327,7 +327,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     },
                     onTravelToGrassField = {
                         playerColumn = 2
-                        playerRow = 5
+                        playerRow = 4
                         returnWorldScreen = "grass_field"
                         transitionTo("grass_field")
                     },
@@ -392,7 +392,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     },
                     onTravelToGrassField = {
                         playerColumn = 2
-                        playerRow = 5
+                        playerRow = 4
                         returnWorldScreen = "grass_field"
                         transitionTo("grass_field")
                     },
@@ -512,7 +512,8 @@ private fun GameMusic(
 
 private fun String.musicResId(): Int {
     return when (this) {
-        "world", "grass_field" -> R.raw.lava_field_theme
+        "world" -> R.raw.lava_field_theme
+        "grass_field" -> R.raw.grass_field_theme
         "battle" -> R.raw.battle_theme
         else -> R.raw.main_menu_theme
     }

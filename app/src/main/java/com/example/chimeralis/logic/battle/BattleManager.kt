@@ -242,7 +242,9 @@ class BattleManager(
         before: StatsSnapshot,
         after: StatsSnapshot
     ) {
-        if (after.currentHp < before.currentHp) {
+        if (before.currentHp > 0 && after.currentHp <= 0) {
+            add(BattleMoveFeedback(side, BattleMoveFeedbackType.Faint))
+        } else if (after.currentHp < before.currentHp) {
             add(BattleMoveFeedback(side, BattleMoveFeedbackType.Damage))
         }
 

@@ -22,6 +22,7 @@ data class BattleMoveFeedback(
 
 enum class BattleMoveFeedbackType {
     Damage,
+    Faint,
     StatChange
 }
 

@@ -83,6 +83,13 @@ private const val WorldZoom = 1.28f
 private const val MaxTeamSize = 6
 private const val WorldInventoryColumns = 3
 private const val WorldInventorySlotCount = 9
+private const val LavaShiftNpcColumn = 16
+private const val LavaShiftNpcRow = 5
+private const val GrassShiftNpcColumn = 1
+private const val GrassShiftNpcRow = 5
+private const val ShiftNpcIdleFrameDelayMs = 720L
+
+enum class WorldField { Lava, Grass }
 
 private val grassTiles = setOf(
     3 to 2, 4 to 2, 5 to 2, 12 to 2, 13 to 2, 14 to 2,
@@ -101,6 +108,9 @@ fun WorldScreen(
     starter: ChimeraSpecies?,
     team: List<Chimera> = emptyList(),
     inventoryItems: Map<Item, Int> = emptyMap(),
+    field: WorldField = WorldField.Lava,
+    showShiftNpc: Boolean = false,
+    shiftNpcIntroSeen: Boolean = false,
     worldTransitionScale: Float = 1f,
     inputLockKey: Int = 0,
     initialPlayerColumn: Int = 1,
@@ -109,6 +119,9 @@ fun WorldScreen(
     onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
     onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
+    onTravelToGrassField: () -> Unit = {},
+    onReturnToLavaField: () -> Unit = {},
+    onShiftNpcIntroSeen: () -> Unit = {},
     onBackToMainMenu: () -> Unit,
     onExitGame: () -> Unit,
     onWildEncounter: (ChimeraSpecies) -> Unit
@@ -134,8 +147,23 @@ fun WorldScreen(
     var isWorldInputLocked by remember { mutableStateOf(false) }
     var itemTargetSelection by remember { mutableStateOf<Item?>(null) }
     var pendingItemUseConfirmation by remember { mutableStateOf<Pair<Item, Chimera>?>(null) }
-    val groundTexture = ImageBitmap.imageResource(id = R.drawable.lava_ground)
-    val grassTexture = ImageBitmap.imageResource(id = R.drawable.rock_grass_tile)
+    var shiftNpcIdleFrame by remember { mutableIntStateOf(0) }
+    var shiftNpcDialogStep by remember { mutableStateOf<Int?>(null) }
+    val groundTexture = ImageBitmap.imageResource(
+        id = if (field == WorldField.Grass) R.drawable.grass_field_ground else R.drawable.lava_ground
+    )
+    val grassTexture = ImageBitmap.imageResource(
+        id = if (field == WorldField.Grass) R.drawable.bush_field_tile else R.drawable.rock_grass_tile
+    )
+    val shiftNpcTile = if (field == WorldField.Grass) {
+        GrassShiftNpcColumn to GrassShiftNpcRow
+    } else {
+        LavaShiftNpcColumn to LavaShiftNpcRow
+    }
+    val isShiftNpcDialogOpen = shiftNpcDialogStep != null
+    val canInteractWithShiftNpc = showShiftNpc &&
+            !isShiftNpcDialogOpen &&
+            abs(playerColumn - shiftNpcTile.first) + abs(playerRow - shiftNpcTile.second) == 1
 
     val animatedColumn by animateFloatAsState(
         targetValue = targetColumn.toFloat(),
@@ -172,12 +200,22 @@ fun WorldScreen(
         isWorldInputLocked = false
     }
 
+    LaunchedEffect(showShiftNpc) {
+        if (!showShiftNpc) return@LaunchedEffect
+
+        while (true) {
+            shiftNpcIdleFrame++
+            delay(ShiftNpcIdleFrameDelayMs)
+        }
+    }
+
     LaunchedEffect(Unit) {
         while (true) {
             if (isGameMenuOpen ||
                 isInventoryOpen ||
                 isWildEncounterStarting ||
                 isWorldInputLocked ||
+                shiftNpcDialogStep != null ||
                 itemTargetSelection != null ||
                 pendingItemUseConfirmation != null
             ) {
@@ -199,6 +237,11 @@ fun WorldScreen(
             direction = nextDirection
 
             if (nextTile.first == currentColumn && nextTile.second == currentRow) {
+                delay(HeldStepDelayMs)
+                continue
+            }
+
+            if (showShiftNpc && nextTile == shiftNpcTile) {
                 delay(HeldStepDelayMs)
                 continue
             }
@@ -252,6 +295,25 @@ fun WorldScreen(
         val spriteHeight = spriteBaseSize * 1.62f
         val playerCenterX = mapLeft + (animatedColumn + 0.5f) * tileWidth
         val playerCenterY = mapTop + (animatedRow + 0.5f) * tileHeight
+        val npcHeight = spriteHeight
+        val npcWidth = spriteWidth
+        val npcCenterX = mapLeft + (shiftNpcTile.first + 0.5f) * tileWidth
+        val npcBottomY = mapTop + (shiftNpcTile.second + 0.89f) * tileHeight
+        val npcModifier = Modifier
+            .offset {
+                IntOffset(
+                    x = (npcCenterX - npcWidth / 2f).roundToInt(),
+                    y = (npcBottomY - npcHeight).roundToInt()
+                )
+            }
+            .size(
+                width = with(density) { npcWidth.toDp() },
+                height = with(density) { npcHeight.toDp() }
+            )
+            .graphicsLayer {
+                scaleX = if (field == WorldField.Grass) -1f else 1f
+            }
+        val shouldDrawShiftNpcBeforePlayer = showShiftNpc && animatedRow > shiftNpcTile.second
 
         Box(
             modifier = Modifier
@@ -294,6 +356,13 @@ fun WorldScreen(
                 }
             }
 
+            if (shouldDrawShiftNpcBeforePlayer) {
+                ShiftNpcWorldSprite(
+                    frameIndex = shiftNpcIdleFrame,
+                    modifier = npcModifier
+                )
+            }
+
             Image(
                 painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),
                 contentDescription = "Player",
@@ -313,6 +382,13 @@ fun WorldScreen(
                         scaleX = if (direction == Direction.Left) -1f else 1f
                     }
             )
+
+            if (showShiftNpc && !shouldDrawShiftNpcBeforePlayer) {
+                ShiftNpcWorldSprite(
+                    frameIndex = shiftNpcIdleFrame,
+                    modifier = npcModifier
+                )
+            }
         }
 
         Box(
@@ -325,7 +401,7 @@ fun WorldScreen(
             SmallWorldMenuButton(
                 text = "Menu",
                 onClick = {
-                    if (isWorldInputLocked) return@SmallWorldMenuButton
+                    if (isWorldInputLocked || isShiftNpcDialogOpen) return@SmallWorldMenuButton
 
                     requestedDirection = null
                     isMoving = false
@@ -346,7 +422,7 @@ fun WorldScreen(
             SmallWorldMenuButton(
                 text = "Bag",
                 onClick = {
-                    if (isWorldInputLocked) return@SmallWorldMenuButton
+                    if (isWorldInputLocked || isShiftNpcDialogOpen) return@SmallWorldMenuButton
 
                     requestedDirection = null
                     isMoving = false
@@ -374,6 +450,7 @@ fun WorldScreen(
                     !isInventoryOpen &&
                     !isWildEncounterStarting &&
                     !isWorldInputLocked &&
+                    !isShiftNpcDialogOpen &&
                     itemTargetSelection == null &&
                     pendingItemUseConfirmation == null
                 ) {
@@ -381,6 +458,25 @@ fun WorldScreen(
                 }
             }
         )
+
+        if (canInteractWithShiftNpc && !isGameMenuOpen && !isInventoryOpen) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .width(128.dp)
+                    .height(38.dp)
+            ) {
+                SmallWorldMenuButton(
+                    text = "Talk",
+                    onClick = {
+                        requestedDirection = null
+                        isMoving = false
+                        shiftNpcDialogStep = 0
+                    }
+                )
+            }
+        }
 
         if (isInventoryOpen && !isGameMenuOpen) {
             WorldInventoryPanel(
@@ -511,6 +607,43 @@ fun WorldScreen(
                 }
             )
         }
+
+        shiftNpcDialogStep?.let { step ->
+            val isReturnDialog = field == WorldField.Grass
+            val isShortTravelDialog = field == WorldField.Lava && shiftNpcIntroSeen
+
+            ShiftNpcDialogOverlay(
+                step = step,
+                isReturnDialog = isReturnDialog,
+                isShortTravelDialog = isShortTravelDialog,
+                onNext = {
+                    val nextStep = ((shiftNpcDialogStep ?: step) + 1).coerceAtMost(3)
+                    if (field == WorldField.Lava && !shiftNpcIntroSeen && nextStep >= 3) {
+                        onShiftNpcIntroSeen()
+                    }
+                    shiftNpcDialogStep = nextStep
+                },
+                onStay = {
+                    if (field == WorldField.Lava && !shiftNpcIntroSeen && step >= 3) {
+                        onShiftNpcIntroSeen()
+                    }
+                    shiftNpcDialogStep = null
+                },
+                onTravel = {
+                    shiftNpcDialogStep = null
+                    requestedDirection = null
+                    isMoving = false
+                    if (field == WorldField.Grass) {
+                        onReturnToLavaField()
+                    } else {
+                        if (!shiftNpcIntroSeen) {
+                            onShiftNpcIntroSeen()
+                        }
+                        onTravelToGrassField()
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -618,6 +751,19 @@ private fun TeamSlot(
             }
         }
     }
+}
+
+@Composable
+private fun ShiftNpcWorldSprite(
+    frameIndex: Int,
+    modifier: Modifier = Modifier
+) {
+    Image(
+        painter = painterResource(id = shiftNpcIdleFrame(frameIndex)),
+        contentDescription = "Shift NPC",
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -758,6 +904,101 @@ private fun ConfirmItemUseDialog(
 
             MenuButton(text = "Use", onClick = onConfirm)
             MenuButton(text = "Cancel", onClick = onCancel)
+        }
+    }
+}
+
+@Composable
+private fun ShiftNpcDialogOverlay(
+    step: Int,
+    isReturnDialog: Boolean,
+    isShortTravelDialog: Boolean,
+    onNext: () -> Unit,
+    onStay: () -> Unit,
+    onTravel: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    var portraitFrame by remember(step) { mutableIntStateOf(0) }
+
+    LaunchedEffect(step) {
+        while (true) {
+            portraitFrame++
+            delay(520L)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.34f))
+    ) {
+        Image(
+            painter = painterResource(
+                id = shiftNpcDialogFrame(
+                    step = if (isReturnDialog || isShortTravelDialog) 2 else step,
+                    frameIndex = portraitFrame
+                )
+            ),
+            contentDescription = "Shift NPC dialog",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp)
+                .height(620.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(152.dp)
+                .background(colors.surface.copy(alpha = 0.78f))
+                .border(1.dp, colors.primary.copy(alpha = 0.42f))
+                .padding(horizontal = 28.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = when {
+                    isReturnDialog -> "Ready to go back?"
+                    isShortTravelDialog -> "Ready to head to trainer town?"
+                    else -> shiftNpcDialogText(step)
+                },
+                color = colors.primary,
+                fontSize = if (step >= 2 || isReturnDialog || isShortTravelDialog) 15.sp else 18.sp,
+                lineHeight = if (step >= 2 || isReturnDialog || isShortTravelDialog) 21.sp else 25.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = CinzelFamily,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (step < 3 && !isReturnDialog && !isShortTravelDialog) {
+                Box(
+                    modifier = Modifier
+                        .width(160.dp)
+                        .height(42.dp)
+                ) {
+                    MenuButton(text = "Next", onClick = onNext)
+                }
+            } else {
+                Column(
+                    modifier = Modifier.width(174.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = if (isReturnDialog) "Return?" else "Go now?",
+                        color = colors.onSurface.copy(alpha = 0.82f),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = CinzelFamily,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    MenuButton(text = "Yes", onClick = onTravel)
+                    MenuButton(text = "No", onClick = onStay)
+                }
+            }
         }
     }
 }
@@ -1236,6 +1477,29 @@ private fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: Int
     return frames[frameIndex % frames.size]
 }
 
+private fun shiftNpcIdleFrame(frameIndex: Int): Int {
+    return shiftNpcIdleFrames[frameIndex % shiftNpcIdleFrames.size]
+}
+
+private fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
+    val frames = when (step) {
+        0 -> shiftNpcSeriousDialogFrames
+        1 -> shiftNpcSurprisedDialogFrames
+        else -> shiftNpcCalmDialogFrames
+    }
+
+    return frames[frameIndex % frames.size]
+}
+
+private fun shiftNpcDialogText(step: Int): String {
+    return when (step) {
+        0 -> "Hey, who are you and what do you want?"
+        1 -> "Wait, you are a trainer too?"
+        2 -> "Sorry, I did not expect to see any new faces here. You are just starting your journey, right?"
+        else -> "In that case, let me show you our trainer town. You can heal your chimeras there and stock up on new gear."
+    }
+}
+
 private val frontIdleFrames = listOf(
     R.drawable.player_front_idle_1,
     R.drawable.player_front_idle_2,
@@ -1282,6 +1546,27 @@ private val sideRunFrames = listOf(
     R.drawable.player_side_run_6,
     R.drawable.player_side_run_7,
     R.drawable.player_side_run_8
+)
+
+private val shiftNpcIdleFrames = listOf(
+    R.drawable.shift_npc_1,
+    R.drawable.shift_npc_2,
+    R.drawable.shift_npc_3
+)
+
+private val shiftNpcSeriousDialogFrames = listOf(
+    R.drawable.dialog_shift_npc_serious_1,
+    R.drawable.dialog_shift_npc_serious_2
+)
+
+private val shiftNpcSurprisedDialogFrames = listOf(
+    R.drawable.dialog_shift_npc_surprised_1,
+    R.drawable.dialog_shift_npc_surprised_2
+)
+
+private val shiftNpcCalmDialogFrames = listOf(
+    R.drawable.dialog_shift_npc_calm_1,
+    R.drawable.dialog_shift_npc_calm_2
 )
 
 private fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {

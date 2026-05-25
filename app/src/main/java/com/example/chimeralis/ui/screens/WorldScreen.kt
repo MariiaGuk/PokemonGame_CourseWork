@@ -76,6 +76,7 @@ import kotlin.math.roundToInt
 private const val MapColumns = 21
 private const val MapRows = 10
 private const val StepDurationMs = 280
+private const val InteriorStepDurationMs = 150
 private const val HeldStepDelayMs = 65L
 private const val JoystickDeadZone = 0.35f
 private const val MovingFrameDelayMs = 160L
@@ -90,6 +91,8 @@ private const val LavaShiftNpcRow = 5
 private const val GrassShiftNpcColumn = 1
 private const val GrassShiftNpcRow = 5
 private const val ShiftNpcIdleFrameDelayMs = 720L
+private const val InteriorColumns = 16
+private const val InteriorRows = 16
 
 enum class WorldField { Lava, Grass }
 
@@ -150,8 +153,66 @@ private val grassTownPathTiles = buildSet {
     }
 }
 
+private val pokeCenterWalkableTiles = buildSet {
+    for (row in 5..14) {
+        for (column in 1..14) {
+            add(column to row)
+        }
+    }
+
+    removeAll(
+        buildSet {
+            for (row in 5..11) {
+                add(1 to row)
+                add(2 to row)
+                add(13 to row)
+                add(14 to row)
+            }
+            for (column in 1..14) {
+                if (column !in 7..8) {
+                    add(column to 14)
+                }
+            }
+        }
+    )
+}
+
+private val pokeStoreWalkableTiles = buildSet {
+    for (row in 4..14) {
+        for (column in 1..14) {
+            add(column to row)
+        }
+    }
+
+    removeAll(
+        buildSet {
+            for (column in 1..14) {
+                if (column !in 7..8) {
+                    add(column to 14)
+                }
+            }
+            for (row in 4..10) {
+                add(1 to row)
+                add(2 to row)
+                add(13 to row)
+                add(14 to row)
+            }
+            for (row in 6..10) {
+                add(4 to row)
+                add(5 to row)
+                add(10 to row)
+                add(11 to row)
+            }
+            for (column in 5..12) {
+                add(column to 4)
+            }
+        }
+    )
+}
+
 enum class Direction { Down, Up, Left, Right }
 private enum class ExitAction { MainMenu, ExitGame }
+enum class TownInterior { PokeCenter, PokeStore }
 
 @Composable
 fun WorldScreen(
@@ -185,6 +246,7 @@ fun WorldScreen(
     onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
     onTravelToGrassField: () -> Unit = {},
     onReturnToLavaField: () -> Unit = {},
+    onEnterTownInterior: (TownInterior) -> Unit = {},
     onShiftNpcIntroSeen: () -> Unit = {},
     onBackToMainMenu: () -> Unit,
     onExitGame: () -> Unit,
@@ -228,6 +290,12 @@ fun WorldScreen(
     val canInteractWithShiftNpc = showShiftNpc &&
             !isShiftNpcDialogOpen &&
             abs(playerColumn - shiftNpcTile.first) + abs(playerRow - shiftNpcTile.second) == 1
+    val townInteriorAtDoor = when {
+        field == WorldField.Grass && playerRow == 4 && playerColumn in 7..8 -> TownInterior.PokeCenter
+        field == WorldField.Grass && playerRow == 4 && playerColumn in 12..13 -> TownInterior.PokeStore
+        else -> null
+    }
+    val canEnterTownInterior = townInteriorAtDoor != null && !isShiftNpcDialogOpen
     val currentEncounterChance by rememberUpdatedState(encounterChance)
     val currentCanStartBattles by rememberUpdatedState(canStartBattles)
     val currentStarter by rememberUpdatedState(starter)
@@ -597,7 +665,7 @@ fun WorldScreen(
             }
         )
 
-        if (canInteractWithShiftNpc && !isGameMenuOpen && !isInventoryOpen) {
+        if ((canInteractWithShiftNpc || canEnterTownInterior) && !isGameMenuOpen && !isInventoryOpen) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -606,11 +674,15 @@ fun WorldScreen(
                     .height(38.dp)
             ) {
                 SmallWorldMenuButton(
-                    text = "Talk",
+                    text = if (canEnterTownInterior) "Enter" else "Talk",
                     onClick = {
                         requestedDirection = null
                         isMoving = false
-                        shiftNpcDialogStep = 0
+                        if (canEnterTownInterior) {
+                            townInteriorAtDoor?.let(onEnterTownInterior)
+                        } else {
+                            shiftNpcDialogStep = 0
+                        }
                     }
                 )
             }
@@ -789,6 +861,159 @@ fun WorldScreen(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun TownInteriorScreen(
+    interior: TownInterior,
+    initialPlayerColumn: Int = 7,
+    initialPlayerRow: Int = 14,
+    initialPlayerDirection: Direction = Direction.Up,
+    onExit: () -> Unit
+) {
+    var playerColumn by remember(interior) { mutableIntStateOf(initialPlayerColumn) }
+    var playerRow by remember(interior) { mutableIntStateOf(initialPlayerRow) }
+    var targetColumn by remember(interior) { mutableIntStateOf(initialPlayerColumn) }
+    var targetRow by remember(interior) { mutableIntStateOf(initialPlayerRow) }
+    var direction by remember(interior) { mutableStateOf(initialPlayerDirection) }
+    var requestedDirection by remember(interior) { mutableStateOf<Direction?>(null) }
+    var isMoving by remember(interior) { mutableStateOf(false) }
+    var animationFrame by remember(interior) { mutableIntStateOf(0) }
+
+    val backgroundRes = when (interior) {
+        TownInterior.PokeCenter -> R.drawable.pokecenter_interior
+        TownInterior.PokeStore -> R.drawable.pokestore_interior
+    }
+    val walkableTiles = when (interior) {
+        TownInterior.PokeCenter -> pokeCenterWalkableTiles
+        TownInterior.PokeStore -> pokeStoreWalkableTiles
+    }
+    val canExit = playerRow == 14 && playerColumn in 7..8 && !isMoving
+
+    LaunchedEffect(isMoving) {
+        while (true) {
+            animationFrame++
+            delay(if (isMoving) MovingFrameDelayMs else IdleFrameDelayMs)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            val nextDirection = requestedDirection
+            if (nextDirection == null) {
+                delay(16L)
+                continue
+            }
+
+            val nextTile = nextInteriorTile(playerColumn, playerRow, nextDirection)
+            direction = nextDirection
+
+            if (nextTile !in walkableTiles || nextTile == playerColumn to playerRow) {
+                delay(HeldStepDelayMs)
+                continue
+            }
+
+            targetColumn = nextTile.first
+            targetRow = nextTile.second
+            isMoving = true
+            delay(InteriorStepDurationMs.toLong())
+            playerColumn = nextTile.first
+            playerRow = nextTile.second
+            isMoving = false
+            delay(1L)
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        val density = LocalDensity.current
+        val widthPx = with(density) { maxWidth.toPx() }
+        val heightPx = with(density) { maxHeight.toPx() }
+        val imageSizePx = minOf(widthPx, heightPx)
+        val imageLeft = (widthPx - imageSizePx) / 2f
+        val imageTop = (heightPx - imageSizePx) / 2f
+        val tileSize = imageSizePx / InteriorColumns
+
+        val animatedColumn by animateFloatAsState(
+            targetValue = if (isMoving) targetColumn.toFloat() else playerColumn.toFloat(),
+            animationSpec = tween(durationMillis = InteriorStepDurationMs, easing = LinearEasing),
+            label = "interiorPlayerColumn"
+        )
+        val animatedRow by animateFloatAsState(
+            targetValue = if (isMoving) targetRow.toFloat() else playerRow.toFloat(),
+            animationSpec = tween(durationMillis = InteriorStepDurationMs, easing = LinearEasing),
+            label = "interiorPlayerRow"
+        )
+
+        val playerCenterX = imageLeft + (animatedColumn + 0.5f) * tileSize
+        val playerCenterY = imageTop + (animatedRow + 0.5f) * tileSize
+        val worldLikeTileSize = minOf(widthPx / MapColumns * WorldZoom, heightPx / MapRows * WorldZoom)
+        val spriteWidth = worldLikeTileSize * 1.06f
+        val spriteHeight = worldLikeTileSize * 1.62f
+
+        Image(
+            painter = painterResource(id = backgroundRes),
+            contentDescription = when (interior) {
+                TownInterior.PokeCenter -> "Poke Center"
+                TownInterior.PokeStore -> "Poke Store"
+            },
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(with(density) { imageSizePx.toDp() })
+        )
+
+        Image(
+            painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),
+            contentDescription = "Player",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = (playerCenterX - spriteWidth / 2f).roundToInt(),
+                        y = (playerCenterY - spriteHeight * 0.82f).roundToInt()
+                    )
+                }
+                .size(
+                    width = with(density) { spriteWidth.toDp() },
+                    height = with(density) { spriteHeight.toDp() }
+                )
+                .graphicsLayer {
+                    scaleX = if (direction == Direction.Left) -1f else 1f
+                }
+        )
+
+        Joystick(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 30.dp, bottom = 30.dp),
+            onDirectionChanged = { x, y ->
+                requestedDirection = joystickDirection(x, y)
+            }
+        )
+
+        if (canExit) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .width(128.dp)
+                    .height(38.dp)
+            ) {
+                SmallWorldMenuButton(
+                    text = "Exit",
+                    onClick = {
+                        requestedDirection = null
+                        isMoving = false
+                        onExit()
+                    }
+                )
+            }
         }
     }
 }
@@ -1646,6 +1871,13 @@ private fun nextTile(column: Int, row: Int, direction: Direction): Pair<Int, Int
     Direction.Up -> column to (row - 1).coerceAtLeast(0)
     Direction.Left -> (column - 1).coerceAtLeast(0) to row
     Direction.Right -> (column + 1).coerceAtMost(MapColumns - 1) to row
+}
+
+private fun nextInteriorTile(column: Int, row: Int, direction: Direction): Pair<Int, Int> = when (direction) {
+    Direction.Down -> column to (row + 1).coerceAtMost(InteriorRows - 1)
+    Direction.Up -> column to (row - 1).coerceAtLeast(0)
+    Direction.Left -> (column - 1).coerceAtLeast(0) to row
+    Direction.Right -> (column + 1).coerceAtMost(InteriorColumns - 1) to row
 }
 
 private fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: Int): Int {

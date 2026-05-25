@@ -37,6 +37,8 @@ import com.example.chimeralis.ui.screens.MainMenuScreen
 import com.example.chimeralis.ui.screens.SplashScreen
 import com.example.chimeralis.ui.screens.StarterSelectionScreen
 import com.example.chimeralis.ui.screens.TrainerNameScreen
+import com.example.chimeralis.ui.screens.TownInterior
+import com.example.chimeralis.ui.screens.TownInteriorScreen
 import com.example.chimeralis.ui.screens.WorldField
 import com.example.chimeralis.ui.screens.WorldScreen
 import com.example.chimeralis.ui.theme.ChimeralisTheme
@@ -355,6 +357,12 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         returnWorldScreen = "world"
                         transitionTo("world")
                     },
+                    onEnterTownInterior = { interior ->
+                        currentScreen = when (interior) {
+                            TownInterior.PokeCenter -> "pokecenter_interior"
+                            TownInterior.PokeStore -> "pokestore_interior"
+                        }
+                    },
                     onShiftNpcIntroSeen = {
                         shiftNpcIntroSeen = true
                     },
@@ -425,6 +433,12 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         returnWorldScreen = "world"
                         transitionTo("world")
                     },
+                    onEnterTownInterior = { interior ->
+                        currentScreen = when (interior) {
+                            TownInterior.PokeCenter -> "pokecenter_interior"
+                            TownInterior.PokeStore -> "pokestore_interior"
+                        }
+                    },
                     onShiftNpcIntroSeen = {
                         shiftNpcIntroSeen = true
                     },
@@ -438,6 +452,30 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         wildEncounter = wildSpecies
                         returnWorldScreen = "grass_field"
                         transitionTo("battle")
+                    }
+                )
+                "pokecenter_interior" -> TownInteriorScreen(
+                    interior = TownInterior.PokeCenter,
+                    initialPlayerColumn = 7,
+                    initialPlayerRow = 14,
+                    initialPlayerDirection = Direction.Up,
+                    onExit = {
+                        playerColumn = 7
+                        playerRow = 4
+                        playerDirection = Direction.Down
+                        currentScreen = "grass_field"
+                    }
+                )
+                "pokestore_interior" -> TownInteriorScreen(
+                    interior = TownInterior.PokeStore,
+                    initialPlayerColumn = 7,
+                    initialPlayerRow = 14,
+                    initialPlayerDirection = Direction.Up,
+                    onExit = {
+                        playerColumn = 12
+                        playerRow = 4
+                        playerDirection = Direction.Down
+                        currentScreen = "grass_field"
                     }
                 )
                 "battle" -> player?.let { currentPlayer ->
@@ -537,6 +575,7 @@ private fun String.musicResId(): Int {
     return when (this) {
         "world" -> R.raw.lava_field_theme
         "grass_field" -> R.raw.grass_field_theme
+        "pokecenter_interior", "pokestore_interior" -> R.raw.grass_field_theme
         "battle" -> R.raw.battle_theme
         else -> R.raw.main_menu_theme
     }

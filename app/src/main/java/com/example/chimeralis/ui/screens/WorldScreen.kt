@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -149,7 +150,7 @@ private val grassTownPathTiles = buildSet {
     }
 }
 
-private enum class Direction { Down, Up, Left, Right }
+enum class Direction { Down, Up, Left, Right }
 private enum class ExitAction { MainMenu, ExitGame }
 
 @Composable
@@ -165,6 +166,7 @@ fun WorldScreen(
     inputLockKey: Int = 0,
     initialPlayerColumn: Int = 1,
     initialPlayerRow: Int = 1,
+    initialPlayerDirection: Direction = Direction.Down,
     hasUnsavedChanges: Boolean = false,
     musicEnabled: Boolean = true,
     musicVolume: Float = 1f,
@@ -177,6 +179,7 @@ fun WorldScreen(
     onSoundVolumeChanged: (Float) -> Unit = {},
     onEncounterChanceChanged: (Float) -> Unit = {},
     onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
+    onPlayerDirectionChanged: (Direction) -> Unit = {},
     onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
     onTravelToGrassField: () -> Unit = {},
@@ -191,7 +194,7 @@ fun WorldScreen(
     var playerRow by remember { mutableIntStateOf(initialPlayerRow) }
     var targetColumn by remember { mutableIntStateOf(initialPlayerColumn) }
     var targetRow by remember { mutableIntStateOf(initialPlayerRow) }
-    var direction by remember { mutableStateOf(Direction.Down) }
+    var direction by remember { mutableStateOf(initialPlayerDirection) }
     var requestedDirection by remember { mutableStateOf<Direction?>(null) }
     var isMoving by remember { mutableStateOf(false) }
     var animationFrame by remember { mutableIntStateOf(0) }
@@ -299,6 +302,7 @@ fun WorldScreen(
             val currentRow = playerRow
             val nextTile = nextTile(currentColumn, currentRow, nextDirection)
             direction = nextDirection
+            onPlayerDirectionChanged(nextDirection)
 
             if (nextTile.first == currentColumn && nextTile.second == currentRow) {
                 delay(HeldStepDelayMs)
@@ -760,9 +764,6 @@ fun WorldScreen(
                 isShortTravelDialog = isShortTravelDialog,
                 onNext = {
                     val nextStep = ((shiftNpcDialogStep ?: step) + 1).coerceAtMost(3)
-                    if (field == WorldField.Lava && !shiftNpcIntroSeen && nextStep >= 3) {
-                        onShiftNpcIntroSeen()
-                    }
                     shiftNpcDialogStep = nextStep
                 },
                 onStay = {
@@ -1085,8 +1086,13 @@ private fun ShiftNpcDialogOverlay(
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp)
+                .padding(end = 130.dp)
                 .height(620.dp)
+                .graphicsLayer(
+                    scaleX = 1.6f,
+                    scaleY = 1.6f,
+                    transformOrigin = TransformOrigin(0.2f, 0.2f)
+                )
         )
 
         Row(
@@ -1096,7 +1102,7 @@ private fun ShiftNpcDialogOverlay(
                 .height(152.dp)
                 .background(colors.surface.copy(alpha = 0.78f))
                 .border(1.dp, colors.primary.copy(alpha = 0.42f))
-                .padding(horizontal = 28.dp, vertical = 16.dp),
+                .padding(horizontal = 90.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

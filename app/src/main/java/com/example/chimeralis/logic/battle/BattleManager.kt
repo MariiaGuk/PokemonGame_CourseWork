@@ -54,8 +54,9 @@ class BattleManager(
                 }
             }
             is BattleAction.UseItem -> {
-                useItem(playerAction.item, log)
-                animations.add(enemyTurn(log))
+                if (useItem(playerAction.item, log)) {
+                    animations.add(enemyTurn(log))
+                }
             }
             is BattleAction.SwitchChimera -> {
                 switchChimera(playerAction.chimera, log)
@@ -154,9 +155,14 @@ class BattleManager(
         )
     }
 
-    private fun useItem(item: Item, log: MutableList<String>){
-        player.inventory.useItem(item, playerChimera)
+    private fun useItem(item: Item, log: MutableList<String>): Boolean {
+        if (!player.inventory.useItem(item, playerChimera)) {
+            log.add("${item.name} cannot be used on ${playerChimera.name}.")
+            return false
+        }
+
         log.add("Used ${item.name} on ${playerChimera.name}!")
+        return true
     }
 
     private fun switchChimera(chimera: Chimera, log: MutableList<String>) {

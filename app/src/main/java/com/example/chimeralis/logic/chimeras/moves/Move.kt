@@ -18,6 +18,10 @@ class Move (
     var pp: Int = maxPp
         private set
 
+    fun restorePp(value: Int) {
+        pp = value.coerceIn(0, maxPp)
+    }
+
     fun execute(attacker: Chimera, target: Chimera) {
         if (pp <= 0) return
 

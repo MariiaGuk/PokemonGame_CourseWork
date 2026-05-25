@@ -158,6 +158,7 @@ fun WorldScreen(
     starter: ChimeraSpecies?,
     team: List<Chimera> = emptyList(),
     inventoryItems: Map<Item, Int> = emptyMap(),
+    teamStateKey: Int = 0,
     canStartBattles: Boolean = true,
     field: WorldField = WorldField.Lava,
     showShiftNpc: Boolean = false,
@@ -572,6 +573,7 @@ fun WorldScreen(
 
         TeamSlots(
             team = team,
+            stateKey = teamStateKey,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 39.dp, bottom = 20.dp)
@@ -729,6 +731,7 @@ fun WorldScreen(
             ItemTargetSelectionOverlay(
                 item = item,
                 team = team,
+                teamStateKey = teamStateKey,
                 onChimeraSelected = { chimera ->
                     pendingItemUseConfirmation = item to chimera
                 },
@@ -795,6 +798,8 @@ private fun TeamSlots(
     team: List<Chimera>,
     modifier: Modifier = Modifier,
     selectionMode: Boolean = false,
+    stateKey: Int = 0,
+    targetItem: Item? = null,
     onChimeraSelected: (Chimera) -> Unit = {}
 ) {
     Column(
@@ -803,10 +808,13 @@ private fun TeamSlots(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         repeat(MaxTeamSize) { index ->
+            val chimera = team.getOrNull(index)
             TeamSlot(
-                chimera = team.getOrNull(index),
+                chimera = chimera,
                 isActive = index == 0 && team.isNotEmpty(),
                 selectionMode = selectionMode,
+                stateKey = stateKey,
+                isSelectable = chimera?.let { targetItem?.canUseOn(it) ?: true } ?: false,
                 onChimeraSelected = onChimeraSelected
             )
         }
@@ -818,6 +826,8 @@ private fun TeamSlot(
     chimera: Chimera?,
     isActive: Boolean,
     selectionMode: Boolean,
+    stateKey: Int,
+    isSelectable: Boolean,
     onChimeraSelected: (Chimera) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -827,6 +837,7 @@ private fun TeamSlot(
     val frameAlpha = if (chimera == null) 0.22f else 0.58f
     val contentAlpha = when {
         chimera == null -> 0.18f
+        selectionMode && !isSelectable -> 0.28f
         chimera.stats.isAlive() -> 1f
         else -> 0.45f
     }
@@ -840,17 +851,18 @@ private fun TeamSlot(
                 width = if (isActive || selectionMode) 2.dp else 1.dp,
                 color = colors.primary.copy(
                     alpha = when {
-                        selectionMode && chimera != null -> 0.92f
+                        selectionMode && chimera != null && isSelectable -> 0.92f
+                        selectionMode && chimera != null -> 0.24f
                         isActive -> 0.8f
                         else -> 0.38f
                     }
                 ),
                 shape = RoundedCornerShape(7.dp)
             )
-            .pointerInput(chimera, selectionMode) {
+            .pointerInput(chimera, selectionMode, isSelectable, stateKey) {
                 detectTapGestures(
                     onTap = {
-                        if (selectionMode && chimera != null) {
+                        if (selectionMode && chimera != null && isSelectable) {
                             onChimeraSelected(chimera)
                         }
                     }
@@ -949,6 +961,7 @@ private fun SmallWorldMenuButton(
 private fun ItemTargetSelectionOverlay(
     item: Item,
     team: List<Chimera>,
+    teamStateKey: Int,
     onChimeraSelected: (Chimera) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -997,6 +1010,8 @@ private fun ItemTargetSelectionOverlay(
         TeamSlots(
             team = team,
             selectionMode = true,
+            stateKey = teamStateKey,
+            targetItem = item,
             onChimeraSelected = onChimeraSelected,
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -1013,6 +1028,7 @@ private fun ConfirmItemUseDialog(
     onCancel: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val canUseItem = item.canUseOn(chimera)
 
     Box(
         modifier = Modifier
@@ -1039,13 +1055,14 @@ private fun ConfirmItemUseDialog(
             )
 
             Text(
-                text = "Use on ${chimera.name}?",
+                text = if (canUseItem) "Use on ${chimera.name}?"
+                else "${item.name} cannot be used on ${chimera.name}.",
                 color = colors.onSurface.copy(alpha = 0.78f),
                 fontSize = 12.sp,
                 fontFamily = CinzelFamily
             )
 
-            MenuButton(text = "Use", onClick = onConfirm)
+            MenuButton(text = "Use", enabled = canUseItem, onClick = onConfirm)
             MenuButton(text = "Cancel", onClick = onCancel)
         }
     }

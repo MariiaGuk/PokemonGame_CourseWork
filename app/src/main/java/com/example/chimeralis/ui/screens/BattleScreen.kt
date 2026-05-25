@@ -725,6 +725,7 @@ private fun BattlePanel(
                     )
                     BattlePanelMode.Bag -> BattleInventoryButtons(
                         inventoryItems = inventoryItems,
+                        activeChimera = activeChimera,
                         onItemSelected = onItemSelected
                     )
                     BattlePanelMode.Team -> BattleTeamButtons(
@@ -977,6 +978,7 @@ private fun BattleTeamSlot(
 @Composable
 private fun BattleInventoryButtons(
     inventoryItems: Map<Item, Int>,
+    activeChimera: Chimera,
     onItemSelected: (Item) -> Unit
 ) {
     Column(
@@ -995,8 +997,10 @@ private fun BattleInventoryButtons(
             inventoryItems.entries.sortedBy { it.key.name }.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowItems.forEach { (item, amount) ->
+                        val canUseItem = item.canUseOn(activeChimera)
                         MenuButton(
                             text = "${item.name} x$amount",
+                            enabled = canUseItem,
                             onClick = { onItemSelected(item) }
                         )
                     }

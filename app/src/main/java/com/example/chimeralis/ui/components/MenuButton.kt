@@ -28,7 +28,11 @@ import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.ui.theme.CinzelFamily
 
 @Composable
-fun MenuButton(text: String, onClick: () -> Unit) {
+fun MenuButton(
+    text: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
     val gradientBrush = Brush.horizontalGradient(
@@ -45,16 +49,20 @@ fun MenuButton(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .width(160.dp)
             .height(42.dp)
-            .pointerInput(Unit) {
+            .pointerInput(enabled) {
                 detectTapGestures(
                     onPress = {
-                        isPressed = true
-                        tryAwaitRelease()
-                        isPressed = false
+                        if (enabled) {
+                            isPressed = true
+                            tryAwaitRelease()
+                            isPressed = false
+                        }
                     },
                     onTap = {
-                        GameSoundPlayer.play(context, R.raw.button_click)
-                        onClick()
+                        if (enabled) {
+                            GameSoundPlayer.play(context, R.raw.button_click)
+                            onClick()
+                        }
                     }
                 )
             }
@@ -74,18 +82,27 @@ fun MenuButton(text: String, onClick: () -> Unit) {
             }
             drawPath(
                 path = path,
-                color = if (isPressed) colors.surface.copy(alpha = 0.85f)
-                else colors.background.copy(alpha = 0.75f)
+                color = when {
+                    !enabled -> colors.background.copy(alpha = 0.34f)
+                    isPressed -> colors.surface.copy(alpha = 0.85f)
+                    else -> colors.background.copy(alpha = 0.75f)
+                }
             )
             drawPath(
                 path = path,
-                brush = gradientBrush,
+                brush = if (enabled) gradientBrush else Brush.horizontalGradient(
+                    colors = listOf(
+                        colors.outline.copy(alpha = 0.28f),
+                        colors.outline.copy(alpha = 0.42f),
+                        colors.outline.copy(alpha = 0.28f)
+                    )
+                ),
                 style = Stroke(width = 2f)
             )
         }
         Text(
             text = text,
-            color = colors.primary,
+            color = colors.primary.copy(alpha = if (enabled) 1f else 0.38f),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp,

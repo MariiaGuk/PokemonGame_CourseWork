@@ -17,7 +17,13 @@ data class SavedChimera(
     val level: Int,
     val exp: Int,
     val currentHp: Int,
-    val ivStats: Stats
+    val ivStats: Stats,
+    val moves: List<SavedMovePp> = emptyList()
+)
+
+data class SavedMovePp(
+    val moveName: String,
+    val pp: Int
 )
 
 data class SavedItem(
@@ -151,7 +157,12 @@ class GameSaveStore(context: Context) {
             .putInt("$prefix.$IvAttackKey", chimera.ivStats.attack)
             .putInt("$prefix.$IvDefenceKey", chimera.ivStats.defence)
             .putInt("$prefix.$IvSpeedKey", chimera.ivStats.speed)
+            .putInt("$prefix.$MovePpSizeKey", chimera.moves.size)
             .apply()
+
+        chimera.moves.forEachIndexed { moveIndex, move ->
+            saveMovePp(prefix, moveIndex, move)
+        }
     }
 
     private fun saveItem(id: String, index: Int, item: SavedItem) {
@@ -193,8 +204,31 @@ class GameSaveStore(context: Context) {
                 attack = prefs.getInt("$prefix.$IvAttackKey", 0),
                 defence = prefs.getInt("$prefix.$IvDefenceKey", 0),
                 speed = prefs.getInt("$prefix.$IvSpeedKey", 0)
-            )
+            ),
+            moves = loadMovePps(prefix)
         )
+    }
+
+    private fun saveMovePp(chimeraPrefix: String, index: Int, move: SavedMovePp) {
+        val prefix = "$chimeraPrefix.$MovePpKey.$index"
+
+        prefs.edit()
+            .putString("$prefix.$MoveNameKey", move.moveName)
+            .putInt("$prefix.$MovePpValueKey", move.pp)
+            .apply()
+    }
+
+    private fun loadMovePps(chimeraPrefix: String): List<SavedMovePp> {
+        val movePpSize = prefs.getInt("$chimeraPrefix.$MovePpSizeKey", 0)
+        return (0 until movePpSize).mapNotNull { index ->
+            val prefix = "$chimeraPrefix.$MovePpKey.$index"
+            val moveName = prefs.getString("$prefix.$MoveNameKey", null) ?: return@mapNotNull null
+
+            SavedMovePp(
+                moveName = moveName,
+                pp = prefs.getInt("$prefix.$MovePpValueKey", 0)
+            )
+        }
     }
 
     private fun loadItem(id: String, index: Int): SavedItem? {
@@ -218,7 +252,8 @@ class GameSaveStore(context: Context) {
             level = starter.level,
             exp = prefs.getInt("$id.$StarterExpKey", 0).coerceAtLeast(0),
             currentHp = savedCurrentHp.takeIf { it != NoSavedHp } ?: starter.stats.maxHp,
-            ivStats = starter.ivStats
+            ivStats = starter.ivStats,
+            moves = emptyList()
         )
     }
 
@@ -229,7 +264,13 @@ class GameSaveStore(context: Context) {
             level = level,
             exp = exp,
             currentHp = stats.currentHp,
-            ivStats = ivStats
+            ivStats = ivStats,
+            moves = moves.map { move ->
+                SavedMovePp(
+                    moveName = move.name,
+                    pp = move.pp
+                )
+            }
         )
     }
 
@@ -244,6 +285,12 @@ class GameSaveStore(context: Context) {
                 chimera.gainExp(exp)
             }
             chimera.stats.restoreHp(currentHp)
+            val savedPpsByMoveName = moves.associateBy { it.moveName }
+            chimera.moves.forEach { move ->
+                savedPpsByMoveName[move.name]?.let { savedMove ->
+                    move.restorePp(savedMove.pp)
+                }
+            }
         }
     }
 
@@ -327,6 +374,10 @@ class GameSaveStore(context: Context) {
         const val IvAttackKey = "iv_attack"
         const val IvDefenceKey = "iv_defence"
         const val IvSpeedKey = "iv_speed"
+        const val MovePpSizeKey = "move_pp_size"
+        const val MovePpKey = "move_pp"
+        const val MoveNameKey = "move_name"
+        const val MovePpValueKey = "move_pp_value"
         const val StarterSpeciesKey = "starter_species"
         const val StarterNicknameKey = "starter_nickname"
         const val StarterLevelKey = "starter_level"

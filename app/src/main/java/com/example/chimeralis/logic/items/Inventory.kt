@@ -12,6 +12,8 @@ class Inventory {
 
     fun useItem(item: Item, target: Chimera): Boolean {
         val count = _items[item] ?: return false
+        if (!item.canUseOn(target)) return false
+
         item.use(target)
         if (count <= 1) _items.remove(item) else _items[item] = count - 1
         return true

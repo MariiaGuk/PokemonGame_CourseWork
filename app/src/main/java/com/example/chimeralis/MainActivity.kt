@@ -304,6 +304,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    teamStateKey = teamVersion,
                     canStartBattles = canStartBattles,
                     field = WorldField.Lava,
                     showShiftNpc = true,
@@ -373,6 +374,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    teamStateKey = teamVersion,
                     canStartBattles = canStartBattles,
                     field = WorldField.Grass,
                     showShiftNpc = true,
@@ -559,7 +561,8 @@ private fun Player.teamSignature(): String {
             chimera.ivStats.maxHp,
             chimera.ivStats.attack,
             chimera.ivStats.defence,
-            chimera.ivStats.speed
+            chimera.ivStats.speed,
+            chimera.moves.joinToString(separator = ",") { move -> "${move.name}.${move.pp}" }
         ).joinToString(separator = ":")
     }
     val inventoryState = inventory.items.entries

@@ -32,6 +32,7 @@ import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.screens.BattleScreen
 import com.example.chimeralis.ui.screens.ContinueScreen
+import com.example.chimeralis.ui.screens.Direction
 import com.example.chimeralis.ui.screens.MainMenuScreen
 import com.example.chimeralis.ui.screens.SplashScreen
 import com.example.chimeralis.ui.screens.StarterSelectionScreen
@@ -77,6 +78,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
     var trainerName by remember { mutableStateOf("") }
     var playerColumn by remember { mutableIntStateOf(1) }
     var playerRow by remember { mutableIntStateOf(1) }
+    var playerDirection by remember { mutableStateOf(Direction.Down) }
     var worldInputLockKey by remember { mutableIntStateOf(0) }
     var shiftNpcIntroSeen by remember { mutableStateOf(false) }
     var lastSavedColumn by remember { mutableIntStateOf(1) }
@@ -120,7 +122,12 @@ fun AppNavigation(onExitGame: () -> Unit) {
         if (isScreenTransitionRunning) return
 
         transitionScope.launch {
+            val isFieldTransition = currentScreen in setOf("world", "grass_field") &&
+                    screen in setOf("world", "grass_field")
             isScreenTransitionRunning = true
+            if (isFieldTransition) {
+                GameSoundPlayer.play(context, R.raw.start_transition)
+            }
             if (screen == "battle") {
                 musicScreen = "battle"
                 delay(420)
@@ -149,8 +156,14 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     animationSpec = tween(durationMillis = 980)
                 )
             }
+            if (screen != "battle") {
+                musicScreen = screen
+            }
             currentScreen = screen
             battleZoomScale.snapTo(1f)
+            if (isFieldTransition) {
+                GameSoundPlayer.play(context, R.raw.end_transition)
+            }
             transitionWhiteAlpha.animateTo(
                 targetValue = 0f,
                 animationSpec = tween(durationMillis = 1180)
@@ -299,6 +312,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     inputLockKey = worldInputLockKey,
                     initialPlayerColumn = playerColumn,
                     initialPlayerRow = playerRow,
+                    initialPlayerDirection = playerDirection,
                     hasUnsavedChanges = hasUnsavedChanges,
                     musicEnabled = musicEnabled,
                     musicVolume = musicVolume,
@@ -314,6 +328,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         playerColumn = column
                         playerRow = row
                     },
+                    onPlayerDirectionChanged = { playerDirection = it },
                     onSaveGame = { column, row ->
                         playerColumn = column
                         playerRow = row
@@ -326,14 +341,16 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         }
                     },
                     onTravelToGrassField = {
-                        playerColumn = 2
+                        playerColumn = 1
                         playerRow = 4
+                        playerDirection = Direction.Right
                         returnWorldScreen = "grass_field"
                         transitionTo("grass_field")
                     },
                     onReturnToLavaField = {
-                        playerColumn = 15
-                        playerRow = 5
+                        playerColumn = 19
+                        playerRow = 4
+                        playerDirection = Direction.Left
                         returnWorldScreen = "world"
                         transitionTo("world")
                     },
@@ -364,6 +381,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     inputLockKey = worldInputLockKey,
                     initialPlayerColumn = playerColumn,
                     initialPlayerRow = playerRow,
+                    initialPlayerDirection = playerDirection,
                     hasUnsavedChanges = hasUnsavedChanges,
                     musicEnabled = musicEnabled,
                     musicVolume = musicVolume,
@@ -379,6 +397,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         playerColumn = column
                         playerRow = row
                     },
+                    onPlayerDirectionChanged = { playerDirection = it },
                     onSaveGame = { column, row ->
                         playerColumn = column
                         playerRow = row
@@ -391,14 +410,16 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         }
                     },
                     onTravelToGrassField = {
-                        playerColumn = 2
+                        playerColumn = 1
                         playerRow = 4
+                        playerDirection = Direction.Right
                         returnWorldScreen = "grass_field"
                         transitionTo("grass_field")
                     },
                     onReturnToLavaField = {
-                        playerColumn = 15
-                        playerRow = 5
+                        playerColumn = 19
+                        playerRow = 4
+                        playerDirection = Direction.Left
                         returnWorldScreen = "world"
                         transitionTo("world")
                     },

@@ -80,7 +80,7 @@ private fun GameScreen.musicResId(): Int {
         GameScreen.LavaField -> R.raw.lava_field_theme
         GameScreen.GrassField -> R.raw.grass_field_theme
         GameScreen.ChimeraCenterInterior,
-        GameScreen.ChimeraStoreInterior -> R.raw.grass_field_theme
+        GameScreen.ChimeraStoreInterior -> R.raw.chimera_center_theme
         GameScreen.Battle -> R.raw.battle_theme
         else -> R.raw.main_menu_theme
     }

@@ -36,6 +36,7 @@ class GameSessionState(
     var saves by mutableStateOf(saveStore.loadAll())
     var isScreenTransitionRunning by mutableStateOf(false)
     var musicEnabled by mutableStateOf(true)
+    var isBattleResultMusicSuppressed by mutableStateOf(false)
     var musicVolume by mutableFloatStateOf(0.62f)
     var soundEnabled by mutableStateOf(true)
     var soundVolume by mutableFloatStateOf(1f)

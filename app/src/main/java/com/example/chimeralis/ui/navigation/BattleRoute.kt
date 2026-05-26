@@ -14,6 +14,9 @@ internal fun GameSessionState.BattleRoute(transition: GameTransitionState) {
                 player = currentPlayer,
                 battleKey = wildEncounter,
                 wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
+                onBattleResultSoundStarted = {
+                    isBattleResultMusicSuppressed = true
+                },
                 onBattleFinished = {
                     teamVersion++
                     selectedStarter = currentPlayer.activeChimera.species

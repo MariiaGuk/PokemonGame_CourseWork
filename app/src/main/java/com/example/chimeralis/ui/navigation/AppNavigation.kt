@@ -31,7 +31,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
 
         GameMusic(
             currentScreen = musicScreen,
-            enabled = musicEnabled,
+            enabled = musicEnabled && !isBattleResultMusicSuppressed,
             volume = musicVolume
         )
         GameSoundEffects(

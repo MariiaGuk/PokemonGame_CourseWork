@@ -36,6 +36,7 @@ fun BattleScreen(
     player: Player,
     battleKey: Any? = null,
     wildSpecies: ChimeraSpecies,
+    onBattleResultSoundStarted: () -> Unit = {},
     onBattleFinished: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -139,7 +140,7 @@ fun BattleScreen(
         var playedFaintSound = false
         frames.forEachIndexed { frameIndex, frame ->
             uiState.activeMoveFrameIndex = frameIndex
-            val feedbacks = frame.feedbacks.toBattleFeedbacks()
+                val feedbacks = frame.feedbacks.toBattleFeedbacks()
 
             if (feedbacks.isEmpty()) {
                 delay(frame.durationMillis)
@@ -187,6 +188,19 @@ fun BattleScreen(
         when {
             uiState.currentBattleMessage == "Got away safely!" -> {
                 GameSoundPlayer.play(context, R.raw.ran_away)
+            }
+            uiState.currentBattleMessage == "You won!" -> {
+                onBattleResultSoundStarted()
+                GameSoundPlayer.play(context, R.raw.battle_victory)
+            }
+            uiState.currentBattleMessage == "You lost!" -> {
+                onBattleResultSoundStarted()
+                GameSoundPlayer.play(context, R.raw.battle_loss)
+            }
+            uiState.currentBattleMessage.startsWith("Gotcha!") &&
+                    uiState.currentBattleMessage.endsWith("was caught!") -> {
+                onBattleResultSoundStarted()
+                GameSoundPlayer.play(context, R.raw.caught_a_chimera)
             }
             uiState.currentBattleMessage.contains(" gained ") &&
                     uiState.currentBattleMessage.endsWith(" EXP.") -> {

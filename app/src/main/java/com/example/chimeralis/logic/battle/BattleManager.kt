@@ -335,6 +335,7 @@ class BattleManager(
             isBattleActive = false
             log.add("You won!")
             awardExperience(log, defeatedChimera)
+            awardMoney(log, defeatedChimera)
         }
     }
 
@@ -408,6 +409,12 @@ class BattleManager(
 
     private fun calculateExperienceReward(defeatedChimera: Chimera): Int {
         return (defeatedChimera.level * 12).coerceAtLeast(1)
+    }
+
+    private fun awardMoney(log: MutableList<String>, defeatedChimera: Chimera) {
+        val moneyReward = (defeatedChimera.level * 18).coerceAtLeast(10)
+        player.earnMoney(moneyReward)
+        log.add("You earned $moneyReward coins.")
     }
 
     private fun appendBattleChanges(

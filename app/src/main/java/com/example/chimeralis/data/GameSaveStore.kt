@@ -35,6 +35,7 @@ data class GameSave(
     val trainerName: String,
     val team: List<SavedChimera>,
     val inventoryItems: List<SavedItem> = emptyList(),
+    val money: Int = 0,
     val playerColumn: Int,
     val playerRow: Int,
     val updatedAt: Long
@@ -65,6 +66,7 @@ class GameSaveStore(context: Context) {
             .putString("$id.$TrainerNameKey", gameSave.trainerName)
             .putInt("$id.$TeamSizeKey", gameSave.team.size)
             .putInt("$id.$InventorySizeKey", gameSave.inventoryItems.size)
+            .putInt("$id.$MoneyKey", gameSave.money)
             .putInt("$id.$PlayerColumnKey", gameSave.playerColumn)
             .putInt("$id.$PlayerRowKey", gameSave.playerRow)
             .putLong("$id.$UpdatedAtKey", gameSave.updatedAt)
@@ -87,6 +89,7 @@ class GameSaveStore(context: Context) {
             .remove("$id.$TrainerNameKey")
             .remove("$id.$TeamSizeKey")
             .remove("$id.$InventorySizeKey")
+            .remove("$id.$MoneyKey")
             .remove("$id.$StarterSpeciesKey")
             .remove("$id.$StarterNicknameKey")
             .remove("$id.$StarterLevelKey")
@@ -102,6 +105,7 @@ class GameSaveStore(context: Context) {
         val trainerName = prefs.getString("$id.$TrainerNameKey", null) ?: return null
         val team = loadTeam(id).ifEmpty { return null }
         val inventoryItems = loadInventoryItems(id)
+        val money = prefs.getInt("$id.$MoneyKey", StartingMoney)
         val playerColumn = prefs.getInt("$id.$PlayerColumnKey", 1)
         val playerRow = prefs.getInt("$id.$PlayerRowKey", 1)
         val updatedAt = prefs.getLong("$id.$UpdatedAtKey", 0L)
@@ -110,6 +114,7 @@ class GameSaveStore(context: Context) {
             trainerName = trainerName,
             team = team,
             inventoryItems = inventoryItems,
+            money = money,
             playerColumn = playerColumn,
             playerRow = playerRow,
             updatedAt = updatedAt
@@ -129,6 +134,7 @@ class GameSaveStore(context: Context) {
                 inventoryItems = player.inventory.items.mapNotNull { (item, amount) ->
                     item.toItemName()?.let { SavedItem(it, amount) }
                 },
+                money = player.money,
                 playerColumn = playerColumn,
                 playerRow = playerRow,
                 updatedAt = System.currentTimeMillis()
@@ -140,7 +146,8 @@ class GameSaveStore(context: Context) {
         return Player(
             name = gameSave.trainerName,
             team = gameSave.team.map { it.toChimera() }.toMutableList(),
-            inventory = gameSave.inventoryItems.toInventory()
+            inventory = gameSave.inventoryItems.toInventory(),
+            money = gameSave.money
         )
     }
 
@@ -368,6 +375,7 @@ class GameSaveStore(context: Context) {
         const val InventoryKey = "inventory"
         const val ItemNameKey = "item_name"
         const val ItemAmountKey = "item_amount"
+        const val MoneyKey = "money"
         const val SpeciesKey = "species"
         const val NicknameKey = "nickname"
         const val LevelKey = "level"
@@ -390,5 +398,6 @@ class GameSaveStore(context: Context) {
         const val PlayerRowKey = "player_row"
         const val UpdatedAtKey = "updated_at"
         const val NoSavedHp = -1
+        const val StartingMoney = 200
     }
 }

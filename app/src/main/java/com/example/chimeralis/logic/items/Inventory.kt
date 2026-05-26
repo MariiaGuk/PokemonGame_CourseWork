@@ -7,7 +7,10 @@ class Inventory {
     val items: Map<Item, Int> get() = _items
 
     fun addItem(item: Item, amount: Int = 1) {
-        _items[item] = (_items[item] ?: 0) + amount
+        if (amount <= 0) return
+
+        val existingItem = _items.keys.firstOrNull { it.name == item.name } ?: item
+        _items[existingItem] = (_items[existingItem] ?: 0) + amount
     }
 
     fun useItem(item: Item, target: Chimera): Boolean {

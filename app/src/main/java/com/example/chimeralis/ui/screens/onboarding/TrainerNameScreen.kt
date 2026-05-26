@@ -1,4 +1,4 @@
-package com.example.chimeralis.ui.screens
+package com.example.chimeralis.ui.screens.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

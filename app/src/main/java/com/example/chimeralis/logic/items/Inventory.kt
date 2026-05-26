@@ -9,7 +9,7 @@ class Inventory {
     fun addItem(item: Item, amount: Int = 1) {
         if (amount <= 0) return
 
-        val existingItem = _items.keys.firstOrNull { it.name == item.name } ?: item
+        val existingItem = _items.keys.firstOrNull { it.itemName == item.itemName } ?: item
         _items[existingItem] = (_items[existingItem] ?: 0) + amount
     }
 

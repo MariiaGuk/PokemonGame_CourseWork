@@ -6,19 +6,19 @@ import com.example.chimeralis.logic.items.itemEffects.ReviveItemEffect
 object ItemFactory {
     fun createItem(itemName: ItemName): Item = when (itemName) {
         ItemName.POTION -> Item(
-            name = "Potion",
+            itemName = itemName,
             effects = listOf(HealItemEffect(20))
         )
         ItemName.SUPER_POTION -> Item(
-            name = "Super Potion",
+            itemName = itemName,
             effects = listOf(HealItemEffect(60))
         )
         ItemName.REVIVE -> Item(
-            name = "Revive",
+            itemName = itemName,
             effects = listOf(ReviveItemEffect())
         )
         ItemName.BINDING_STONE -> Item(
-            name = "Binding Stone",
+            itemName = itemName,
             effects = emptyList()
         )
     }

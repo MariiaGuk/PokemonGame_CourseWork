@@ -29,8 +29,7 @@ object ChimeraFactory {
                 learnableMoves = listOf(
                     1 to { MoveFactory.createMove(MoveName.TACKLE)},
                     1 to { MoveFactory.createMove(MoveName.GROWL)},
-                    4 to { MoveFactory.createMove(MoveName.EMBER)},
-                    //...
+                    4 to { MoveFactory.createMove(MoveName.EMBER)}
                 )
             )
             ChimeraSpecies.Solflare -> Chimera(
@@ -43,8 +42,7 @@ object ChimeraFactory {
                 learnableMoves = listOf(
                     1 to { MoveFactory.createMove(MoveName.TACKLE)},
                     1 to { MoveFactory.createMove(MoveName.GROWL)},
-                    4 to { MoveFactory.createMove(MoveName.EMBER)},
-                    //...
+                    4 to { MoveFactory.createMove(MoveName.EMBER)}
                 )
             )
             ChimeraSpecies.Sunflare -> Chimera(
@@ -60,7 +58,6 @@ object ChimeraFactory {
                     6 to { MoveFactory.createMove(MoveName.EMBER)},
                     6 to { MoveFactory.createMove(MoveName.TAILWHIP)},
                     6 to { MoveFactory.createMove(MoveName.RECOVER)}
-                    //...
                 )
             )
             ChimeraSpecies.Sylvhorn -> Chimera(
@@ -72,8 +69,7 @@ object ChimeraFactory {
                 level = level,
                 learnableMoves = listOf(
                     1 to { MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to { MoveFactory.createMove(MoveName.GROWL)},
-                    //...
+                    1 to { MoveFactory.createMove(MoveName.GROWL)}
                 )
             )
             ChimeraSpecies.Aquantis -> Chimera(
@@ -85,8 +81,7 @@ object ChimeraFactory {
                 level = level,
                 learnableMoves = listOf(
                     1 to { MoveFactory.createMove(MoveName.TACKLE)},
-                    1 to { MoveFactory.createMove(MoveName.TAILWHIP)},
-                    //...
+                    1 to { MoveFactory.createMove(MoveName.TAILWHIP)}
                 )
             )
         }

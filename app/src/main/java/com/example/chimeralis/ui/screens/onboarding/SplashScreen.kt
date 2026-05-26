@@ -1,4 +1,4 @@
-package com.example.chimeralis.ui.screens
+package com.example.chimeralis.ui.screens.onboarding
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

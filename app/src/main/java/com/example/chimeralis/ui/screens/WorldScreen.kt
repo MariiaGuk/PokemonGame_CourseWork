@@ -1694,61 +1694,21 @@ private fun WorldInventorySlot(
 
 @Composable
 private fun ItemIcon(item: Item) {
-    if (item.isCaptureItem) {
+    val imageRes = when (item.name) {
+        "Potion" -> R.drawable.potion
+        "Super Potion" -> R.drawable.super_potion
+        "Revive" -> R.drawable.revive
+        "Binding Stone" -> R.drawable.binding_stone_base
+        else -> null
+    }
+
+    if (imageRes != null) {
         Image(
-            painter = painterResource(id = R.drawable.binding_stone_base),
+            painter = painterResource(id = imageRes),
             contentDescription = item.name,
             contentScale = ContentScale.Fit,
             modifier = Modifier.size(44.dp)
         )
-        return
-    }
-
-    val iconColor = when (item.name) {
-        "Potion" -> Color(0xFFE05A6F)
-        "Super Potion" -> Color(0xFF5CCBEA)
-        "Revive" -> Color(0xFFE0B84B)
-        else -> Color(0xFFB689FF)
-    }
-
-    Canvas(modifier = Modifier.size(34.dp)) {
-        val center = Offset(size.width / 2f, size.height / 2f)
-
-        when (item.name) {
-            "Revive" -> {
-                val path = Path().apply {
-                    moveTo(center.x, size.height * 0.1f)
-                    lineTo(size.width * 0.84f, center.y)
-                    lineTo(center.x, size.height * 0.9f)
-                    lineTo(size.width * 0.16f, center.y)
-                    close()
-                }
-                drawPath(path = path, color = iconColor)
-                drawPath(path = path, color = Color.White.copy(alpha = 0.42f), style = Stroke(width = 2f))
-            }
-            else -> {
-                drawCircle(
-                    color = iconColor.copy(alpha = 0.95f),
-                    radius = size.minDimension * 0.34f,
-                    center = Offset(center.x, size.height * 0.58f)
-                )
-                drawRect(
-                    color = iconColor.copy(alpha = 0.9f),
-                    topLeft = Offset(size.width * 0.38f, size.height * 0.18f),
-                    size = Size(size.width * 0.24f, size.height * 0.34f)
-                )
-                drawRect(
-                    color = Color.White.copy(alpha = 0.75f),
-                    topLeft = Offset(size.width * 0.34f, size.height * 0.11f),
-                    size = Size(size.width * 0.32f, size.height * 0.1f)
-                )
-                drawCircle(
-                    color = Color.White.copy(alpha = 0.28f),
-                    radius = size.minDimension * 0.1f,
-                    center = Offset(size.width * 0.42f, size.height * 0.52f)
-                )
-            }
-        }
     }
 }
 

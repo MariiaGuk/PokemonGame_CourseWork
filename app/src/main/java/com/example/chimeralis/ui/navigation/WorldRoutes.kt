@@ -73,6 +73,9 @@ internal fun GameSessionState.WorldRoute(
             transition.transitionTo(GameScreen.LavaField, this)
         },
         onEnterTownInterior = { interior ->
+            playerColumn = 7
+            playerRow = 14
+            playerDirection = Direction.Up
             transition.transitionTo(interior.screen, this)
         },
         onShiftNpcIntroSeen = {

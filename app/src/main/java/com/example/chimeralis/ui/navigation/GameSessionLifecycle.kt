@@ -2,6 +2,7 @@ package com.example.chimeralis.ui.navigation
 
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.data.SavedGameLocation
 import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
@@ -23,6 +24,7 @@ fun GameSessionState.resetForNewGame() {
     returnWorldScreen = GameScreen.LavaField
     lastSavedColumn = 1
     lastSavedRow = 1
+    lastSavedLocation = SavedGameLocation.LavaField
     lastSavedTeamSignature = ""
     wildEncounter = null
 }
@@ -50,6 +52,7 @@ fun GameSessionState.startNewGame(starter: ChimeraSpecies, nickname: String) {
     returnWorldScreen = GameScreen.LavaField
     lastSavedColumn = 1
     lastSavedRow = 1
+    lastSavedLocation = SavedGameLocation.LavaField
 }
 
 private fun createStartingInventory(): Inventory {

@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.chimeralis.data.GameSaveStore
+import com.example.chimeralis.data.SavedGameLocation
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.screens.world.Direction
@@ -30,6 +31,7 @@ class GameSessionState(
     var shiftNpcIntroSeen by mutableStateOf(false)
     var lastSavedColumn by mutableIntStateOf(1)
     var lastSavedRow by mutableIntStateOf(1)
+    var lastSavedLocation by mutableStateOf(SavedGameLocation.LavaField)
     var lastSavedTeamSignature by mutableStateOf("")
     var trainerNameError by mutableStateOf<String?>(null)
     var wildEncounter by mutableStateOf<ChimeraSpecies?>(null)
@@ -51,6 +53,7 @@ class GameSessionState(
     val hasUnsavedChanges: Boolean
         get() = playerColumn != lastSavedColumn ||
                 playerRow != lastSavedRow ||
+                currentSaveLocation() != lastSavedLocation ||
                 teamSignature != lastSavedTeamSignature
 }
 

@@ -32,9 +32,9 @@ internal fun GameSessionState.TownInteriorRoute(
         onSoundEnabledChanged = { soundEnabled = it },
         onSoundVolumeChanged = { soundVolume = it },
         onEncounterChanceChanged = { encounterChance = it },
-        initialPlayerColumn = 7,
-        initialPlayerRow = 14,
-        initialPlayerDirection = Direction.Up,
+        initialPlayerColumn = playerColumn,
+        initialPlayerRow = playerRow,
+        initialPlayerDirection = playerDirection,
         inputLockKey = worldInputLockKey,
         onHealTeam = {
             if (interior != TownInterior.ChimeraCenter) return@TownInteriorScreen
@@ -49,8 +49,15 @@ internal fun GameSessionState.TownInteriorRoute(
         onUseInventoryItem = { item, chimera ->
             useInventoryItem(item, chimera)
         },
-        onSaveGame = {
-            if (saveCurrentGame(playerColumn, playerRow)) {
+        onPlayerPositionChanged = { column, row ->
+            playerColumn = column
+            playerRow = row
+        },
+        onPlayerDirectionChanged = { playerDirection = it },
+        onSaveGame = { column, row ->
+            playerColumn = column
+            playerRow = row
+            if (saveCurrentGame(column, row)) {
                 GameSoundPlayer.play(context, R.raw.save_game)
             }
         },

@@ -121,7 +121,9 @@ fun TownInteriorScreen(
     onHealTeam: () -> Unit = {},
     onBuyItem: (ItemName, Int) -> Boolean = { _, _ -> false },
     onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
-    onSaveGame: () -> Unit = {},
+    onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
+    onPlayerDirectionChanged: (Direction) -> Unit = {},
+    onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onBackToMainMenu: () -> Unit = {},
     onExitGame: () -> Unit = {},
     onExit: () -> Unit
@@ -221,6 +223,7 @@ fun TownInteriorScreen(
 
             val nextTile = nextInteriorTile(playerColumn, playerRow, nextDirection)
             direction = nextDirection
+            onPlayerDirectionChanged(nextDirection)
 
             if (nextTile !in walkableTiles ||
                 nextTile == npcColumn to npcRow ||
@@ -236,6 +239,7 @@ fun TownInteriorScreen(
             delay(InteriorStepDurationMs.toLong())
             playerColumn = nextTile.first
             playerRow = nextTile.second
+            onPlayerPositionChanged(playerColumn, playerRow)
             isMoving = false
             delay(1L)
         }
@@ -404,7 +408,7 @@ fun TownInteriorScreen(
                     isSettingsOpen = false
                 },
                 onSaveGame = {
-                    onSaveGame()
+                    onSaveGame(playerColumn, playerRow)
                     showSaveMessage = true
                 },
                 onMainMenu = {
@@ -423,7 +427,7 @@ fun TownInteriorScreen(
                     val exitAction = pendingExitAction
                     pendingExitAction = null
                     pendingExitRequiresSave = false
-                    onSaveGame()
+                    onSaveGame(playerColumn, playerRow)
                     when (exitAction) {
                         ExitAction.MainMenu -> onBackToMainMenu()
                         ExitAction.ExitGame -> onExitGame()

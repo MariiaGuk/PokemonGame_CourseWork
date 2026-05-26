@@ -6,6 +6,11 @@ import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 
+data class MoveLearnRequest(
+    val chimera: Chimera,
+    val move: Move
+)
+
 /**
  * Manager to guide the course of the battle
  */
@@ -17,7 +22,25 @@ class BattleManager(
     val enemyChimera get() = enemy.activeChimera
     var isBattleActive: Boolean = true
         private set
+    var isWaitingForPlayerSwitch: Boolean = false
+        private set
+    val pendingMoveLearning: MoveLearnRequest?
+        get() = player.team
+            .firstOrNull { it.pendingMoveToLearn != null }
+            ?.let { chimera ->
+                MoveLearnRequest(
+                    chimera = chimera,
+                    move = chimera.pendingMoveToLearn!!
+                )
+            }
+    val isWaitingForMoveLearning: Boolean
+        get() = pendingMoveLearning != null
     private var escapeAttempts = 0
+    private val playerBattleParticipants = linkedSetOf<Chimera>()
+
+    init {
+        markPlayerParticipant(playerChimera)
+    }
 
     fun performTurn(playerAction: BattleAction): List<String> {
         return performTurnWithAnimations(playerAction).log
@@ -34,35 +57,60 @@ class BattleManager(
             )
         }
 
+        if (isWaitingForMoveLearning) {
+            return BattleTurnResult(
+                log = listOf("Choose a move for ${pendingMoveLearning?.chimera?.name} to forget."),
+                animations = emptyList()
+            )
+        }
+
         when (playerAction) {
             is BattleAction.UseMove -> {
+                if (isWaitingForPlayerSwitch || !playerChimera.stats.isAlive()) {
+                    promptForcedSwitch(log)
+                    return BattleTurnResult(log = log, animations = animations)
+                }
 
                 val playerGoesFirst = playerChimera.stats.speed > enemyChimera.stats.speed ||
                         (playerChimera.stats.speed == enemyChimera.stats.speed && Math.random() < 0.5)
 
                 if (playerGoesFirst) {
                     animations.add(playerTurn(playerAction.move, log))
-                    if (isBattleActive) {
+                    if (isBattleActive && playerChimera.stats.isAlive() && enemyChimera.stats.isAlive()) {
                         animations.add(enemyTurn(log))
                     }
                 }
                 else {
                     animations.add(enemyTurn(log))
-                    if (isBattleActive) {
+                    if (isBattleActive && playerChimera.stats.isAlive() && enemyChimera.stats.isAlive()) {
                         animations.add(playerTurn(playerAction.move, log))
                     }
                 }
             }
             is BattleAction.UseItem -> {
-                if (useItem(playerAction.item, log, animations)) {
+                if (isWaitingForPlayerSwitch || !playerChimera.stats.isAlive()) {
+                    promptForcedSwitch(log)
+                    return BattleTurnResult(log = log, animations = animations)
+                }
+
+                if (useItem(playerAction.item, playerAction.target, log, animations)) {
                     animations.add(enemyTurn(log))
                 }
             }
             is BattleAction.SwitchChimera -> {
+                val wasForcedSwitch = isWaitingForPlayerSwitch
                 switchChimera(playerAction.chimera, log)
-                animations.add(enemyTurn(log))
+                isWaitingForPlayerSwitch = false
+                if (!wasForcedSwitch) {
+                    animations.add(enemyTurn(log))
+                }
             }
             is BattleAction.Run -> {
+                if (isWaitingForPlayerSwitch || !playerChimera.stats.isAlive()) {
+                    promptForcedSwitch(log)
+                    return BattleTurnResult(log = log, animations = animations)
+                }
+
                 tryRun(log, animations)
             }
         }
@@ -71,6 +119,32 @@ class BattleManager(
             log = log,
             animations = animations
         )
+    }
+
+    fun resolvePendingMoveLearning(replaceIndex: Int?): List<String> {
+        val request = pendingMoveLearning ?: return emptyList()
+        val log = mutableListOf<String>()
+
+        if (replaceIndex == null) {
+            val skippedMove = request.chimera.skipPendingMove()
+            if (skippedMove != null) {
+                log.add("${request.chimera.name} did not learn ${skippedMove.name}.")
+            }
+        } else {
+            val learnedMoves = request.chimera.replaceMoveWithPending(replaceIndex)
+            if (learnedMoves != null) {
+                val (forgottenMove, learnedMove) = learnedMoves
+                log.add("${request.chimera.name} forgot ${forgottenMove.name}.")
+                log.add("${request.chimera.name} learned ${learnedMove.name}!")
+            }
+        }
+
+        pendingMoveLearning?.let { nextRequest ->
+            log.add("${nextRequest.chimera.name} wants to learn ${nextRequest.move.name}.")
+            log.add("Choose a move to forget, or keep the old moves.")
+        }
+
+        return log.ifEmpty { listOf("Nothing happened.") }
     }
 
     private fun enemyTurn(log: MutableList<String>): BattleMoveAnimation {
@@ -91,12 +165,8 @@ class BattleManager(
             userAfter = afterUserStats
         )
 
-        if (!playerChimera.stats.isAlive()) {
-            if (player.isDefeated()) {
-                isBattleActive = false
-                log.add("You lost!")
-            }
-        }
+        resolvePlayerFaint(log)
+        resolveEnemyFaint(log, enemyChimera)
 
         return BattleMoveAnimation(
             side = BattleSide.Enemy,
@@ -110,11 +180,16 @@ class BattleManager(
                 userSide = BattleSide.Enemy,
                 userBefore = beforeUserStats,
                 userAfter = afterUserStats
-            )
+            ),
+            userBefore = beforeUserStats,
+            userAfter = afterUserStats,
+            targetBefore = beforeTargetStats,
+            targetAfter = afterTargetStats
         )
     }
 
     private fun playerTurn(playerMove: Move, log: MutableList<String>): BattleMoveAnimation {
+        markPlayerParticipant(playerChimera)
         val beforeTargetStats = enemyChimera.stats.snapshot()
         val beforeUserStats = playerChimera.stats.snapshot()
         playerMove.execute(playerChimera, enemyChimera)
@@ -131,13 +206,8 @@ class BattleManager(
             userAfter = afterUserStats
         )
 
-        if (!enemyChimera.stats.isAlive()) {
-            if (enemy.isDefeated()) {
-                isBattleActive = false
-                log.add("You won!")
-                awardExperience(log, enemyChimera)
-            }
-        }
+        resolveEnemyFaint(log, enemyChimera)
+        resolvePlayerFaint(log)
 
         return BattleMoveAnimation(
             side = BattleSide.Player,
@@ -151,12 +221,17 @@ class BattleManager(
                 userSide = BattleSide.Player,
                 userBefore = beforeUserStats,
                 userAfter = afterUserStats
-            )
+            ),
+            userBefore = beforeUserStats,
+            userAfter = afterUserStats,
+            targetBefore = beforeTargetStats,
+            targetAfter = afterTargetStats
         )
     }
 
     private fun useItem(
         item: Item,
+        target: Chimera?,
         log: MutableList<String>,
         animations: MutableList<BattleMoveAnimation>
     ): Boolean {
@@ -164,12 +239,28 @@ class BattleManager(
             return tryCatchChimera(item, log, animations)
         }
 
-        if (!player.inventory.useItem(item, playerChimera)) {
-            log.add("${item.name} cannot be used on ${playerChimera.name}.")
+        val itemTarget = target ?: playerChimera
+        val targetBefore = itemTarget.stats.snapshot()
+        if (itemTarget !in player.team || !player.inventory.useItem(item, itemTarget)) {
+            log.add("${item.name} cannot be used on ${itemTarget.name}.")
             return false
         }
+        val targetAfter = itemTarget.stats.snapshot()
 
-        log.add("Used ${item.name} on ${playerChimera.name}!")
+        log.add("Used ${item.name} on ${itemTarget.name}!")
+        if (itemTarget === playerChimera) {
+            animations.add(
+                BattleMoveAnimation(
+                    side = BattleSide.Player,
+                    species = itemTarget.species,
+                    chimeraName = itemTarget.name,
+                    moveName = item.name,
+                    kind = BattleAnimationKind.Item,
+                    userBefore = targetBefore,
+                    userAfter = targetAfter
+                )
+            )
+        }
         return true
     }
 
@@ -210,6 +301,7 @@ class BattleManager(
             player.team.add(enemyChimera)
             isBattleActive = false
             log.add("Gotcha! ${enemyChimera.name} was caught!")
+            awardExperience(log, enemyChimera)
         } else {
             log.add("${enemyChimera.name} broke free!")
         }
@@ -219,7 +311,41 @@ class BattleManager(
 
     private fun switchChimera(chimera: Chimera, log: MutableList<String>) {
         player.switchChimera(chimera)
+        markPlayerParticipant(chimera)
         log.add("Go, ${chimera.name}!")
+    }
+
+    private fun resolvePlayerFaint(log: MutableList<String>) {
+        if (playerChimera.stats.isAlive()) return
+
+        if (player.isDefeated()) {
+            isBattleActive = false
+            isWaitingForPlayerSwitch = false
+            log.add("You lost!")
+        } else {
+            isWaitingForPlayerSwitch = true
+            log.add("Choose your next chimera!")
+        }
+    }
+
+    private fun resolveEnemyFaint(log: MutableList<String>, defeatedChimera: Chimera) {
+        if (defeatedChimera.stats.isAlive()) return
+
+        if (enemy.isDefeated()) {
+            isBattleActive = false
+            log.add("You won!")
+            awardExperience(log, defeatedChimera)
+        }
+    }
+
+    private fun promptForcedSwitch(log: MutableList<String>) {
+        isWaitingForPlayerSwitch = !player.isDefeated()
+        if (isWaitingForPlayerSwitch) {
+            log.add("Choose your next chimera!")
+        } else {
+            isBattleActive = false
+            log.add("You lost!")
+        }
     }
 
     private fun tryRun(
@@ -245,14 +371,38 @@ class BattleManager(
 
     private fun awardExperience(log: MutableList<String>, defeatedChimera: Chimera) {
         val experienceReward = calculateExperienceReward(defeatedChimera)
-        val previousLevel = playerChimera.level
+        val eligibleParticipants = playerBattleParticipants
+            .filter { it.stats.isAlive() }
 
-        playerChimera.gainExp(experienceReward)
+        eligibleParticipants.forEach { chimera ->
+            val previousLevel = chimera.level
+            val previousMoves = chimera.moves.map { it.name }.toSet()
 
-        log.add("${playerChimera.name} gained $experienceReward EXP.")
+            chimera.gainExp(experienceReward)
 
-        if (playerChimera.level > previousLevel) {
-            log.add("${playerChimera.name} grew to Lv.${playerChimera.level}!")
+            log.add("${chimera.name} gained $experienceReward EXP.")
+
+            if (chimera.level > previousLevel) {
+                log.add("${chimera.name} grew to Lv.${chimera.level}!")
+            }
+
+            val learnedMoveNames = chimera.moves
+                .filter { it.name !in previousMoves }
+                .map { it.name }
+            learnedMoveNames.forEach { moveName ->
+                log.add("${chimera.name} learned $moveName!")
+            }
+
+            chimera.pendingMoveToLearn?.let { move ->
+                log.add("${chimera.name} wants to learn ${move.name}.")
+                log.add("Choose a move to forget, or keep the old moves.")
+            }
+        }
+    }
+
+    private fun markPlayerParticipant(chimera: Chimera) {
+        if (chimera.stats.isAlive()) {
+            playerBattleParticipants.add(chimera)
         }
     }
 
@@ -263,11 +413,11 @@ class BattleManager(
     private fun appendBattleChanges(
         log: MutableList<String>,
         targetLabel: String,
-        targetBefore: StatsSnapshot,
-        targetAfter: StatsSnapshot,
+        targetBefore: BattleStatsSnapshot,
+        targetAfter: BattleStatsSnapshot,
         userLabel: String,
-        userBefore: StatsSnapshot,
-        userAfter: StatsSnapshot
+        userBefore: BattleStatsSnapshot,
+        userAfter: BattleStatsSnapshot
     ) {
         val oldSize = log.size
 
@@ -283,11 +433,11 @@ class BattleManager(
 
     private fun collectMoveFeedbacks(
         targetSide: BattleSide,
-        targetBefore: StatsSnapshot,
-        targetAfter: StatsSnapshot,
+        targetBefore: BattleStatsSnapshot,
+        targetAfter: BattleStatsSnapshot,
         userSide: BattleSide,
-        userBefore: StatsSnapshot,
-        userAfter: StatsSnapshot
+        userBefore: BattleStatsSnapshot,
+        userAfter: BattleStatsSnapshot
     ): List<BattleMoveFeedback> {
         return buildList {
             addFeedbacksForStatSnapshot(targetSide, targetBefore, targetAfter)
@@ -297,8 +447,8 @@ class BattleManager(
 
     private fun MutableList<BattleMoveFeedback>.addFeedbacksForStatSnapshot(
         side: BattleSide,
-        before: StatsSnapshot,
-        after: StatsSnapshot
+        before: BattleStatsSnapshot,
+        after: BattleStatsSnapshot
     ) {
         if (before.currentHp > 0 && after.currentHp <= 0) {
             add(BattleMoveFeedback(side, BattleMoveFeedbackType.Faint))
@@ -317,8 +467,8 @@ class BattleManager(
     private fun appendHpChange(
         log: MutableList<String>,
         label: String,
-        before: StatsSnapshot,
-        after: StatsSnapshot
+        before: BattleStatsSnapshot,
+        after: BattleStatsSnapshot
     ) {
         if (before.currentHp != after.currentHp) {
             log.add("$label has ${after.currentHp}/${after.maxHp} HP.")
@@ -328,8 +478,8 @@ class BattleManager(
     private fun appendStatChanges(
         log: MutableList<String>,
         label: String,
-        before: StatsSnapshot,
-        after: StatsSnapshot
+        before: BattleStatsSnapshot,
+        after: BattleStatsSnapshot
     ) {
         appendStatChange(log, label, "attack", before.attack, after.attack)
         appendStatChange(log, label, "defence", before.defence, after.defence)
@@ -349,8 +499,8 @@ class BattleManager(
         }
     }
 
-    private fun com.example.chimeralis.logic.chimeras.Stats.snapshot(): StatsSnapshot {
-        return StatsSnapshot(
+    private fun com.example.chimeralis.logic.chimeras.Stats.snapshot(): BattleStatsSnapshot {
+        return BattleStatsSnapshot(
             currentHp = currentHp,
             maxHp = maxHp,
             attack = attack,
@@ -361,17 +511,6 @@ class BattleManager(
             speedStage = speedStage
         )
     }
-
-    private data class StatsSnapshot(
-        val currentHp: Int,
-        val maxHp: Int,
-        val attack: Int,
-        val defence: Int,
-        val speed: Int,
-        val attackStage: Int,
-        val defenceStage: Int,
-        val speedStage: Int
-    )
 
     private companion object {
         const val MaxTeamSize = 6

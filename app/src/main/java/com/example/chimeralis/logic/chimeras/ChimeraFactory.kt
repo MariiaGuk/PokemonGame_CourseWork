@@ -57,7 +57,9 @@ object ChimeraFactory {
                 learnableMoves = listOf(
                     1 to { MoveFactory.createMove(MoveName.TACKLE)},
                     1 to { MoveFactory.createMove(MoveName.GROWL)},
-                    7 to { MoveFactory.createMove(MoveName.EMBER)},
+                    6 to { MoveFactory.createMove(MoveName.EMBER)},
+                    6 to { MoveFactory.createMove(MoveName.TAILWHIP)},
+                    6 to { MoveFactory.createMove(MoveName.RECOVER)}
                     //...
                 )
             )

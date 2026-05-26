@@ -6,7 +6,7 @@ import com.example.chimeralis.logic.chimeras.moves.Move
 
 sealed class BattleAction {
     data class UseMove(val move: Move) : BattleAction()
-    data class UseItem(val item: Item) : BattleAction()
+    data class UseItem(val item: Item, val target: Chimera? = null) : BattleAction()
     data class SwitchChimera(val chimera: Chimera) : BattleAction()
     object Run : BattleAction()
 }

@@ -53,10 +53,13 @@ import com.example.chimeralis.logic.battle.BattleMoveFeedback
 import com.example.chimeralis.logic.battle.BattleMoveFeedbackType
 import com.example.chimeralis.logic.battle.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.BattleManager
+import com.example.chimeralis.logic.battle.MoveLearnRequest
 import com.example.chimeralis.logic.battle.BattleSide
+import com.example.chimeralis.logic.battle.BattleStatsSnapshot
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
@@ -69,6 +72,7 @@ private const val MaxBattleTeamSize = 6
 private val BattlePanelHorizontalPadding = 30.dp
 private val BattleBackButtonSize = 38.dp
 private val BattleBackButtonGap = 14.dp
+private val BattleMenuButtonWidth = 160.dp
 private const val BattleMoveFrameMillis = 420L
 private const val IdleBattleMoveFrameMillis = 180L
 private const val SingleActionBattleMoveFrameMillis = 1000L
@@ -116,6 +120,15 @@ fun BattleScreen(
     var captureResultAnimation by remember(battleManager) { mutableStateOf<BattleMoveAnimation?>(null) }
     var isCaptureResultRevealed by remember(battleManager) { mutableStateOf(false) }
     var isEnemyCapturedHidden by remember(battleManager) { mutableStateOf(false) }
+    var visualPlayerStats by remember(battleManager) {
+        mutableStateOf(battleManager.playerChimera.stats.toBattleStatsSnapshot())
+    }
+    var visualWildStats by remember(battleManager) {
+        mutableStateOf(battleManager.enemyChimera.stats.toBattleStatsSnapshot())
+    }
+    var visualPlayerLevel by remember(battleManager) { mutableIntStateOf(battleManager.playerChimera.level) }
+    var visualPlayerExp by remember(battleManager) { mutableIntStateOf(battleManager.playerChimera.exp) }
+    var selectedBattleItem by remember(battleManager) { mutableStateOf<Item?>(null) }
     var isBattleIntroLocked by remember(battleManager) { mutableStateOf(true) }
     var isBattleExitPending by remember(battleManager) { mutableStateOf(false) }
     var uiVersion by remember(battleManager) { mutableIntStateOf(0) }
@@ -141,6 +154,7 @@ fun BattleScreen(
         battleFeedbackFrameIndex = 0
         captureResultAnimation = null
         isCaptureResultRevealed = false
+        selectedBattleItem = null
         panelMode = BattlePanelMode.Log
     }
 
@@ -168,10 +182,18 @@ fun BattleScreen(
                 isCaptureResultRevealed = false
             }
             battleLogIndex++
+        } else if (battleManager.isWaitingForMoveLearning) {
+            captureResultAnimation = null
+            isCaptureResultRevealed = false
+            panelMode = BattlePanelMode.MoveLearning
         } else if (battleManager.isBattleActive) {
             captureResultAnimation = null
             isCaptureResultRevealed = false
-            panelMode = BattlePanelMode.Actions
+            panelMode = if (battleManager.isWaitingForPlayerSwitch) {
+                BattlePanelMode.Team
+            } else {
+                BattlePanelMode.Actions
+            }
         } else {
             isBattleExitPending = true
         }
@@ -183,6 +205,52 @@ fun BattleScreen(
     ) {
         showBattleLog(log, animations)
         uiVersion++
+    }
+
+    fun applyAnimationVisualState(animation: BattleMoveAnimation) {
+        val userAfter = animation.userAfter
+        val targetAfter = animation.targetAfter
+
+        if (userAfter != null) {
+            when (animation.side) {
+                BattleSide.Player -> visualPlayerStats = userAfter
+                BattleSide.Enemy -> visualWildStats = userAfter
+            }
+        }
+
+        if (targetAfter != null) {
+            when (animation.side) {
+                BattleSide.Player -> visualWildStats = targetAfter
+                BattleSide.Enemy -> visualPlayerStats = targetAfter
+            }
+        }
+    }
+
+    fun performBattleAction(action: BattleAction) {
+        val playerBefore = playerChimera.stats.toBattleStatsSnapshot()
+        val wildBefore = wildChimera.stats.toBattleStatsSnapshot()
+        val playerLevelBefore = playerChimera.level
+        val playerExpBefore = playerChimera.exp
+        val result = battleManager.performTurnWithAnimations(action)
+
+        visualPlayerStats = when (action) {
+            is BattleAction.SwitchChimera -> result.animations
+                .firstOrNull { it.side == BattleSide.Enemy }
+                ?.targetBefore
+                ?: battleManager.playerChimera.stats.toBattleStatsSnapshot()
+            else -> playerBefore
+        }
+        visualPlayerLevel = when (action) {
+            is BattleAction.SwitchChimera -> battleManager.playerChimera.level
+            else -> playerLevelBefore
+        }
+        visualPlayerExp = when (action) {
+            is BattleAction.SwitchChimera -> battleManager.playerChimera.exp
+            else -> playerExpBefore
+        }
+        visualWildStats = wildBefore
+
+        showBattleResult(result.log, result.animations)
     }
 
     LaunchedEffect(battleManager) {
@@ -216,8 +284,19 @@ fun BattleScreen(
         }
 
         activeMoveAnimation = animation
-        if (animation.kind == BattleAnimationKind.Move) {
-            GameSoundPlayer.play(context, R.raw.attack_sound)
+        when (animation.kind) {
+            BattleAnimationKind.Move -> {
+                applyAnimationVisualState(animation)
+                GameSoundPlayer.play(context, R.raw.attack_sound)
+            }
+            BattleAnimationKind.Item -> {
+                applyAnimationVisualState(animation)
+                delay(220L)
+                activeMoveAnimation = null
+                activeMoveFrameIndex = 0
+                return@LaunchedEffect
+            }
+            BattleAnimationKind.Capture -> Unit
         }
 
         if (animation.kind == BattleAnimationKind.Capture) {
@@ -312,7 +391,20 @@ fun BattleScreen(
             currentBattleMessage == "Got away safely!" -> {
                 GameSoundPlayer.play(context, R.raw.ran_away)
             }
+            currentBattleMessage.contains(" gained ") &&
+                    currentBattleMessage.endsWith(" EXP.") -> {
+                if (currentBattleMessage.startsWith("${playerChimera.name} gained ")) {
+                    visualPlayerLevel = playerChimera.level
+                    visualPlayerExp = playerChimera.exp
+                    uiVersion++
+                }
+            }
             " grew to Lv." in currentBattleMessage -> {
+                if (currentBattleMessage.startsWith("${playerChimera.name} grew to Lv.")) {
+                    visualPlayerLevel = playerChimera.level
+                    visualPlayerExp = playerChimera.exp
+                    uiVersion++
+                }
                 GameSoundPlayer.play(context, R.raw.level_up)
             }
         }
@@ -382,14 +474,14 @@ fun BattleScreen(
                     captureResultAnimation != null &&
                     !isCaptureResultRevealed
         val playerAlpha = fighterAlpha(
-            currentHp = playerChimera.stats.currentHp,
+            currentHp = visualPlayerStats.currentHp,
             hasPendingFaint = playerFaintPending,
             isHiddenAfterFaint = BattleSide.Player in hiddenFaintedSides,
             activeFeedback = playerFeedback,
             frameIndex = battleFeedbackFrameIndex
         )
         val wildAlpha = fighterAlpha(
-            currentHp = wildChimera.stats.currentHp,
+            currentHp = visualWildStats.currentHp,
             hasPendingFaint = wildFaintPending,
             isHiddenAfterFaint = BattleSide.Enemy in hiddenFaintedSides,
             activeFeedback = wildFeedback,
@@ -417,14 +509,14 @@ fun BattleScreen(
         ) {
             StatusPlate(
                 name = playerChimera.name,
-                level = playerChimera.level,
-                currentHp = playerChimera.stats.currentHp,
-                maxHp = playerChimera.stats.maxHp,
-                currentExp = playerChimera.exp,
-                expToNextLevel = playerChimera.expToNextLevel(),
-                attackStage = playerChimera.stats.attackStage,
-                defenceStage = playerChimera.stats.defenceStage,
-                speedStage = playerChimera.stats.speedStage,
+                level = visualPlayerLevel,
+                currentHp = visualPlayerStats.currentHp,
+                maxHp = visualPlayerStats.maxHp,
+                currentExp = visualPlayerExp,
+                expToNextLevel = visualPlayerLevel.expToNextLevel(),
+                attackStage = visualPlayerStats.attackStage,
+                defenceStage = visualPlayerStats.defenceStage,
+                speedStage = visualPlayerStats.speedStage,
                 refreshKey = refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
@@ -437,13 +529,13 @@ fun BattleScreen(
             StatusPlate(
                 name = wildChimera.name,
                 level = wildChimera.level,
-                currentHp = wildChimera.stats.currentHp,
-                maxHp = wildChimera.stats.maxHp,
+                currentHp = visualWildStats.currentHp,
+                maxHp = visualWildStats.maxHp,
                 currentExp = null,
                 expToNextLevel = null,
-                attackStage = wildChimera.stats.attackStage,
-                defenceStage = wildChimera.stats.defenceStage,
-                speedStage = wildChimera.stats.speedStage,
+                attackStage = visualWildStats.attackStage,
+                defenceStage = visualWildStats.defenceStage,
+                speedStage = visualWildStats.speedStage,
                 refreshKey = refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
@@ -507,7 +599,9 @@ fun BattleScreen(
             BattlePanel(
                 message = currentBattleMessage,
                 mode = panelMode,
+                isTeamSelectionForced = battleManager.isWaitingForPlayerSwitch,
                 moves = playerChimera.moves,
+                pendingMoveLearning = battleManager.pendingMoveLearning,
                 team = player.team,
                 activeChimera = playerChimera,
                 inventoryItems = player.inventory.items,
@@ -515,22 +609,42 @@ fun BattleScreen(
                 onBag = { panelMode = BattlePanelMode.Bag },
                 onTeam = { panelMode = BattlePanelMode.Team },
                 onMoveSelected = { move ->
-                    val result = battleManager.performTurnWithAnimations(BattleAction.UseMove(move))
-                    showBattleResult(result.log, result.animations)
+                    performBattleAction(BattleAction.UseMove(move))
+                },
+                onMoveReplacementSelected = { index ->
+                    showBattleResult(
+                        log = battleManager.resolvePendingMoveLearning(index),
+                        animations = emptyList()
+                    )
                 },
                 onSwitchSelected = { chimera ->
-                    val result = battleManager.performTurnWithAnimations(BattleAction.SwitchChimera(chimera))
-                    showBattleResult(result.log, result.animations)
+                    performBattleAction(BattleAction.SwitchChimera(chimera))
                 },
                 onItemSelected = { item ->
-                    val result = battleManager.performTurnWithAnimations(BattleAction.UseItem(item))
-                    showBattleResult(result.log, result.animations)
+                    if (item.isCaptureItem) {
+                        performBattleAction(BattleAction.UseItem(item))
+                    } else {
+                        selectedBattleItem = item
+                        panelMode = BattlePanelMode.ItemTarget
+                    }
+                },
+                selectedItem = selectedBattleItem,
+                onItemTargetSelected = { chimera ->
+                    selectedBattleItem?.let { item ->
+                        performBattleAction(BattleAction.UseItem(item, chimera))
+                    }
                 },
                 onRun = {
-                    val result = battleManager.performTurnWithAnimations(BattleAction.Run)
-                    showBattleResult(result.log, result.animations)
+                    performBattleAction(BattleAction.Run)
                 },
-                onBackToActions = { panelMode = BattlePanelMode.Actions },
+                onBackToActions = {
+                    if (panelMode == BattlePanelMode.ItemTarget) {
+                        selectedBattleItem = null
+                        panelMode = BattlePanelMode.Bag
+                    } else {
+                        panelMode = BattlePanelMode.Actions
+                    }
+                },
                 colors = colors,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -973,16 +1087,21 @@ private fun StatStageChip(
 private fun BattlePanel(
     message: String,
     mode: BattlePanelMode,
-    moves: List<com.example.chimeralis.logic.chimeras.moves.Move>,
+    isTeamSelectionForced: Boolean,
+    moves: List<Move>,
+    pendingMoveLearning: MoveLearnRequest?,
     team: List<Chimera>,
     activeChimera: Chimera,
     inventoryItems: Map<Item, Int>,
     onFight: () -> Unit,
     onBag: () -> Unit,
     onTeam: () -> Unit,
-    onMoveSelected: (com.example.chimeralis.logic.chimeras.moves.Move) -> Unit,
+    onMoveSelected: (Move) -> Unit,
+    onMoveReplacementSelected: (Int?) -> Unit,
     onSwitchSelected: (Chimera) -> Unit,
     onItemSelected: (Item) -> Unit,
+    selectedItem: Item?,
+    onItemTargetSelected: (Chimera) -> Unit,
     onRun: () -> Unit,
     onBackToActions: () -> Unit,
     colors: androidx.compose.material3.ColorScheme,
@@ -990,7 +1109,9 @@ private fun BattlePanel(
 ) {
     val showBackArrow = mode == BattlePanelMode.Moves ||
             mode == BattlePanelMode.Bag ||
-            mode == BattlePanelMode.Team
+            mode == BattlePanelMode.ItemTarget ||
+            mode == BattlePanelMode.MoveLearning ||
+            (mode == BattlePanelMode.Team && !isTeamSelectionForced)
 
     Box(
         modifier = modifier
@@ -1000,21 +1121,48 @@ private fun BattlePanel(
     ) {
         if (showBackArrow) {
             BattleBackArrowButton(
-                onClick = onBackToActions,
+                onClick = {
+                    if (mode == BattlePanelMode.MoveLearning) {
+                        onMoveReplacementSelected(null)
+                    } else {
+                        onBackToActions()
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .padding(start = BattlePanelHorizontalPadding)
             )
         }
 
-        if (mode == BattlePanelMode.Log) {
+        if (mode == BattlePanelMode.Log || mode == BattlePanelMode.MoveLearning) {
             BattleMessage(
-                text = message,
+                text = if (mode == BattlePanelMode.MoveLearning) {
+                    pendingMoveLearning?.let { request ->
+                        "${request.chimera.name} wants to learn ${request.move.name}.\nForget which move? Back keeps old moves."
+                    } ?: message
+                } else {
+                    message
+                },
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = BattlePanelHorizontalPadding, vertical = 16.dp)
+                    .padding(
+                        start = if (mode == BattlePanelMode.MoveLearning) {
+                            BattlePanelHorizontalPadding + BattleBackButtonSize + BattleBackButtonGap
+                        } else {
+                            BattlePanelHorizontalPadding
+                        },
+                        top = 16.dp,
+                        end = if (mode == BattlePanelMode.MoveLearning) {
+                            400.dp
+                        } else {
+                            BattlePanelHorizontalPadding
+                        },
+                        bottom = 16.dp
+                    )
             )
-        } else {
+        }
+
+        if (mode != BattlePanelMode.Log) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1043,13 +1191,22 @@ private fun BattlePanel(
                     )
                     BattlePanelMode.Bag -> BattleInventoryButtons(
                         inventoryItems = inventoryItems,
-                        activeChimera = activeChimera,
+                        team = team,
                         onItemSelected = onItemSelected
+                    )
+                    BattlePanelMode.ItemTarget -> BattleItemTargetButtons(
+                        item = selectedItem,
+                        team = team,
+                        onItemTargetSelected = onItemTargetSelected
                     )
                     BattlePanelMode.Team -> BattleTeamButtons(
                         team = team,
                         activeChimera = activeChimera,
                         onSwitchSelected = onSwitchSelected
+                    )
+                    BattlePanelMode.MoveLearning -> MoveLearningButtons(
+                        request = pendingMoveLearning,
+                        onReplacementSelected = onMoveReplacementSelected
                     )
                     BattlePanelMode.Log -> Unit
                 }
@@ -1296,7 +1453,7 @@ private fun BattleTeamSlot(
 @Composable
 private fun BattleInventoryButtons(
     inventoryItems: Map<Item, Int>,
-    activeChimera: Chimera,
+    team: List<Chimera>,
     onItemSelected: (Item) -> Unit
 ) {
     Column(
@@ -1315,7 +1472,7 @@ private fun BattleInventoryButtons(
             inventoryItems.entries.sortedBy { it.key.name }.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowItems.forEach { (item, amount) ->
-                        val canUseItem = item.isCaptureItem || item.canUseOn(activeChimera)
+                        val canUseItem = item.isCaptureItem || team.any { item.canUseOn(it) }
                         MenuButton(
                             text = "${item.name} x$amount",
                             enabled = canUseItem,
@@ -1329,25 +1486,203 @@ private fun BattleInventoryButtons(
 }
 
 @Composable
-private fun MoveButtons(
-    moves: List<com.example.chimeralis.logic.chimeras.moves.Move>,
-    onMoveSelected: (com.example.chimeralis.logic.chimeras.moves.Move) -> Unit
+private fun BattleItemTargetButtons(
+    item: Item?,
+    team: List<Chimera>,
+    onItemTargetSelected: (Chimera) -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        horizontalAlignment = Alignment.End
+    ) {
+        val slots = List(MaxBattleTeamSize) { index -> team.getOrNull(index) }
+        slots.chunked(3).forEach { rowTeam ->
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                rowTeam.forEach { chimera ->
+                    if (chimera == null) {
+                        EmptyBattleTeamSlot()
+                    } else {
+                        BattleItemTargetSlot(
+                            chimera = chimera,
+                            canUseItem = item?.canUseOn(chimera) == true,
+                            onItemTargetSelected = onItemTargetSelected
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BattleItemTargetSlot(
+    chimera: Chimera,
+    canUseItem: Boolean,
+    onItemTargetSelected: (Chimera) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val hpRatio = (chimera.stats.currentHp.toFloat() / chimera.stats.maxHp.toFloat()).coerceIn(0f, 1f)
+    val hpPercent = (hpRatio * 100).roundToInt()
+
+    Row(
+        modifier = Modifier
+            .width(122.dp)
+            .height(36.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(Color(0xFF3E443E).copy(alpha = 0.88f))
+            .border(
+                width = if (canUseItem) 2.dp else 1.dp,
+                color = colors.primary.copy(alpha = if (canUseItem) 0.78f else 0.22f),
+                shape = RoundedCornerShape(3.dp)
+            )
+            .pointerInput(canUseItem, chimera) {
+                detectTapGestures(
+                    onTap = {
+                        if (canUseItem) {
+                            onItemTargetSelected(chimera)
+                        }
+                    }
+                )
+            }
+            .padding(3.dp)
+            .graphicsLayer { alpha = if (canUseItem) 1f else 0.42f },
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Color(0xFFCBD0C5).copy(alpha = 0.32f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = chimera.species.battleImageRes()),
+                contentDescription = chimera.name,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(24.dp)
+                    .graphicsLayer { scaleX = -1f }
+            )
+        }
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = chimera.name,
+                    color = Color(0xFFE8E8D8),
+                    fontFamily = CinzelFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 7.sp,
+                    maxLines = 1
+                )
+                Text(
+                    text = "Lv.${chimera.level}",
+                    color = Color(0xFFE8E8D8),
+                    fontFamily = CinzelFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 7.sp,
+                    maxLines = 1
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Color(0xFF252818))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(hpRatio)
+                        .fillMaxHeight()
+                        .background(
+                            when {
+                                hpRatio > 0.5f -> Color(0xFF80D35D)
+                                hpRatio > 0.2f -> Color(0xFFE0B84B)
+                                else -> Color(0xFFD85A4A)
+                            }
+                        )
+                )
+            }
+
+            Text(
+                text = "HP: ${chimera.stats.currentHp}/${chimera.stats.maxHp} - $hpPercent%",
+                color = Color(0xFFE8E8D8),
+                fontFamily = CinzelFamily,
+                fontSize = 6.sp,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun MoveLearningButtons(
+    request: MoveLearnRequest?,
+    onReplacementSelected: (Int?) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.End
     ) {
-        moves.chunked(2).forEach { rowMoves ->
+        if (request == null) {
+            MenuButton(text = "Continue", onClick = { onReplacementSelected(null) })
+            return
+        }
+
+        val moveSlots = List(4) { index -> request.chimera.moves.getOrNull(index) }
+        moveSlots.chunked(2).forEachIndexed { rowIndex, rowMoves ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                rowMoves.forEachIndexed { columnIndex, move ->
+                    if (move == null) {
+                        Spacer(modifier = Modifier.width(BattleMenuButtonWidth))
+                    } else {
+                        val moveIndex = rowIndex * 2 + columnIndex
+                        MenuButton(
+                            text = move.name,
+                            onClick = { onReplacementSelected(moveIndex) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoveButtons(
+    moves: List<Move>,
+    onMoveSelected: (Move) -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.End
+    ) {
+        val moveSlots = List(4) { index -> moves.getOrNull(index) }
+        moveSlots.chunked(2).forEach { rowMoves ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 rowMoves.forEach { move ->
-                    MenuButton(
-                        text = "${move.name} ${move.pp}/${move.maxPp}",
-                        onClick = {
-                            if (move.pp > 0) {
-                                onMoveSelected(move)
+                    if (move == null) {
+                        Spacer(modifier = Modifier.width(BattleMenuButtonWidth))
+                    } else {
+                        MenuButton(
+                            text = "${move.name} ${move.pp}/${move.maxPp}",
+                            onClick = {
+                                if (move.pp > 0) {
+                                    onMoveSelected(move)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -1369,7 +1704,9 @@ private enum class BattlePanelMode {
     Actions,
     Moves,
     Bag,
+    ItemTarget,
     Team,
+    MoveLearning,
     Log
 }
 
@@ -1440,6 +1777,19 @@ private fun BattleMoveAnimation?.hasFaintFeedback(side: BattleSide): Boolean {
     } == true
 }
 
+private fun com.example.chimeralis.logic.chimeras.Stats.toBattleStatsSnapshot(): BattleStatsSnapshot {
+    return BattleStatsSnapshot(
+        currentHp = currentHp,
+        maxHp = maxHp,
+        attack = attack,
+        defence = defence,
+        speed = speed,
+        attackStage = attackStage,
+        defenceStage = defenceStage,
+        speedStage = speedStage
+    )
+}
+
 private fun captureTargetAlpha(animation: BattleMoveAnimation?, progress: Float): Float {
     if (animation == null) return 1f
 
@@ -1478,8 +1828,10 @@ private fun mapAnimationsToLogMessages(
 }
 
 private fun BattleMoveAnimation.message(): String {
-    if (kind == BattleAnimationKind.Capture) {
-        return "You threw a $moveName!"
+    when (kind) {
+        BattleAnimationKind.Capture -> return "You threw a $moveName!"
+        BattleAnimationKind.Item -> return "Used $moveName on $chimeraName!"
+        BattleAnimationKind.Move -> Unit
     }
 
     val owner = when (side) {
@@ -1595,7 +1947,12 @@ private fun createBattleManager(
     player: Player,
     wildSpecies: ChimeraSpecies
 ): BattleManager {
-    val wildChimera = ChimeraFactory.createChimera(wildSpecies, level = 3)
+    player.resetActiveChimeraToTeamLead()
+
+    val wildChimera = ChimeraFactory.createChimera(
+        species = wildSpecies,
+        level = player.scaledWildChimeraLevel()
+    )
     val enemy = NPC(
         name = "Wild",
         team = mutableListOf(wildChimera)
@@ -1612,8 +1969,20 @@ private fun ChimeraSpecies.battleName(): String = when (this) {
     ChimeraSpecies.Aquantis -> "Aquantis"
 }
 
-private fun com.example.chimeralis.logic.chimeras.Chimera.expToNextLevel(): Int {
-    return (level * level * level).coerceAtLeast(1)
+private fun Player.scaledWildChimeraLevel(): Int {
+    val strongestLevel = team
+        .filter { it.stats.isAlive() }
+        .ifEmpty { team }
+        .maxOfOrNull { it.level }
+        ?: 3
+    val minLevel = (strongestLevel - 2).coerceAtLeast(3)
+    val levelRange = strongestLevel - minLevel + 1
+
+    return minLevel + (Math.random() * levelRange).toInt()
+}
+
+private fun Int.expToNextLevel(): Int {
+    return (this * this * this).coerceAtLeast(1)
 }
 
 private fun ChimeraSpecies.battleImageRes(): Int = when (this) {

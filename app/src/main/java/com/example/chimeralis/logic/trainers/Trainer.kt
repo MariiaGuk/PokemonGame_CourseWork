@@ -12,6 +12,10 @@ abstract class Trainer(
     var activeChimera: Chimera = team.first()
         protected set
 
+    fun resetActiveChimeraToTeamLead() {
+        activeChimera = team.first()
+    }
+
     fun switchChimera(chimera: Chimera) {
         require(chimera in team) { "Chimera is not in team" }
         require(chimera.stats.isAlive()) { "Cannot swap to fainted chimera" }

@@ -15,7 +15,17 @@ class Inventory {
         if (!item.canUseOn(target)) return false
 
         item.use(target)
-        if (count <= 1) _items.remove(item) else _items[item] = count - 1
+        consumeItem(item, count)
         return true
+    }
+
+    fun consumeItem(item: Item): Boolean {
+        val count = _items[item] ?: return false
+        consumeItem(item, count)
+        return true
+    }
+
+    private fun consumeItem(item: Item, count: Int) {
+        if (count <= 1) _items.remove(item) else _items[item] = count - 1
     }
 }

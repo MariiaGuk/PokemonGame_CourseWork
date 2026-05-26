@@ -1,5 +1,6 @@
 package com.example.chimeralis.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
+import com.example.chimeralis.logic.battle.BattleAnimationKind
 import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleMoveFeedback
 import com.example.chimeralis.logic.battle.BattleMoveFeedbackType
@@ -73,6 +76,13 @@ private const val BattleFeedbackFrameMillis = 70L
 private const val BattleIntroInputLockMillis = 1200L
 private const val BattleEndInputLockMillis = 500L
 private const val BattleSpriteFrameAspectRatio = 1321f / 708f
+private const val CaptureAnimationTickMillis = 16L
+private const val CaptureSuccessDurationMillis = 2600L
+private const val CaptureFailDurationMillis = 2850L
+private const val CaptureThrowEndProgress = 0.34f
+private const val CaptureAbsorbEndProgress = 0.48f
+private const val CaptureShakeEndProgress = 0.78f
+private const val CaptureOpenFadeStartProgress = 0.9f
 
 @Composable
 fun BattleScreen(
@@ -99,9 +109,13 @@ fun BattleScreen(
     }
     var activeMoveAnimation by remember(battleManager) { mutableStateOf<BattleMoveAnimation?>(null) }
     var activeMoveFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
+    var activeCaptureProgress by remember(battleManager) { mutableFloatStateOf(0f) }
     var activeBattleFeedbacks by remember(battleManager) { mutableStateOf<List<BattleFeedback>>(emptyList()) }
     var battleFeedbackFrameIndex by remember(battleManager) { mutableIntStateOf(0) }
     var hiddenFaintedSides by remember(battleManager) { mutableStateOf<Set<BattleSide>>(emptySet()) }
+    var captureResultAnimation by remember(battleManager) { mutableStateOf<BattleMoveAnimation?>(null) }
+    var isCaptureResultRevealed by remember(battleManager) { mutableStateOf(false) }
+    var isEnemyCapturedHidden by remember(battleManager) { mutableStateOf(false) }
     var isBattleIntroLocked by remember(battleManager) { mutableStateOf(true) }
     var isBattleExitPending by remember(battleManager) { mutableStateOf(false) }
     var uiVersion by remember(battleManager) { mutableIntStateOf(0) }
@@ -122,8 +136,11 @@ fun BattleScreen(
         battleLogIndex = 0
         activeMoveAnimation = null
         activeMoveFrameIndex = 0
+        activeCaptureProgress = 0f
         activeBattleFeedbacks = emptyList()
         battleFeedbackFrameIndex = 0
+        captureResultAnimation = null
+        isCaptureResultRevealed = false
         panelMode = BattlePanelMode.Log
     }
 
@@ -136,9 +153,24 @@ fun BattleScreen(
             return
         }
 
+        val currentCaptureAnimation = battleLogAnimations[battleLogIndex]
+            ?.takeIf { it.kind == BattleAnimationKind.Capture }
+
         if (battleLogIndex < battleLogMessages.lastIndex) {
+            if (currentCaptureAnimation != null) {
+                captureResultAnimation = currentCaptureAnimation
+                isCaptureResultRevealed = true
+            } else if (
+                captureResultAnimation?.captureSucceeded == false &&
+                isCaptureResultRevealed
+            ) {
+                captureResultAnimation = null
+                isCaptureResultRevealed = false
+            }
             battleLogIndex++
         } else if (battleManager.isBattleActive) {
+            captureResultAnimation = null
+            isCaptureResultRevealed = false
             panelMode = BattlePanelMode.Actions
         } else {
             isBattleExitPending = true
@@ -179,11 +211,54 @@ fun BattleScreen(
         if (animation == null) {
             activeMoveAnimation = null
             activeMoveFrameIndex = 0
+            activeCaptureProgress = 0f
             return@LaunchedEffect
         }
 
         activeMoveAnimation = animation
-        GameSoundPlayer.play(context, R.raw.attack_sound)
+        if (animation.kind == BattleAnimationKind.Move) {
+            GameSoundPlayer.play(context, R.raw.attack_sound)
+        }
+
+        if (animation.kind == BattleAnimationKind.Capture) {
+            activeCaptureProgress = 0f
+            captureResultAnimation = animation
+            isCaptureResultRevealed = false
+            if (!animation.captureSucceeded) {
+                isEnemyCapturedHidden = false
+            }
+
+            val durationMillis = if (animation.captureSucceeded) {
+                CaptureSuccessDurationMillis
+            } else {
+                CaptureFailDurationMillis
+            }
+            val tickCount = (durationMillis / CaptureAnimationTickMillis).toInt().coerceAtLeast(1)
+
+            repeat(tickCount + 1) { tick ->
+                val progress = (tick / tickCount.toFloat()).coerceIn(0f, 1f)
+                activeCaptureProgress = progress
+                activeMoveFrameIndex = (progress * 100f).roundToInt()
+                if (animation.captureSucceeded && progress >= CaptureAbsorbEndProgress) {
+                    isEnemyCapturedHidden = true
+                }
+                delay(CaptureAnimationTickMillis)
+            }
+
+            if (animation.captureSucceeded) {
+                isEnemyCapturedHidden = true
+            }
+
+            delay(90L)
+
+            activeMoveAnimation = null
+            activeMoveFrameIndex = 0
+            activeCaptureProgress = 0f
+            activeBattleFeedbacks = emptyList()
+            battleFeedbackFrameIndex = 0
+            return@LaunchedEffect
+        }
+
         val frames = animation.animationFrames()
         var playedFaintSound = false
         frames.forEachIndexed { frameIndex, frame ->
@@ -225,6 +300,7 @@ fun BattleScreen(
 
         activeMoveAnimation = null
         activeMoveFrameIndex = 0
+        activeCaptureProgress = 0f
         activeBattleFeedbacks = emptyList()
         battleFeedbackFrameIndex = 0
     }
@@ -271,9 +347,16 @@ fun BattleScreen(
         val platformY = minOf(maxHeight * 0.68f, maxHeight - panelHeight - 42.dp)
         val playerPlatformX = maxWidth * 0.35f
         val wildPlatformX = maxWidth * 0.65f
+        val captureTargetX = wildPlatformX - 10.dp
+        val captureTargetY = platformY - 8.dp
         val spriteSize = minOf(maxWidth * 0.25f, maxHeight * 0.45f)
-        val playerAnimation = activeMoveAnimation?.takeIf { it.side == BattleSide.Player }
-        val wildAnimation = activeMoveAnimation?.takeIf { it.side == BattleSide.Enemy }
+        val activeCaptureAnimation = activeMoveAnimation?.takeIf { it.kind == BattleAnimationKind.Capture }
+        val playerAnimation = activeMoveAnimation?.takeIf {
+            it.kind == BattleAnimationKind.Move && it.side == BattleSide.Player
+        }
+        val wildAnimation = activeMoveAnimation?.takeIf {
+            it.kind == BattleAnimationKind.Move && it.side == BattleSide.Enemy
+        }
         val playerFrameResources = playerAnimation?.animationFrames()
         val wildFrameResources = wildAnimation?.animationFrames()
         val playerImageRes = playerFrameResources?.getOrNull(activeMoveFrameIndex)?.imageRes
@@ -293,6 +376,11 @@ fun BattleScreen(
                 BattleSide.Player !in hiddenFaintedSides
         val wildFaintPending = activeMoveAnimation.hasFaintFeedback(BattleSide.Enemy) &&
                 BattleSide.Enemy !in hiddenFaintedSides
+        val isEnemyHeldInCaptureStone =
+            activeCaptureAnimation != null && activeCaptureProgress >= CaptureAbsorbEndProgress ||
+                    activeCaptureAnimation == null &&
+                    captureResultAnimation != null &&
+                    !isCaptureResultRevealed
         val playerAlpha = fighterAlpha(
             currentHp = playerChimera.stats.currentHp,
             hasPendingFaint = playerFaintPending,
@@ -306,7 +394,8 @@ fun BattleScreen(
             isHiddenAfterFaint = BattleSide.Enemy in hiddenFaintedSides,
             activeFeedback = wildFeedback,
             frameIndex = battleFeedbackFrameIndex
-        )
+        ) * captureTargetAlpha(activeCaptureAnimation, activeCaptureProgress) *
+                if (isEnemyCapturedHidden || isEnemyHeldInCaptureStone) 0f else 1f
 
         Image(
             painter = painterResource(id = R.drawable.battle_arena),
@@ -394,6 +483,27 @@ fun BattleScreen(
                 )
             )
 
+            activeCaptureAnimation?.let { animation ->
+                CaptureBallAnimation(
+                    progress = activeCaptureProgress,
+                    startX = playerPlatformX,
+                    startY = platformY - spriteSize * 0.42f,
+                    targetX = captureTargetX,
+                    targetY = captureTargetY,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } ?: run {
+                captureResultAnimation?.let { animation ->
+                    CaptureResultBindingStone(
+                        caught = animation.captureSucceeded,
+                        isResultRevealed = isCaptureResultRevealed,
+                        targetX = captureTargetX,
+                        targetY = captureTargetY,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
             BattlePanel(
                 message = currentBattleMessage,
                 mode = panelMode,
@@ -455,6 +565,214 @@ private fun BattleFighter(
                 this.alpha = alpha
             }
     )
+}
+
+@Composable
+private fun CaptureBallAnimation(
+    progress: Float,
+    startX: Dp,
+    startY: Dp,
+    targetX: Dp,
+    targetY: Dp,
+    modifier: Modifier = Modifier
+) {
+    val clampedProgress = progress.coerceIn(0f, 1f)
+    val throwProgress = (clampedProgress / CaptureThrowEndProgress).coerceIn(0f, 1f)
+    val dropProgress = ((clampedProgress - CaptureThrowEndProgress) /
+            (CaptureAbsorbEndProgress - CaptureThrowEndProgress)).coerceIn(0f, 1f)
+    val easedThrowProgress = easeInOutCubic(throwProgress)
+    val easedDropProgress = easeInCubic(dropProgress)
+    val airTargetY = targetY - 104.dp
+    val arcLift = 64.dp * (1f - kotlin.math.abs(easedThrowProgress * 2f - 1f))
+    val thrownX = startX + (targetX - startX) * easedThrowProgress
+    val thrownY = startY + (airTargetY - startY) * easedThrowProgress - arcLift
+    val droppedY = airTargetY + (targetY - airTargetY) * easedDropProgress
+    val stoneX = if (clampedProgress < CaptureThrowEndProgress) thrownX else targetX
+    val stoneY = if (clampedProgress < CaptureThrowEndProgress) thrownY else droppedY
+    val phase = when {
+        clampedProgress < CaptureThrowEndProgress -> CaptureBallPhase.Throwing
+        else -> CaptureBallPhase.Absorbing
+    }
+    val flightRotation = if (phase == CaptureBallPhase.Throwing) {
+        val previousPoint = captureThrowPoint(
+            progress = throwProgress - 0.025f,
+            startX = startX,
+            startY = startY,
+            targetX = targetX,
+            targetY = airTargetY
+        )
+        val nextPoint = captureThrowPoint(
+            progress = throwProgress + 0.025f,
+            startX = startX,
+            startY = startY,
+            targetX = targetX,
+            targetY = airTargetY
+        )
+        trajectoryRotationDegrees(previousPoint, nextPoint)
+    } else {
+        0f
+    }
+    val stoneAlpha = when (phase) {
+        CaptureBallPhase.Open -> (1f - ((clampedProgress - CaptureOpenFadeStartProgress) /
+                (1f - CaptureOpenFadeStartProgress))).coerceIn(0f, 1f)
+        else -> 1f
+    }
+    val shakeOffset = if (phase == CaptureBallPhase.Shaking) {
+        val shakeStep = (((clampedProgress - CaptureAbsorbEndProgress) * 34f).roundToInt() % 4)
+        when (shakeStep) {
+            0 -> (-8).dp
+            1 -> 8.dp
+            2 -> (-5).dp
+            else -> 5.dp
+        }
+    } else {
+        0.dp
+    }
+
+    Box(modifier = modifier) {
+        if (phase == CaptureBallPhase.Absorbing) {
+            CaptureAbsorbFlash(
+                progress = easedDropProgress,
+                modifier = Modifier
+                    .offset(x = stoneX - 58.dp, y = stoneY - 58.dp)
+                    .size(116.dp)
+            )
+        }
+
+        BindingStoneCaptureSprite(
+            phase = phase,
+            modifier = Modifier
+                .offset(x = stoneX - 36.dp + shakeOffset, y = stoneY - 36.dp)
+                .size(
+                    when (phase) {
+                        CaptureBallPhase.Throwing -> 78.dp
+                        CaptureBallPhase.Open -> 86.dp
+                        else -> 82.dp
+                    }
+                )
+                .graphicsLayer {
+                    alpha = stoneAlpha
+                    rotationZ = flightRotation
+                }
+        )
+    }
+}
+
+@Composable
+private fun CaptureResultBindingStone(
+    caught: Boolean,
+    isResultRevealed: Boolean,
+    targetX: Dp,
+    targetY: Dp,
+    modifier: Modifier = Modifier
+) {
+    val phase = when {
+        !isResultRevealed -> CaptureBallPhase.Absorbing
+        caught -> CaptureBallPhase.Locked
+        else -> CaptureBallPhase.Open
+    }
+
+    Box(modifier = modifier) {
+        BindingStoneCaptureSprite(
+            phase = phase,
+            modifier = Modifier
+                .offset(x = targetX - 36.dp, y = targetY - 36.dp)
+                .size(if (phase == CaptureBallPhase.Open) 86.dp else 82.dp)
+        )
+    }
+}
+
+@Composable
+private fun BindingStoneCaptureSprite(
+    phase: CaptureBallPhase,
+    modifier: Modifier = Modifier
+) {
+    val imageRes = when (phase) {
+        CaptureBallPhase.Throwing -> R.drawable.binding_stone_thrown
+        CaptureBallPhase.Absorbing,
+        CaptureBallPhase.Shaking -> R.drawable.binding_stone_capturing
+        CaptureBallPhase.Open -> R.drawable.binding_stone_broken
+        CaptureBallPhase.Locked -> R.drawable.binding_stone_captured
+    }
+
+    Image(
+        painter = painterResource(id = imageRes),
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun CaptureAbsorbFlash(
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
+        val radius = size.minDimension * (0.52f - progress * 0.26f)
+        drawCircle(
+            color = Color.White.copy(alpha = (0.46f * (1f - progress)).coerceIn(0f, 0.46f)),
+            radius = radius,
+            center = center
+        )
+        drawCircle(
+            color = Color(0xFFE84B3C).copy(alpha = (0.24f * (1f - progress)).coerceIn(0f, 0.24f)),
+            radius = radius * 0.72f,
+            center = center
+        )
+    }
+}
+
+private enum class CaptureBallPhase {
+    Throwing,
+    Absorbing,
+    Shaking,
+    Open,
+    Locked
+}
+
+private fun captureThrowPoint(
+    progress: Float,
+    startX: Dp,
+    startY: Dp,
+    targetX: Dp,
+    targetY: Dp
+): Pair<Dp, Dp> {
+    val easedProgress = easeInOutCubic(progress.coerceIn(0f, 1f))
+    val arcLift = 64.dp * (1f - kotlin.math.abs(easedProgress * 2f - 1f))
+    val x = startX + (targetX - startX) * easedProgress
+    val y = startY + (targetY - startY) * easedProgress - arcLift
+
+    return x to y
+}
+
+private fun trajectoryRotationDegrees(
+    previousPoint: Pair<Dp, Dp>,
+    nextPoint: Pair<Dp, Dp>
+): Float {
+    val deltaX = (nextPoint.first - previousPoint.first).value
+    val deltaY = (nextPoint.second - previousPoint.second).value
+    val directionDegrees = Math.toDegrees(
+        kotlin.math.atan2(deltaY.toDouble(), deltaX.toDouble())
+    ).toFloat()
+
+    return directionDegrees - 18f
+}
+
+private fun easeInOutCubic(progress: Float): Float {
+    val p = progress.coerceIn(0f, 1f)
+    return if (p < 0.5f) {
+        4f * p * p * p
+    } else {
+        val t = -2f * p + 2f
+        1f - (t * t * t) / 2f
+    }
+}
+
+private fun easeInCubic(progress: Float): Float {
+    val p = progress.coerceIn(0f, 1f)
+    return p * p * p
 }
 
 @Composable
@@ -997,7 +1315,7 @@ private fun BattleInventoryButtons(
             inventoryItems.entries.sortedBy { it.key.name }.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowItems.forEach { (item, amount) ->
-                        val canUseItem = item.canUseOn(activeChimera)
+                        val canUseItem = item.isCaptureItem || item.canUseOn(activeChimera)
                         MenuButton(
                             text = "${item.name} x$amount",
                             enabled = canUseItem,
@@ -1122,6 +1440,19 @@ private fun BattleMoveAnimation?.hasFaintFeedback(side: BattleSide): Boolean {
     } == true
 }
 
+private fun captureTargetAlpha(animation: BattleMoveAnimation?, progress: Float): Float {
+    if (animation == null) return 1f
+
+    val clampedProgress = progress.coerceIn(0f, 1f)
+    return when {
+        clampedProgress < CaptureThrowEndProgress -> 1f
+        clampedProgress < CaptureAbsorbEndProgress ->
+            (1f - ((clampedProgress - CaptureThrowEndProgress) /
+                    (CaptureAbsorbEndProgress - CaptureThrowEndProgress))).coerceIn(0f, 1f)
+        else -> 0f
+    }
+}
+
 private fun mapAnimationsToLogMessages(
     messages: List<String>,
     animations: List<BattleMoveAnimation>
@@ -1147,6 +1478,10 @@ private fun mapAnimationsToLogMessages(
 }
 
 private fun BattleMoveAnimation.message(): String {
+    if (kind == BattleAnimationKind.Capture) {
+        return "You threw a $moveName!"
+    }
+
     val owner = when (side) {
         BattleSide.Player -> "Your"
         BattleSide.Enemy -> "Enemy"
@@ -1162,6 +1497,16 @@ private data class BattleAnimationFrame(
 )
 
 private fun BattleMoveAnimation.animationFrames(): List<BattleAnimationFrame> {
+    if (kind == BattleAnimationKind.Capture) {
+        val frameCount = if (captureSucceeded) 15 else 16
+        return List(frameCount) {
+            BattleAnimationFrame(
+                imageRes = species.battleImageRes(),
+                durationMillis = CaptureAnimationTickMillis
+            )
+        }
+    }
+
     val baseFrame = species.battleImageRes()
     val moveKey = moveName.lowercase().replace(" ", "")
 

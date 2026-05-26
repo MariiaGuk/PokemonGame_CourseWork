@@ -14,7 +14,22 @@ data class BattleMoveAnimation(
     val moveName: String,
     val feedbacks: List<BattleMoveFeedback> = emptyList(),
     val kind: BattleAnimationKind = BattleAnimationKind.Move,
-    val captureSucceeded: Boolean = false
+    val captureSucceeded: Boolean = false,
+    val userBefore: BattleStatsSnapshot? = null,
+    val userAfter: BattleStatsSnapshot? = null,
+    val targetBefore: BattleStatsSnapshot? = null,
+    val targetAfter: BattleStatsSnapshot? = null
+)
+
+data class BattleStatsSnapshot(
+    val currentHp: Int,
+    val maxHp: Int,
+    val attack: Int,
+    val defence: Int,
+    val speed: Int,
+    val attackStage: Int,
+    val defenceStage: Int,
+    val speedStage: Int
 )
 
 data class BattleMoveFeedback(
@@ -35,5 +50,6 @@ enum class BattleSide {
 
 enum class BattleAnimationKind {
     Move,
-    Capture
+    Capture,
+    Item
 }

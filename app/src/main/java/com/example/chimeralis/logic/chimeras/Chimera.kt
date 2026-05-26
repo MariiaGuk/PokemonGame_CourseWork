@@ -32,6 +32,8 @@ class Chimera (
 
     private val _moves = mutableListOf<Move>()
     val moves: List<Move> get() = _moves
+    var pendingMoveToLearn: Move? = null
+        private set
 
     val stats: Stats = Stats(0, 0, 0, 0)
 
@@ -102,8 +104,28 @@ class Chimera (
             _moves.add(move)
         }
         else {
-            onMoveLearn?.invoke(this, move, {index -> _moves[index] = move})
+            pendingMoveToLearn = move
+            onMoveLearn?.invoke(this, move, { index ->
+                _moves[index] = move
+                pendingMoveToLearn = null
+            })
         }
+    }
+
+    fun replaceMoveWithPending(index: Int): Pair<Move, Move>? {
+        val pendingMove = pendingMoveToLearn ?: return null
+        if (index !in _moves.indices) return null
+
+        val forgottenMove = _moves[index]
+        _moves[index] = pendingMove
+        pendingMoveToLearn = null
+        return forgottenMove to pendingMove
+    }
+
+    fun skipPendingMove(): Move? {
+        val pendingMove = pendingMoveToLearn ?: return null
+        pendingMoveToLearn = null
+        return pendingMove
     }
 
     fun evolution() {

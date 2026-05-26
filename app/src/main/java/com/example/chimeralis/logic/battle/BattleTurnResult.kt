@@ -12,7 +12,9 @@ data class BattleMoveAnimation(
     val species: ChimeraSpecies,
     val chimeraName: String,
     val moveName: String,
-    val feedbacks: List<BattleMoveFeedback> = emptyList()
+    val feedbacks: List<BattleMoveFeedback> = emptyList(),
+    val kind: BattleAnimationKind = BattleAnimationKind.Move,
+    val captureSucceeded: Boolean = false
 )
 
 data class BattleMoveFeedback(
@@ -29,4 +31,9 @@ enum class BattleMoveFeedbackType {
 enum class BattleSide {
     Player,
     Enemy
+}
+
+enum class BattleAnimationKind {
+    Move,
+    Capture
 }

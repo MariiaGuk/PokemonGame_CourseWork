@@ -17,5 +17,9 @@ object ItemFactory {
             name = "Revive",
             effects = listOf(ReviveItemEffect())
         )
+        ItemName.BINDING_STONE -> Item(
+            name = "Binding Stone",
+            effects = emptyList()
+        )
     }
 }

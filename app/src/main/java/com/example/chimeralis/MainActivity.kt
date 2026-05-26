@@ -616,5 +616,6 @@ private fun createStartingInventory(): Inventory {
         inventory.addItem(ItemFactory.createItem(ItemName.POTION), 3)
         inventory.addItem(ItemFactory.createItem(ItemName.SUPER_POTION), 1)
         inventory.addItem(ItemFactory.createItem(ItemName.REVIVE), 1)
+        inventory.addItem(ItemFactory.createItem(ItemName.BINDING_STONE), 5)
     }
 }

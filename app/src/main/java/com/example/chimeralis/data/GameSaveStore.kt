@@ -331,6 +331,7 @@ class GameSaveStore(context: Context) {
         "Potion" -> ItemName.POTION
         "Super Potion" -> ItemName.SUPER_POTION
         "Revive" -> ItemName.REVIVE
+        "Poke Ball", "Binding Stone" -> ItemName.BINDING_STONE
         else -> null
     }
 
@@ -338,12 +339,14 @@ class GameSaveStore(context: Context) {
         ItemName.POTION -> "Potion"
         ItemName.SUPER_POTION -> "Super Potion"
         ItemName.REVIVE -> "Revive"
+        ItemName.BINDING_STONE -> "Binding Stone"
     }
 
     private fun String.toItemName(): ItemName? = when (this) {
         "Potion" -> ItemName.POTION
         "Super Potion" -> ItemName.SUPER_POTION
         "Revive" -> ItemName.REVIVE
+        "Poke Ball", "Binding Stone" -> ItemName.BINDING_STONE
         else -> null
     }
 

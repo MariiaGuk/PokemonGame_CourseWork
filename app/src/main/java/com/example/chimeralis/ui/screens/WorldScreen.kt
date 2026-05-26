@@ -712,6 +712,7 @@ fun WorldScreen(
                     InventoryItemDetailsPlate(
                         item = item,
                         amount = amount,
+                        canUse = !item.isCaptureItem,
                         onUse = {
                             requestedDirection = null
                             isMoving = false
@@ -1582,6 +1583,7 @@ private fun WorldInventoryPanel(
 private fun InventoryItemDetailsPlate(
     item: Item,
     amount: Int,
+    canUse: Boolean,
     onUse: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
@@ -1625,6 +1627,7 @@ private fun InventoryItemDetailsPlate(
         ) {
             MenuButton(
                 text = "Use",
+                enabled = canUse,
                 onClick = onUse
             )
             MenuButton(
@@ -1691,6 +1694,16 @@ private fun WorldInventorySlot(
 
 @Composable
 private fun ItemIcon(item: Item) {
+    if (item.isCaptureItem) {
+        Image(
+            painter = painterResource(id = R.drawable.binding_stone_base),
+            contentDescription = item.name,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(44.dp)
+        )
+        return
+    }
+
     val iconColor = when (item.name) {
         "Potion" -> Color(0xFFE05A6F)
         "Super Potion" -> Color(0xFF5CCBEA)
@@ -1744,6 +1757,7 @@ private fun Item.description(): String {
         "Potion" -> "Restores 20 HP to one chimera."
         "Super Potion" -> "Restores 60 HP to one chimera."
         "Revive" -> "Revives a fainted chimera."
+        "Binding Stone" -> "Resonates with a wild chimera during battle."
         else -> "Can be used on a chimera."
     }
 }

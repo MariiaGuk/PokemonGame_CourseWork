@@ -54,7 +54,7 @@ class BattleManager(
                 }
             }
             is BattleAction.UseItem -> {
-                if (useItem(playerAction.item, log)) {
+                if (useItem(playerAction.item, log, animations)) {
                     animations.add(enemyTurn(log))
                 }
             }
@@ -155,7 +155,15 @@ class BattleManager(
         )
     }
 
-    private fun useItem(item: Item, log: MutableList<String>): Boolean {
+    private fun useItem(
+        item: Item,
+        log: MutableList<String>,
+        animations: MutableList<BattleMoveAnimation>
+    ): Boolean {
+        if (item.isCaptureItem) {
+            return tryCatchChimera(item, log, animations)
+        }
+
         if (!player.inventory.useItem(item, playerChimera)) {
             log.add("${item.name} cannot be used on ${playerChimera.name}.")
             return false
@@ -163,6 +171,50 @@ class BattleManager(
 
         log.add("Used ${item.name} on ${playerChimera.name}!")
         return true
+    }
+
+    private fun tryCatchChimera(
+        item: Item,
+        log: MutableList<String>,
+        animations: MutableList<BattleMoveAnimation>
+    ): Boolean {
+        if (player.team.size >= MaxTeamSize) {
+            log.add("Your team is full!")
+            return false
+        }
+
+        if (!player.inventory.consumeItem(item)) {
+            log.add("You do not have any ${item.name}s.")
+            return false
+        }
+
+        log.add("You threw a ${item.name}!")
+
+        val hpRatio = enemyChimera.stats.currentHp.toFloat() / enemyChimera.stats.maxHp.toFloat()
+        val catchChance = (0.28f + (1f - hpRatio) * 0.55f).coerceIn(0.25f, 0.9f)
+        val caught = Math.random() < catchChance
+
+        animations.add(
+            BattleMoveAnimation(
+                side = BattleSide.Player,
+                species = enemyChimera.species,
+                chimeraName = enemyChimera.name,
+                moveName = item.name,
+                kind = BattleAnimationKind.Capture,
+                captureSucceeded = caught
+            )
+        )
+
+        if (caught) {
+            enemyChimera.stats.resetBattleStages()
+            player.team.add(enemyChimera)
+            isBattleActive = false
+            log.add("Gotcha! ${enemyChimera.name} was caught!")
+        } else {
+            log.add("${enemyChimera.name} broke free!")
+        }
+
+        return isBattleActive
     }
 
     private fun switchChimera(chimera: Chimera, log: MutableList<String>) {
@@ -320,4 +372,8 @@ class BattleManager(
         val defenceStage: Int,
         val speedStage: Int
     )
+
+    private companion object {
+        const val MaxTeamSize = 6
+    }
 }

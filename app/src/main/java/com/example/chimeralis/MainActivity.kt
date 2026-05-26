@@ -14,6 +14,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -124,10 +125,11 @@ fun AppNavigation(onExitGame: () -> Unit) {
         if (isScreenTransitionRunning) return
 
         transitionScope.launch {
-            val isFieldTransition = currentScreen in setOf("world", "grass_field") &&
-                    screen in setOf("world", "grass_field")
+            val locationScreens = setOf("world", "grass_field", "pokecenter_interior", "pokestore_interior")
+            val isLocationTransition = currentScreen in locationScreens && screen in locationScreens
             isScreenTransitionRunning = true
-            if (isFieldTransition) {
+            worldInputLockKey++
+            if (isLocationTransition) {
                 GameSoundPlayer.play(context, R.raw.start_transition)
             }
             if (screen == "battle") {
@@ -163,7 +165,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
             }
             currentScreen = screen
             battleZoomScale.snapTo(1f)
-            if (isFieldTransition) {
+            if (isLocationTransition) {
                 GameSoundPlayer.play(context, R.raw.end_transition)
             }
             transitionWhiteAlpha.animateTo(
@@ -283,7 +285,8 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         val newPlayer = Player(
                             name = trainerName,
                             team = mutableListOf(starterChimera),
-                            inventory = createStartingInventory()
+                            inventory = createStartingInventory(),
+                            money = StartingMoney
                         )
 
                         selectedStarter = starter
@@ -306,6 +309,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    money = player?.money ?: 0,
                     teamStateKey = teamVersion,
                     canStartBattles = canStartBattles,
                     field = WorldField.Lava,
@@ -358,10 +362,10 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         transitionTo("world")
                     },
                     onEnterTownInterior = { interior ->
-                        currentScreen = when (interior) {
-                            TownInterior.PokeCenter -> "pokecenter_interior"
-                            TownInterior.PokeStore -> "pokestore_interior"
-                        }
+                        transitionTo(when (interior) {
+                            TownInterior.ChimeraCenter -> "pokecenter_interior"
+                            TownInterior.ChimeraStore -> "pokestore_interior"
+                        })
                     },
                     onShiftNpcIntroSeen = {
                         shiftNpcIntroSeen = true
@@ -382,6 +386,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     starter = selectedStarter,
                     team = player?.team?.toList().orEmpty(),
                     inventoryItems = player?.inventory?.items.orEmpty(),
+                    money = player?.money ?: 0,
                     teamStateKey = teamVersion,
                     canStartBattles = canStartBattles,
                     field = WorldField.Grass,
@@ -434,10 +439,10 @@ fun AppNavigation(onExitGame: () -> Unit) {
                         transitionTo("world")
                     },
                     onEnterTownInterior = { interior ->
-                        currentScreen = when (interior) {
-                            TownInterior.PokeCenter -> "pokecenter_interior"
-                            TownInterior.PokeStore -> "pokestore_interior"
-                        }
+                        transitionTo(when (interior) {
+                            TownInterior.ChimeraCenter -> "pokecenter_interior"
+                            TownInterior.ChimeraStore -> "pokestore_interior"
+                        })
                     },
                     onShiftNpcIntroSeen = {
                         shiftNpcIntroSeen = true
@@ -455,27 +460,103 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     }
                 )
                 "pokecenter_interior" -> TownInteriorScreen(
-                    interior = TownInterior.PokeCenter,
+                    interior = TownInterior.ChimeraCenter,
+                    team = player?.team.orEmpty(),
+                    inventoryItems = player?.inventory?.items.orEmpty(),
+                    teamStateKey = teamVersion,
+                    money = player?.money ?: 0,
+                    musicEnabled = musicEnabled,
+                    musicVolume = musicVolume,
+                    soundEnabled = soundEnabled,
+                    soundVolume = soundVolume,
+                    encounterChance = encounterChance,
+                    hasUnsavedChanges = hasUnsavedChanges,
+                    onMusicEnabledChanged = { musicEnabled = it },
+                    onMusicVolumeChanged = { musicVolume = it },
+                    onSoundEnabledChanged = { soundEnabled = it },
+                    onSoundVolumeChanged = { soundVolume = it },
+                    onEncounterChanceChanged = { encounterChance = it },
                     initialPlayerColumn = 7,
                     initialPlayerRow = 14,
                     initialPlayerDirection = Direction.Up,
+                    inputLockKey = worldInputLockKey,
+                    onHealTeam = {
+                        player?.team?.forEach { chimera ->
+                            chimera.stats.restoreHp(chimera.stats.maxHp)
+                            chimera.moves.forEach { move -> move.restorePp(move.maxPp) }
+                        }
+                        teamVersion++
+                    },
+                    onUseInventoryItem = { item, chimera ->
+                        if (player?.inventory?.useItem(item, chimera) == true) {
+                            teamVersion++
+                        }
+                    },
+                    onBuyItem = { _, _ -> false },
+                    onSaveGame = {
+                        saveCurrentGame(playerColumn, playerRow)
+                        GameSoundPlayer.play(context, R.raw.save_game)
+                    },
+                    onBackToMainMenu = {
+                        currentScreen = "main_menu"
+                    },
+                    onExitGame = onExitGame,
                     onExit = {
                         playerColumn = 7
                         playerRow = 4
                         playerDirection = Direction.Down
-                        currentScreen = "grass_field"
+                        transitionTo("grass_field")
                     }
                 )
                 "pokestore_interior" -> TownInteriorScreen(
-                    interior = TownInterior.PokeStore,
+                    interior = TownInterior.ChimeraStore,
+                    team = player?.team.orEmpty(),
+                    inventoryItems = player?.inventory?.items.orEmpty(),
+                    teamStateKey = teamVersion,
+                    money = player?.money ?: 0,
+                    musicEnabled = musicEnabled,
+                    musicVolume = musicVolume,
+                    soundEnabled = soundEnabled,
+                    soundVolume = soundVolume,
+                    encounterChance = encounterChance,
+                    hasUnsavedChanges = hasUnsavedChanges,
+                    onMusicEnabledChanged = { musicEnabled = it },
+                    onMusicVolumeChanged = { musicVolume = it },
+                    onSoundEnabledChanged = { soundEnabled = it },
+                    onSoundVolumeChanged = { soundVolume = it },
+                    onEncounterChanceChanged = { encounterChance = it },
                     initialPlayerColumn = 7,
                     initialPlayerRow = 14,
                     initialPlayerDirection = Direction.Up,
+                    inputLockKey = worldInputLockKey,
+                    onHealTeam = {},
+                    onBuyItem = { itemName, amount ->
+                        val currentPlayer = player ?: return@TownInteriorScreen false
+                        val price = itemName.price() * amount
+                        if (!currentPlayer.spendMoney(price)) return@TownInteriorScreen false
+
+                        currentPlayer.inventory.addItem(ItemFactory.createItem(itemName), amount)
+                        teamVersion++
+                        true
+                    },
+                    onUseInventoryItem = { item, chimera ->
+                        if (player?.inventory?.useItem(item, chimera) == true) {
+                            teamVersion++
+                        }
+                    },
+                    onSaveGame = {
+                        saveCurrentGame(playerColumn, playerRow)
+                        GameSoundPlayer.play(context, R.raw.save_game)
+                    },
+                    onBackToMainMenu = {
+                        currentScreen = "main_menu"
+                    },
+                    onExitGame = onExitGame,
                     onExit = {
                         playerColumn = 12
                         playerRow = 4
                         playerDirection = Direction.Down
-                        currentScreen = "grass_field"
+                        transitionTo("grass_field")
                     }
                 )
                 "battle" -> player?.let { currentPlayer ->
@@ -505,6 +586,14 @@ fun AppNavigation(onExitGame: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                event.changes.forEach { it.consume() }
+                            }
+                        }
+                    }
                     .background(Color.White.copy(alpha = transitionWhiteAlpha.value))
             )
         }
@@ -608,7 +697,7 @@ private fun Player.teamSignature(): String {
         .sortedBy { it.key.name }
         .joinToString(separator = "|") { (item, amount) -> "${item.name}:$amount" }
 
-    return "$teamState#$inventoryState"
+    return "$teamState#$inventoryState#$money"
 }
 
 private fun createStartingInventory(): Inventory {
@@ -619,3 +708,12 @@ private fun createStartingInventory(): Inventory {
         inventory.addItem(ItemFactory.createItem(ItemName.BINDING_STONE), 5)
     }
 }
+
+private fun ItemName.price(): Int = when (this) {
+    ItemName.POTION -> 30
+    ItemName.SUPER_POTION -> 80
+    ItemName.REVIVE -> 120
+    ItemName.BINDING_STONE -> 100
+}
+
+private const val StartingMoney = 200

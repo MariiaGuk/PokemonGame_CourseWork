@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -64,6 +63,8 @@ import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Item
+import com.example.chimeralis.logic.items.ItemFactory
+import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.ui.components.GameSettingsPanel
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
@@ -80,7 +81,7 @@ private const val InteriorStepDurationMs = 150
 private const val HeldStepDelayMs = 65L
 private const val JoystickDeadZone = 0.35f
 private const val MovingFrameDelayMs = 160L
-private const val IdleFrameDelayMs = 320L
+private const val IdleFrameDelayMs = 520L
 private const val WorldReturnInputLockMs = 1400L
 private const val WorldZoom = 1.28f
 private const val MaxTeamSize = 6
@@ -90,7 +91,8 @@ private const val LavaShiftNpcColumn = 19
 private const val LavaShiftNpcRow = 5
 private const val GrassShiftNpcColumn = 1
 private const val GrassShiftNpcRow = 5
-private const val ShiftNpcIdleFrameDelayMs = 720L
+private const val ShiftNpcIdleFrameDelayMs = 960L
+private const val ServiceNpcIdleFrameDelayMs = 980L
 private const val InteriorColumns = 16
 private const val InteriorRows = 16
 
@@ -119,8 +121,8 @@ private val grassTiles = setOf(
 
 private val grassTownBuildings = listOf(
     TownBuilding(imageRes = R.drawable.town_building_library, column = 1, row = 1, columns = 4, rows = 3),
-    TownBuilding(imageRes = R.drawable.pokecenter, column = 6, row = 1, columns = 4, rows = 3),
-    TownBuilding(imageRes = R.drawable.pokestore, column = 11, row = 1, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.chimeracenter, column = 6, row = 1, columns = 4, rows = 3),
+    TownBuilding(imageRes = R.drawable.chimerastore, column = 11, row = 1, columns = 4, rows = 3),
     TownBuilding(imageRes = R.drawable.town_building_shop, column = 16, row = 1, columns = 4, rows = 3),
     TownBuilding(imageRes = R.drawable.town_building_hotel, column = 1, row = 6, columns = 4, rows = 3),
     TownBuilding(imageRes = R.drawable.town_building_bank, column = 6, row = 6, columns = 4, rows = 3),
@@ -153,7 +155,7 @@ private val grassTownPathTiles = buildSet {
     }
 }
 
-private val pokeCenterWalkableTiles = buildSet {
+private val chimeraCenterWalkableTiles = buildSet {
     for (row in 5..14) {
         for (column in 1..14) {
             add(column to row)
@@ -177,7 +179,7 @@ private val pokeCenterWalkableTiles = buildSet {
     )
 }
 
-private val pokeStoreWalkableTiles = buildSet {
+private val chimeraStoreWalkableTiles = buildSet {
     for (row in 4..14) {
         for (column in 1..14) {
             add(column to row)
@@ -212,13 +214,14 @@ private val pokeStoreWalkableTiles = buildSet {
 
 enum class Direction { Down, Up, Left, Right }
 private enum class ExitAction { MainMenu, ExitGame }
-enum class TownInterior { PokeCenter, PokeStore }
+enum class TownInterior { ChimeraCenter, ChimeraStore }
 
 @Composable
 fun WorldScreen(
     starter: ChimeraSpecies?,
     team: List<Chimera> = emptyList(),
     inventoryItems: Map<Item, Int> = emptyMap(),
+    money: Int = 0,
     teamStateKey: Int = 0,
     canStartBattles: Boolean = true,
     field: WorldField = WorldField.Lava,
@@ -291,8 +294,8 @@ fun WorldScreen(
             !isShiftNpcDialogOpen &&
             abs(playerColumn - shiftNpcTile.first) + abs(playerRow - shiftNpcTile.second) == 1
     val townInteriorAtDoor = when {
-        field == WorldField.Grass && playerRow == 4 && playerColumn in 7..8 -> TownInterior.PokeCenter
-        field == WorldField.Grass && playerRow == 4 && playerColumn in 12..13 -> TownInterior.PokeStore
+        field == WorldField.Grass && playerRow == 4 && playerColumn in 7..8 -> TownInterior.ChimeraCenter
+        field == WorldField.Grass && playerRow == 4 && playerColumn in 12..13 -> TownInterior.ChimeraStore
         else -> null
     }
     val canEnterTownInterior = townInteriorAtDoor != null && !isShiftNpcDialogOpen
@@ -692,6 +695,7 @@ fun WorldScreen(
             WorldInventoryPanel(
                 inventoryItems = inventoryItems,
                 selectedItem = selectedInventoryItem,
+                money = money,
                 onSelectedItemChanged = { item ->
                     selectedInventoryItem = item
                 },
@@ -869,11 +873,34 @@ fun WorldScreen(
 @Composable
 fun TownInteriorScreen(
     interior: TownInterior,
+    team: List<Chimera> = emptyList(),
+    inventoryItems: Map<Item, Int> = emptyMap(),
+    teamStateKey: Int = 0,
+    money: Int = 0,
+    musicEnabled: Boolean = true,
+    musicVolume: Float = 1f,
+    soundEnabled: Boolean = true,
+    soundVolume: Float = 1f,
+    encounterChance: Float = 0.22f,
+    hasUnsavedChanges: Boolean = false,
+    onMusicEnabledChanged: (Boolean) -> Unit = {},
+    onMusicVolumeChanged: (Float) -> Unit = {},
+    onSoundEnabledChanged: (Boolean) -> Unit = {},
+    onSoundVolumeChanged: (Float) -> Unit = {},
+    onEncounterChanceChanged: (Float) -> Unit = {},
     initialPlayerColumn: Int = 7,
     initialPlayerRow: Int = 14,
     initialPlayerDirection: Direction = Direction.Up,
+    inputLockKey: Int = 0,
+    onHealTeam: () -> Unit = {},
+    onBuyItem: (ItemName, Int) -> Boolean = { _, _ -> false },
+    onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
+    onSaveGame: () -> Unit = {},
+    onBackToMainMenu: () -> Unit = {},
+    onExitGame: () -> Unit = {},
     onExit: () -> Unit
 ) {
+    val context = LocalContext.current
     var playerColumn by remember(interior) { mutableIntStateOf(initialPlayerColumn) }
     var playerRow by remember(interior) { mutableIntStateOf(initialPlayerRow) }
     var targetColumn by remember(interior) { mutableIntStateOf(initialPlayerColumn) }
@@ -882,16 +909,45 @@ fun TownInteriorScreen(
     var requestedDirection by remember(interior) { mutableStateOf<Direction?>(null) }
     var isMoving by remember(interior) { mutableStateOf(false) }
     var animationFrame by remember(interior) { mutableIntStateOf(0) }
+    var serviceNpcIdleFrame by remember(interior) { mutableIntStateOf(0) }
+    var dialogStep by remember(interior) { mutableStateOf<Int?>(null) }
+    var isShopOpen by remember(interior) { mutableStateOf(false) }
+    var serviceMessage by remember(interior) { mutableStateOf<String?>(null) }
+    var isGameMenuOpen by remember(interior) { mutableStateOf(false) }
+    var isSettingsOpen by remember(interior) { mutableStateOf(false) }
+    var isInventoryOpen by remember(interior) { mutableStateOf(false) }
+    var selectedInventoryItem by remember(interior) { mutableStateOf<Item?>(null) }
+    var itemTargetSelection by remember(interior) { mutableStateOf<Item?>(null) }
+    var pendingItemUseConfirmation by remember(interior) { mutableStateOf<Pair<Item, Chimera>?>(null) }
+    var pendingExitAction by remember(interior) { mutableStateOf<ExitAction?>(null) }
+    var pendingExitRequiresSave by remember(interior) { mutableStateOf(false) }
+    var showSaveMessage by remember(interior) { mutableStateOf(false) }
+    var isHealingInProgress by remember(interior) { mutableStateOf(false) }
+    var isInteriorInputLocked by remember(interior) { mutableStateOf(false) }
+    var interiorJoystickResetKey by remember(interior) { mutableIntStateOf(0) }
 
     val backgroundRes = when (interior) {
-        TownInterior.PokeCenter -> R.drawable.pokecenter_interior
-        TownInterior.PokeStore -> R.drawable.pokestore_interior
+        TownInterior.ChimeraCenter -> R.drawable.chimeracenter_interior
+        TownInterior.ChimeraStore -> R.drawable.chimerastore_interior
     }
     val walkableTiles = when (interior) {
-        TownInterior.PokeCenter -> pokeCenterWalkableTiles
-        TownInterior.PokeStore -> pokeStoreWalkableTiles
+        TownInterior.ChimeraCenter -> chimeraCenterWalkableTiles
+        TownInterior.ChimeraStore -> chimeraStoreWalkableTiles
     }
     val canExit = playerRow == 14 && playerColumn in 7..8 && !isMoving
+    val npcColumn = 10
+    val npcRow = if (interior == TownInterior.ChimeraCenter) 5 else 5
+    val isServiceUiOpen = dialogStep != null || isShopOpen
+    val isInteriorUiOpen = isServiceUiOpen ||
+            isHealingInProgress ||
+            isInteriorInputLocked ||
+            isGameMenuOpen ||
+            isInventoryOpen ||
+            itemTargetSelection != null ||
+            pendingItemUseConfirmation != null
+    val canTalkToServiceNpc = !isMoving &&
+            !isInteriorUiOpen &&
+            (abs(playerColumn - npcColumn) + abs(playerRow - npcRow)) <= 3
 
     LaunchedEffect(isMoving) {
         while (true) {
@@ -900,10 +956,46 @@ fun TownInteriorScreen(
         }
     }
 
+    LaunchedEffect(interior) {
+        while (true) {
+            serviceNpcIdleFrame++
+            delay(ServiceNpcIdleFrameDelayMs)
+        }
+    }
+
+    LaunchedEffect(showSaveMessage) {
+        if (showSaveMessage) {
+            delay(1600L)
+            showSaveMessage = false
+        }
+    }
+
+    LaunchedEffect(inputLockKey) {
+        if (inputLockKey == 0) return@LaunchedEffect
+
+        requestedDirection = null
+        isMoving = false
+        isInteriorInputLocked = true
+        interiorJoystickResetKey++
+        delay(WorldReturnInputLockMs)
+        isInteriorInputLocked = false
+    }
+
+    LaunchedEffect(isHealingInProgress) {
+        if (!isHealingInProgress) return@LaunchedEffect
+
+        GameSoundPlayer.play(context, R.raw.healing_chimeras)
+        delay(3400L)
+        onHealTeam()
+        serviceMessage = "All your chimeras are healthy again."
+        dialogStep = 2
+        isHealingInProgress = false
+    }
+
     LaunchedEffect(Unit) {
         while (true) {
             val nextDirection = requestedDirection
-            if (nextDirection == null) {
+            if (nextDirection == null || isInteriorUiOpen) {
                 delay(16L)
                 continue
             }
@@ -911,7 +1003,10 @@ fun TownInteriorScreen(
             val nextTile = nextInteriorTile(playerColumn, playerRow, nextDirection)
             direction = nextDirection
 
-            if (nextTile !in walkableTiles || nextTile == playerColumn to playerRow) {
+            if (nextTile !in walkableTiles ||
+                nextTile == npcColumn to npcRow ||
+                nextTile == playerColumn to playerRow
+            ) {
                 delay(HeldStepDelayMs)
                 continue
             }
@@ -953,20 +1048,44 @@ fun TownInteriorScreen(
 
         val playerCenterX = imageLeft + (animatedColumn + 0.5f) * tileSize
         val playerCenterY = imageTop + (animatedRow + 0.5f) * tileSize
+        val npcCenterX = imageLeft + (npcColumn + 0.5f) * tileSize
+        val npcCenterY = imageTop + (npcRow + 0.5f) * tileSize
         val worldLikeTileSize = minOf(widthPx / MapColumns * WorldZoom, heightPx / MapRows * WorldZoom)
         val spriteWidth = worldLikeTileSize * 1.06f
         val spriteHeight = worldLikeTileSize * 1.62f
+        val serviceNpcWidth = spriteWidth * 0.72f
+        val serviceNpcHeight = spriteHeight * 0.96f
 
         Image(
             painter = painterResource(id = backgroundRes),
             contentDescription = when (interior) {
-                TownInterior.PokeCenter -> "Poke Center"
-                TownInterior.PokeStore -> "Poke Store"
+                TownInterior.ChimeraCenter -> "Chimera Center"
+                TownInterior.ChimeraStore -> "Chimera Store"
             },
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(with(density) { imageSizePx.toDp() })
+        )
+
+        Image(
+            painter = painterResource(id = serviceNpcIdleFrame(interior, serviceNpcIdleFrame)),
+            contentDescription = when (interior) {
+                TownInterior.ChimeraCenter -> "Nurse"
+                TownInterior.ChimeraStore -> "Seller"
+            },
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = (npcCenterX - serviceNpcWidth / 2f).roundToInt(),
+                        y = (npcCenterY - serviceNpcHeight * 0.86f).roundToInt()
+                    )
+                }
+                .size(
+                    width = with(density) { serviceNpcWidth.toDp() },
+                    height = with(density) { serviceNpcHeight.toDp() }
+                )
         )
 
         Image(
@@ -992,13 +1111,85 @@ fun TownInteriorScreen(
         Joystick(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 30.dp, bottom = 30.dp),
+                .padding(start = 93.dp, bottom = 43.dp),
+            enabled = !isInteriorUiOpen,
+            resetKey = "$inputLockKey:$interiorJoystickResetKey",
             onDirectionChanged = { x, y ->
-                requestedDirection = joystickDirection(x, y)
+                if (!isInteriorUiOpen) {
+                    requestedDirection = joystickDirection(x, y)
+                }
             }
         )
 
-        if (canExit) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(14.dp)
+                .width(92.dp)
+                .height(34.dp)
+        ) {
+            SmallWorldMenuButton(
+                text = "Menu",
+                onClick = {
+                    if (isServiceUiOpen) return@SmallWorldMenuButton
+
+                    requestedDirection = null
+                    isMoving = false
+                    isSettingsOpen = false
+                    isInventoryOpen = false
+                    isGameMenuOpen = true
+                }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(14.dp)
+                .width(76.dp)
+                .height(34.dp)
+        ) {
+            SmallWorldMenuButton(
+                text = "Bag",
+                onClick = {
+                    if (isServiceUiOpen) return@SmallWorldMenuButton
+
+                    requestedDirection = null
+                    isMoving = false
+                    isSettingsOpen = false
+                    isGameMenuOpen = false
+                    selectedInventoryItem = null
+                    isInventoryOpen = true
+                }
+            )
+        }
+
+        TeamSlots(
+            team = team,
+            stateKey = teamStateKey,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 39.dp, bottom = 20.dp)
+        )
+
+        if (canTalkToServiceNpc) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .width(128.dp)
+                    .height(38.dp)
+            ) {
+                SmallWorldMenuButton(
+                    text = "Talk",
+                    onClick = {
+                        requestedDirection = null
+                        serviceMessage = null
+                        dialogStep = 0
+                    }
+                )
+            }
+        } else if (canExit && !isServiceUiOpen) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -1011,11 +1202,551 @@ fun TownInteriorScreen(
                     onClick = {
                         requestedDirection = null
                         isMoving = false
+                        isInteriorInputLocked = true
+                        interiorJoystickResetKey++
                         onExit()
                     }
                 )
             }
         }
+
+        if (isInventoryOpen && !isGameMenuOpen) {
+            WorldInventoryPanel(
+                inventoryItems = inventoryItems,
+                selectedItem = selectedInventoryItem,
+                money = money,
+                onSelectedItemChanged = { item ->
+                    selectedInventoryItem = item
+                },
+                onClose = {
+                    selectedInventoryItem = null
+                    isInventoryOpen = false
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 56.dp, end = 14.dp)
+            )
+        }
+
+        if (isInventoryOpen && !isGameMenuOpen) {
+            selectedInventoryItem?.let { item ->
+                val amount = inventoryItems[item]
+                if (amount != null) {
+                    InventoryItemDetailsPlate(
+                        item = item,
+                        amount = amount,
+                        canUse = !item.isCaptureItem,
+                        onUse = {
+                            requestedDirection = null
+                            isMoving = false
+                            selectedInventoryItem = null
+                            isInventoryOpen = false
+                            itemTargetSelection = item
+                            pendingItemUseConfirmation = null
+                        },
+                        onCancel = {
+                            selectedInventoryItem = null
+                        },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
+        }
+
+        if (isGameMenuOpen) {
+            InGameMenuOverlay(
+                showSettings = isSettingsOpen,
+                pendingExitAction = pendingExitAction,
+                pendingExitRequiresSave = pendingExitRequiresSave,
+                showSaveMessage = showSaveMessage,
+                musicEnabled = musicEnabled,
+                musicVolume = musicVolume,
+                soundEnabled = soundEnabled,
+                soundVolume = soundVolume,
+                encounterChance = encounterChance,
+                onResume = {
+                    isSettingsOpen = false
+                    isInventoryOpen = false
+                    isGameMenuOpen = false
+                },
+                onSettings = {
+                    isSettingsOpen = true
+                    isInventoryOpen = false
+                },
+                onMusicEnabledChanged = onMusicEnabledChanged,
+                onMusicVolumeChanged = onMusicVolumeChanged,
+                onSoundEnabledChanged = onSoundEnabledChanged,
+                onSoundVolumeChanged = onSoundVolumeChanged,
+                onEncounterChanceChanged = onEncounterChanceChanged,
+                onBackFromSubmenu = {
+                    isSettingsOpen = false
+                },
+                onSaveGame = {
+                    onSaveGame()
+                    showSaveMessage = true
+                },
+                onMainMenu = {
+                    pendingExitAction = ExitAction.MainMenu
+                    pendingExitRequiresSave = hasUnsavedChanges
+                },
+                onExitGame = {
+                    pendingExitAction = ExitAction.ExitGame
+                    pendingExitRequiresSave = hasUnsavedChanges
+                },
+                onCancelExit = {
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
+                },
+                onExitWithSave = {
+                    val exitAction = pendingExitAction
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
+                    onSaveGame()
+                    when (exitAction) {
+                        ExitAction.MainMenu -> onBackToMainMenu()
+                        ExitAction.ExitGame -> onExitGame()
+                        null -> Unit
+                    }
+                },
+                onExitWithoutSave = {
+                    val exitAction = pendingExitAction
+                    pendingExitAction = null
+                    pendingExitRequiresSave = false
+                    when (exitAction) {
+                        ExitAction.MainMenu -> onBackToMainMenu()
+                        ExitAction.ExitGame -> onExitGame()
+                        null -> Unit
+                    }
+                }
+            )
+        }
+
+        itemTargetSelection?.let { item ->
+            ItemTargetSelectionOverlay(
+                item = item,
+                team = team,
+                teamStateKey = teamStateKey,
+                onChimeraSelected = { chimera ->
+                    pendingItemUseConfirmation = item to chimera
+                },
+                onCancel = {
+                    itemTargetSelection = null
+                    pendingItemUseConfirmation = null
+                }
+            )
+        }
+
+        pendingItemUseConfirmation?.let { (item, chimera) ->
+            ConfirmItemUseDialog(
+                item = item,
+                chimera = chimera,
+                onConfirm = {
+                    onUseInventoryItem(item, chimera)
+                    itemTargetSelection = null
+                    pendingItemUseConfirmation = null
+                },
+                onCancel = {
+                    pendingItemUseConfirmation = null
+                }
+            )
+        }
+
+        dialogStep?.let { step ->
+            ServiceNpcDialogOverlay(
+                interior = interior,
+                step = step,
+                message = serviceMessage,
+                onNext = {
+                    serviceMessage = null
+                    dialogStep = (dialogStep ?: 0) + 1
+                },
+                onHeal = {
+                    dialogStep = null
+                    serviceMessage = null
+                    isHealingInProgress = true
+                },
+                onOpenShop = {
+                    dialogStep = null
+                    isShopOpen = true
+                    serviceMessage = null
+                },
+                onClose = {
+                    dialogStep = null
+                    serviceMessage = null
+                }
+            )
+        }
+
+        if (isShopOpen) {
+            ShopOverlay(
+                money = money,
+                inventoryItems = inventoryItems,
+                message = serviceMessage,
+                onBuyItem = { itemName, amount ->
+                    val bought = onBuyItem(itemName, amount)
+                    serviceMessage = if (bought) {
+                        "Bought ${itemName.displayName()} x$amount."
+                    } else {
+                        "Not enough coins."
+                    }
+                },
+                onClose = {
+                    isShopOpen = false
+                    serviceMessage = null
+                }
+            )
+        }
+
+        if (isHealingInProgress) {
+            HealingOverlay()
+        }
+    }
+}
+
+@Composable
+private fun ServiceNpcDialogOverlay(
+    interior: TownInterior,
+    step: Int,
+    message: String?,
+    onNext: () -> Unit,
+    onHeal: () -> Unit,
+    onOpenShop: () -> Unit,
+    onClose: () -> Unit
+) {
+    val isNurse = interior == TownInterior.ChimeraCenter
+    val colors = MaterialTheme.colorScheme
+    var portraitFrame by remember(interior, step) { mutableIntStateOf(0) }
+
+    LaunchedEffect(interior, step) {
+        while (true) {
+            portraitFrame++
+            delay(760L)
+        }
+    }
+
+    val text = message ?: when {
+        isNurse && step == 0 -> "Welcome to the Chimera Center."
+        isNurse -> "Would you like me to heal your chimeras?"
+        !isNurse && step == 0 -> "Welcome to the Chimera Store."
+        else -> "Take a look. We have everything a trainer needs."
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.34f))
+    ) {
+        Image(
+            painter = painterResource(id = serviceNpcDialogFrame(interior, step, portraitFrame)),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 165.dp, bottom = 130.dp)
+                .height(980.dp)
+                .graphicsLayer(
+                    scaleX = 2.05f,
+                    scaleY = 2.05f,
+                    transformOrigin = TransformOrigin(0.18f, 0.02f)
+                )
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(152.dp)
+                .background(colors.surface.copy(alpha = 0.78f))
+                .border(1.dp, colors.primary.copy(alpha = 0.42f))
+                .padding(horizontal = 90.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = text,
+                color = colors.primary,
+                fontFamily = CinzelFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp,
+                lineHeight = 23.sp,
+                modifier = Modifier.weight(1f)
+            )
+
+            Column(
+                modifier = Modifier.width(174.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when {
+                    message != null -> MenuButton(text = "Close", onClick = onClose)
+                    step == 0 -> MenuButton(text = "Next", onClick = onNext)
+                    isNurse -> {
+                        MenuButton(text = "Heal", onClick = onHeal)
+                        MenuButton(text = "Cancel", onClick = onClose)
+                    }
+                    else -> {
+                        MenuButton(text = "Shop", onClick = onOpenShop)
+                        MenuButton(text = "Cancel", onClick = onClose)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HealingOverlay() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.72f))
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {})
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Healing...",
+            color = MaterialTheme.colorScheme.primary,
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Black,
+            fontSize = 28.sp,
+            letterSpacing = 3.sp
+        )
+    }
+}
+
+@Composable
+private fun ShopOverlay(
+    money: Int,
+    inventoryItems: Map<Item, Int>,
+    message: String?,
+    onBuyItem: (ItemName, Int) -> Unit,
+    onClose: () -> Unit
+) {
+    var selectedAmounts by remember { mutableStateOf<Map<ItemName, Int>>(emptyMap()) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.38f))
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(560.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.96f))
+                .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.76f), RoundedCornerShape(8.dp))
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Shop",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontFamily = CinzelFamily,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 22.sp,
+                    letterSpacing = 2.sp
+                )
+                Text(
+                    text = "Coins: $money",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontFamily = CinzelFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    letterSpacing = 1.sp
+                )
+                Box(
+                    modifier = Modifier
+                        .width(42.dp)
+                        .height(28.dp)
+                ) {
+                    SmallWorldMenuButton(text = "X", onClick = onClose)
+                }
+            }
+
+            ItemName.values().forEach { itemName ->
+                val amount = selectedAmounts[itemName] ?: 1
+                val ownedAmount = inventoryItems.entries
+                    .firstOrNull { it.key.name == itemName.displayName() }
+                    ?.value ?: 0
+                val maxPurchasableAmount = money / itemName.price()
+                val visibleAmount = amount.coerceAtMost(maxPurchasableAmount.coerceAtLeast(1))
+                ShopItemRow(
+                    itemName = itemName,
+                    amount = visibleAmount,
+                    ownedAmount = ownedAmount,
+                    maxPurchasableAmount = maxPurchasableAmount,
+                    canAfford = maxPurchasableAmount > 0 &&
+                            money >= itemName.price() * visibleAmount,
+                    onAmountChanged = { newAmount ->
+                        selectedAmounts = selectedAmounts + (itemName to newAmount.coerceAtLeast(1))
+                    },
+                    onBuyItem = onBuyItem
+                )
+            }
+
+            Text(
+                text = message ?: "Choose an item to buy.",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontFamily = CinzelFamily,
+                fontSize = 12.sp,
+                letterSpacing = 1.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShopItemRow(
+    itemName: ItemName,
+    amount: Int,
+    ownedAmount: Int,
+    maxPurchasableAmount: Int,
+    canAfford: Boolean,
+    onAmountChanged: (Int) -> Unit,
+    onBuyItem: (ItemName, Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .background(Color(0xFF2F241D).copy(alpha = 0.42f))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.34f), RoundedCornerShape(5.dp))
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = itemIconRes(ItemFactory.createItem(itemName))),
+            contentDescription = itemName.displayName(),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(34.dp)
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = itemName.displayName(),
+                color = MaterialTheme.colorScheme.onSurface,
+                fontFamily = CinzelFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                maxLines = 1
+            )
+            Text(
+                text = "${itemName.price()} coins each - Owned: $ownedAmount",
+                color = MaterialTheme.colorScheme.primary,
+                fontFamily = CinzelFamily,
+                fontSize = 10.sp,
+                maxLines = 1
+            )
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(42.dp)
+                    .height(30.dp)
+            ) {
+                ShopStepperButton(
+                    label = "-",
+                    enabled = amount > 1,
+                    onClick = { onAmountChanged(amount - 1) }
+                )
+            }
+            Text(
+                text = amount.toString(),
+                color = MaterialTheme.colorScheme.onSurface,
+                fontFamily = CinzelFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(34.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .width(42.dp)
+                    .height(30.dp)
+            ) {
+                ShopStepperButton(
+                    label = "+",
+                    enabled = maxPurchasableAmount > 0 && amount < maxPurchasableAmount,
+                    onClick = { onAmountChanged(amount + 1) }
+                )
+            }
+        }
+
+        Text(
+            text = "Total: ${itemName.price() * amount}",
+            color = MaterialTheme.colorScheme.primary,
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(72.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .width(98.dp)
+                .height(34.dp)
+        ) {
+            SmallWorldMenuButton(
+                text = "Buy",
+                enabled = canAfford,
+                onClick = { onBuyItem(itemName, amount) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShopStepperButton(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(6.dp))
+            .background(colors.surface.copy(alpha = if (enabled) 0.5f else 0.24f))
+            .border(
+                1.dp,
+                colors.primary.copy(alpha = if (enabled) 0.72f else 0.22f),
+                RoundedCornerShape(6.dp)
+            )
+            .pointerInput(enabled, onClick) {
+                detectTapGestures(
+                    onTap = {
+                        if (enabled) {
+                            GameSoundPlayer.play(context, R.raw.button_click)
+                            onClick()
+                        }
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = colors.primary.copy(alpha = if (enabled) 1f else 0.35f),
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Black,
+            fontSize = 13.sp
+        )
     }
 }
 
@@ -1150,6 +1881,7 @@ private fun ShiftNpcWorldSprite(
 @Composable
 private fun SmallWorldMenuButton(
     text: String,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -1160,12 +1892,18 @@ private fun SmallWorldMenuButton(
             .fillMaxSize()
             .clip(RoundedCornerShape(6.dp))
             .background(colors.surface.copy(alpha = 0.42f))
-            .border(1.dp, colors.primary.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
-            .pointerInput(Unit) {
+            .border(
+                1.dp,
+                colors.primary.copy(alpha = if (enabled) 0.45f else 0.18f),
+                RoundedCornerShape(6.dp)
+            )
+            .pointerInput(enabled) {
                 detectTapGestures(
                     onTap = {
-                        GameSoundPlayer.play(context, R.raw.button_click)
-                        onClick()
+                        if (enabled) {
+                            GameSoundPlayer.play(context, R.raw.button_click)
+                            onClick()
+                        }
                     }
                 )
             },
@@ -1174,7 +1912,7 @@ private fun SmallWorldMenuButton(
         BasicText(
             text = text,
             style = TextStyle(
-                color = colors.primary.copy(alpha = 0.9f),
+                color = colors.primary.copy(alpha = if (enabled) 0.9f else 0.34f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = CinzelFamily
@@ -1396,6 +2134,7 @@ private fun ShiftNpcDialogOverlay(
 
 @Composable
 private fun InGameMenuOverlay(
+    showSaveAndExit: Boolean = true,
     showSettings: Boolean,
     pendingExitAction: ExitAction?,
     pendingExitRequiresSave: Boolean,
@@ -1489,10 +2228,14 @@ private fun InGameMenuOverlay(
                 MenuButton(text = "Back", onClick = onBackFromSubmenu)
             } else {
                 MenuButton(text = "Resume", onClick = onResume)
-                MenuButton(text = "Save", onClick = onSaveGame)
+                if (showSaveAndExit) {
+                    MenuButton(text = "Save", onClick = onSaveGame)
+                }
                 MenuButton(text = "Settings", onClick = onSettings)
-                MenuButton(text = "Main Menu", onClick = onMainMenu)
-                MenuButton(text = "Exit Game", onClick = onExitGame)
+                if (showSaveAndExit) {
+                    MenuButton(text = "Main Menu", onClick = onMainMenu)
+                    MenuButton(text = "Exit Game", onClick = onExitGame)
+                }
             }
         }
         if (showSaveMessage) {
@@ -1509,6 +2252,7 @@ private fun InGameMenuOverlay(
 private fun WorldInventoryPanel(
     inventoryItems: Map<Item, Int>,
     selectedItem: Item?,
+    money: Int,
     onSelectedItemChanged: (Item?) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
@@ -1561,6 +2305,15 @@ private fun WorldInventoryPanel(
                     SmallWorldMenuButton(text = "X", onClick = onClose)
                 }
             }
+
+            Text(
+                text = "Coins: $money",
+                color = colors.primary.copy(alpha = 0.92f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = CinzelFamily,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             slots.chunked(WorldInventoryColumns).forEach { rowSlots ->
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -1722,6 +2475,30 @@ private fun Item.description(): String {
     }
 }
 
+private fun itemIconRes(item: Item): Int {
+    return when (item.name) {
+        "Potion" -> R.drawable.potion
+        "Super Potion" -> R.drawable.super_potion
+        "Revive" -> R.drawable.revive
+        "Binding Stone" -> R.drawable.binding_stone_base
+        else -> R.drawable.potion
+    }
+}
+
+private fun ItemName.displayName(): String = when (this) {
+    ItemName.POTION -> "Potion"
+    ItemName.SUPER_POTION -> "Super Potion"
+    ItemName.REVIVE -> "Revive"
+    ItemName.BINDING_STONE -> "Binding Stone"
+}
+
+private fun ItemName.price(): Int = when (this) {
+    ItemName.POTION -> 30
+    ItemName.SUPER_POTION -> 80
+    ItemName.REVIVE -> 120
+    ItemName.BINDING_STONE -> 100
+}
+
 @Composable
 private fun SaveMessagePlate(modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
@@ -1778,6 +2555,8 @@ private fun SaveMessagePlate(modifier: Modifier = Modifier) {
 @Composable
 private fun Joystick(
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    resetKey: Any? = Unit,
     onDirectionChanged: (Float, Float) -> Unit
 ) {
     var knobX by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
@@ -1785,12 +2564,22 @@ private fun Joystick(
     val density = LocalDensity.current
     val radiusPx = with(density) { 42.dp.toPx() }
 
+    LaunchedEffect(enabled, resetKey) {
+        if (!enabled || resetKey != Unit) {
+            knobX = 0f
+            knobY = 0f
+            onDirectionChanged(0f, 0f)
+        }
+    }
+
     Box(
         modifier = modifier
             .size(112.dp)
             .background(Color.Black.copy(alpha = 0.25f), CircleShape)
             .border(2.dp, Color.White.copy(alpha = 0.25f), CircleShape)
-            .pointerInput(Unit) {
+            .pointerInput(enabled, resetKey) {
+                if (!enabled) return@pointerInput
+
                 detectDragGestures(
                     onDragStart = {
                         knobX = 0f
@@ -1852,6 +2641,32 @@ private fun nextInteriorTile(column: Int, row: Int, direction: Direction): Pair<
     Direction.Up -> column to (row - 1).coerceAtLeast(0)
     Direction.Left -> (column - 1).coerceAtLeast(0) to row
     Direction.Right -> (column + 1).coerceAtMost(InteriorColumns - 1) to row
+}
+
+private fun serviceNpcIdleFrame(interior: TownInterior, frameIndex: Int): Int {
+    val frames = when (interior) {
+        TownInterior.ChimeraCenter -> nurseIdleFrames
+        TownInterior.ChimeraStore -> sellerIdleFrames
+    }
+
+    return frames[frameIndex % frames.size]
+}
+
+private fun serviceNpcDialogFrame(interior: TownInterior, step: Int, frameIndex: Int): Int {
+    val frames = when (interior) {
+        TownInterior.ChimeraCenter -> if (step == 0) {
+            nurseGreetingDialogFrames
+        } else {
+            nurseServiceDialogFrames
+        }
+        TownInterior.ChimeraStore -> if (step == 0) {
+            sellerGreetingDialogFrames
+        } else {
+            sellerServiceDialogFrames
+        }
+    }
+
+    return frames[frameIndex % frames.size]
 }
 
 private fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: Int): Int {
@@ -1942,6 +2757,37 @@ private val shiftNpcIdleFrames = listOf(
     R.drawable.shift_npc_1,
     R.drawable.shift_npc_2,
     R.drawable.shift_npc_3
+)
+
+private val nurseIdleFrames = listOf(
+    R.drawable.nurse_idle_1,
+    R.drawable.nurse_idle_2,
+    R.drawable.nurse_idle_3
+)
+
+private val sellerIdleFrames = listOf(
+    R.drawable.seller_idle_1,
+    R.drawable.seller_idle_2
+)
+
+private val nurseGreetingDialogFrames = listOf(
+    R.drawable.nurse_dialog_1,
+    R.drawable.nurse_dialog_2
+)
+
+private val nurseServiceDialogFrames = listOf(
+    R.drawable.nurse_dialog_2,
+    R.drawable.nurse_dialog_1
+)
+
+private val sellerGreetingDialogFrames = listOf(
+    R.drawable.seller_dialog_1,
+    R.drawable.seller_dialog_2
+)
+
+private val sellerServiceDialogFrames = listOf(
+    R.drawable.seller_dialog_2,
+    R.drawable.seller_dialog_1
 )
 
 private val shiftNpcSeriousDialogFrames = listOf(

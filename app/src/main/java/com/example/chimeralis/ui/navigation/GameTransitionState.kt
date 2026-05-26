@@ -75,6 +75,9 @@ class GameTransitionState(
                 targetValue = 0f,
                 animationSpec = tween(durationMillis = 1180)
             )
+            if (screen != GameScreen.Battle) {
+                session.isBattleResultMusicSuppressed = false
+            }
             session.isScreenTransitionRunning = false
         }
     }

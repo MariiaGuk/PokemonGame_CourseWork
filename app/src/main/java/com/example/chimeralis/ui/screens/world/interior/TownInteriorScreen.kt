@@ -85,7 +85,6 @@ import com.example.chimeralis.ui.screens.world.ServiceNpcIdleFrameDelayMs
 import com.example.chimeralis.ui.screens.world.ShopOverlay
 import com.example.chimeralis.ui.screens.world.WorldInventoryPanel
 import com.example.chimeralis.ui.screens.world.WorldReturnInputLockMs
-import com.example.chimeralis.ui.screens.world.displayName
 import com.example.chimeralis.ui.screens.world.joystickDirection
 import com.example.chimeralis.ui.screens.world.nextInteriorTile
 import com.example.chimeralis.ui.screens.world.locations.TownInterior

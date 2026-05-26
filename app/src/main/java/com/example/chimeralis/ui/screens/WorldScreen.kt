@@ -106,6 +106,13 @@ private data class TownBuilding(
     val rows: Int = 4
 )
 
+private data class TownSign(
+    val column: Int,
+    val row: Int,
+    val title: String,
+    val body: String
+)
+
 private val grassTiles = setOf(
     3 to 2, 4 to 2, 5 to 2,
     3 to 3, 4 to 3, 5 to 3,
@@ -128,6 +135,57 @@ private val grassTownBuildings = listOf(
     TownBuilding(imageRes = R.drawable.town_building_bank, column = 6, row = 6, columns = 4, rows = 3),
     TownBuilding(imageRes = R.drawable.town_building_cafe, column = 11, row = 6, columns = 4, rows = 3),
     TownBuilding(imageRes = R.drawable.town_building_hair_salon, column = 16, row = 6, columns = 4, rows = 3)
+)
+
+private val grassTownSigns = listOf(
+    TownSign(
+        column = 1,
+        row = 4,
+        title = "Town Library",
+        body = "Temporarily closed for renovations. Please check back later."
+    ),
+    TownSign(
+        column = 6,
+        row = 4,
+        title = "Chimera Center",
+        body = "Let your chimeras rest here. Our nurse will heal their wounds and restore their strength."
+    ),
+    TownSign(
+        column = 11,
+        row = 4,
+        title = "Chimera Mart",
+        body = "Stock up before your next journey. Potions, revives, and binding stones are available inside."
+    ),
+    TownSign(
+        column = 16,
+        row = 4,
+        title = "General Store",
+        body = "Temporarily closed for renovations. Please check back later."
+    ),
+    TownSign(
+        column = 1,
+        row = 9,
+        title = "Trainer Inn",
+        body = "Temporarily closed for renovations. Please check back later."
+    ),
+    TownSign(
+        column = 6,
+        row = 9,
+        title = "Town Bank",
+        body = "Temporarily closed for renovations. Please check back later."
+    ),
+    TownSign(
+        column = 11,
+        row = 9,
+        title = "Chimera Cafe",
+        body = "Temporarily closed for renovations. Please check back later."
+    ),
+    TownSign(
+        column = 16,
+        row = 9,
+        title = "Style Salon",
+        body = "Temporarily closed for renovations. Please check back later."
+    )
 )
 
 private val grassTownBuildingTiles = grassTownBuildings
@@ -277,6 +335,7 @@ fun WorldScreen(
     var pendingItemUseConfirmation by remember { mutableStateOf<Pair<Item, Chimera>?>(null) }
     var shiftNpcIdleFrame by remember { mutableIntStateOf(0) }
     var shiftNpcDialogStep by remember { mutableStateOf<Int?>(null) }
+    var activeTownSign by remember { mutableStateOf<TownSign?>(null) }
     val groundTexture = ImageBitmap.imageResource(
         id = if (field == WorldField.Grass) R.drawable.grass_field_ground else R.drawable.lava_ground
     )
@@ -299,6 +358,14 @@ fun WorldScreen(
         else -> null
     }
     val canEnterTownInterior = townInteriorAtDoor != null && !isShiftNpcDialogOpen
+    val readableTownSign = if (field == WorldField.Grass && !isShiftNpcDialogOpen) {
+        grassTownSigns.firstOrNull { sign ->
+            abs(playerColumn - sign.column) + abs(playerRow - sign.row) <= 1
+        }
+    } else {
+        null
+    }
+    val canReadTownSign = readableTownSign != null && !canEnterTownInterior
     val currentEncounterChance by rememberUpdatedState(encounterChance)
     val currentCanStartBattles by rememberUpdatedState(canStartBattles)
     val currentStarter by rememberUpdatedState(starter)
@@ -355,6 +422,7 @@ fun WorldScreen(
                 isWildEncounterStarting ||
                 isWorldInputLocked ||
                 shiftNpcDialogStep != null ||
+                activeTownSign != null ||
                 itemTargetSelection != null ||
                 pendingItemUseConfirmation != null
             ) {
@@ -506,6 +574,35 @@ fun WorldScreen(
             }
         }
 
+        @Composable
+        fun TownSignMarkers() {
+            if (field != WorldField.Grass) return
+
+            grassTownSigns.forEach { sign ->
+                val signWidth = tileWidth * 1.5f
+                val signHeight = tileHeight * 1.5f
+                val left = mapLeft + (sign.column + 0.9f) * tileWidth - signWidth / 2f
+                val top = mapTop + (sign.row + 0.5f) * tileHeight - signHeight
+
+                Image(
+                    painter = painterResource(id = R.drawable.sign),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                x = left.roundToInt(),
+                                y = top.roundToInt()
+                            )
+                        }
+                        .size(
+                            width = with(density) { signWidth.toDp() },
+                            height = with(density) { signHeight.toDp() }
+                        )
+                )
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -561,6 +658,7 @@ fun WorldScreen(
             }
 
             TownBuildings(drawOverPlayer = false)
+            TownSignMarkers()
 
             if (shouldDrawShiftNpcBeforePlayer) {
                 ShiftNpcWorldSprite(
@@ -609,7 +707,7 @@ fun WorldScreen(
             SmallWorldMenuButton(
                 text = "Menu",
                 onClick = {
-                    if (isWorldInputLocked || isShiftNpcDialogOpen) return@SmallWorldMenuButton
+                    if (isWorldInputLocked || isShiftNpcDialogOpen || activeTownSign != null) return@SmallWorldMenuButton
 
                     requestedDirection = null
                     isMoving = false
@@ -630,7 +728,7 @@ fun WorldScreen(
             SmallWorldMenuButton(
                 text = "Bag",
                 onClick = {
-                    if (isWorldInputLocked || isShiftNpcDialogOpen) return@SmallWorldMenuButton
+                    if (isWorldInputLocked || isShiftNpcDialogOpen || activeTownSign != null) return@SmallWorldMenuButton
 
                     requestedDirection = null
                     isMoving = false
@@ -654,12 +752,22 @@ fun WorldScreen(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 93.dp, bottom = 43.dp),
+            enabled = !isGameMenuOpen &&
+                    !isInventoryOpen &&
+                    !isWildEncounterStarting &&
+                    !isWorldInputLocked &&
+                    !isShiftNpcDialogOpen &&
+                    activeTownSign == null &&
+                    itemTargetSelection == null &&
+                    pendingItemUseConfirmation == null,
+            resetKey = "$inputLockKey:${activeTownSign?.title.orEmpty()}",
             onDirectionChanged = { x, y ->
                 if (!isGameMenuOpen &&
                     !isInventoryOpen &&
                     !isWildEncounterStarting &&
                     !isWorldInputLocked &&
                     !isShiftNpcDialogOpen &&
+                    activeTownSign == null &&
                     itemTargetSelection == null &&
                     pendingItemUseConfirmation == null
                 ) {
@@ -668,7 +776,11 @@ fun WorldScreen(
             }
         )
 
-        if ((canInteractWithShiftNpc || canEnterTownInterior) && !isGameMenuOpen && !isInventoryOpen) {
+        if ((canInteractWithShiftNpc || canEnterTownInterior || canReadTownSign) &&
+            !isGameMenuOpen &&
+            !isInventoryOpen &&
+            activeTownSign == null
+        ) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -677,14 +789,20 @@ fun WorldScreen(
                     .height(38.dp)
             ) {
                 SmallWorldMenuButton(
-                    text = if (canEnterTownInterior) "Enter" else "Talk",
+                    text = when {
+                        canEnterTownInterior -> "Enter"
+                        canInteractWithShiftNpc -> "Talk"
+                        else -> "Read"
+                    },
                     onClick = {
                         requestedDirection = null
                         isMoving = false
                         if (canEnterTownInterior) {
                             townInteriorAtDoor?.let(onEnterTownInterior)
-                        } else {
+                        } else if (canInteractWithShiftNpc) {
                             shiftNpcDialogStep = 0
+                        } else {
+                            activeTownSign = readableTownSign
                         }
                     }
                 )
@@ -830,6 +948,15 @@ fun WorldScreen(
                 },
                 onCancel = {
                     pendingItemUseConfirmation = null
+                }
+            )
+        }
+
+        activeTownSign?.let { sign ->
+            TownSignDialogOverlay(
+                sign = sign,
+                onClose = {
+                    activeTownSign = null
                 }
             )
         }
@@ -2028,6 +2155,64 @@ private fun ConfirmItemUseDialog(
 
             MenuButton(text = "Use", enabled = canUseItem, onClick = onConfirm)
             MenuButton(text = "Cancel", onClick = onCancel)
+        }
+    }
+}
+
+@Composable
+private fun TownSignDialogOverlay(
+    sign: TownSign,
+    onClose: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.34f))
+            .pointerInput(Unit) {
+                detectTapGestures { }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .width(520.dp)
+                .background(colors.surface.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
+                .border(1.dp, colors.primary.copy(alpha = 0.72f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 28.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = sign.title,
+                color = colors.primary,
+                fontSize = 28.sp,
+                lineHeight = 32.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = CinzelFamily,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = sign.body,
+                color = colors.onSurface.copy(alpha = 0.88f),
+                fontSize = 16.sp,
+                lineHeight = 23.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = CinzelFamily,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(42.dp)
+            ) {
+                SmallWorldMenuButton(text = "Close", onClick = onClose)
+            }
         }
     }
 }

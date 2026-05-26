@@ -37,7 +37,7 @@ internal fun GameSessionState.ContinueRoute() {
         saves = saves,
         onLoad = { save ->
             loadSave(save)
-            currentScreen = GameScreen.LavaField
+            currentScreen = save.location.toGameScreen()
         },
         onDelete = { save ->
             saveStore.delete(save.trainerName)

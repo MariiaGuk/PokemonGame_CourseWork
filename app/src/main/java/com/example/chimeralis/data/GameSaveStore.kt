@@ -27,6 +27,13 @@ data class SavedItem(
     val amount: Int
 )
 
+enum class SavedGameLocation {
+    LavaField,
+    GrassField,
+    ChimeraCenterInterior,
+    ChimeraStoreInterior
+}
+
 data class GameSave(
     val trainerName: String,
     val team: List<SavedChimera>,
@@ -34,6 +41,7 @@ data class GameSave(
     val money: Int = 0,
     val playerColumn: Int,
     val playerRow: Int,
+    val location: SavedGameLocation = SavedGameLocation.LavaField,
     val updatedAt: Long
 ) {
     val starterSpecies: ChimeraSpecies get() = team.first().species
@@ -66,6 +74,7 @@ class GameSaveStore(context: Context) {
             .putInt("$id.$MoneyKey", gameSave.money)
             .putInt("$id.$PlayerColumnKey", gameSave.playerColumn)
             .putInt("$id.$PlayerRowKey", gameSave.playerRow)
+            .putString("$id.$LocationKey", gameSave.location.name)
             .putLong("$id.$UpdatedAtKey", gameSave.updatedAt)
             .apply()
 
@@ -94,6 +103,7 @@ class GameSaveStore(context: Context) {
             .remove("$id.$StarterCurrentHpKey")
             .remove("$id.$PlayerColumnKey")
             .remove("$id.$PlayerRowKey")
+            .remove("$id.$LocationKey")
             .remove("$id.$UpdatedAtKey")
             .apply()
     }
@@ -105,6 +115,11 @@ class GameSaveStore(context: Context) {
         val money = prefs.getInt("$id.$MoneyKey", StartingMoney)
         val playerColumn = prefs.getInt("$id.$PlayerColumnKey", 1)
         val playerRow = prefs.getInt("$id.$PlayerRowKey", 1)
+        val location = prefs.getString("$id.$LocationKey", null)
+            ?.let { savedName ->
+                SavedGameLocation.values().firstOrNull { it.name == savedName }
+            }
+            ?: SavedGameLocation.LavaField
         val updatedAt = prefs.getLong("$id.$UpdatedAtKey", 0L)
 
         return GameSave(
@@ -114,6 +129,7 @@ class GameSaveStore(context: Context) {
             money = money,
             playerColumn = playerColumn,
             playerRow = playerRow,
+            location = location,
             updatedAt = updatedAt
         )
     }
@@ -122,7 +138,8 @@ class GameSaveStore(context: Context) {
         trainerName: String,
         player: Player,
         playerColumn: Int,
-        playerRow: Int
+        playerRow: Int,
+        location: SavedGameLocation
     ) {
         save(
             GameSave(
@@ -134,6 +151,7 @@ class GameSaveStore(context: Context) {
                 money = player.money,
                 playerColumn = playerColumn,
                 playerRow = playerRow,
+                location = location,
                 updatedAt = System.currentTimeMillis()
             )
         )
@@ -300,6 +318,7 @@ class GameSaveStore(context: Context) {
         const val StarterCurrentHpKey = "starter_current_hp"
         const val PlayerColumnKey = "player_column"
         const val PlayerRowKey = "player_row"
+        const val LocationKey = "location"
         const val UpdatedAtKey = "updated_at"
         const val NoSavedHp = -1
         const val StartingMoney = 200

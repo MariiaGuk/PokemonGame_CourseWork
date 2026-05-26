@@ -1,13 +1,9 @@
 package com.example.chimeralis.data
 
 import android.content.Context
-import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.Stats
-import com.example.chimeralis.logic.items.Inventory
-import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.Player
 
@@ -46,6 +42,7 @@ data class GameSave(
 
 class GameSaveStore(context: Context) {
     private val prefs = context.getSharedPreferences(PrefsName, Context.MODE_PRIVATE)
+    private val mapper = GameSaveMapper()
 
     fun hasSaveForTrainer(trainerName: String): Boolean {
         return trainerId(trainerName) in trainerIds()
@@ -130,9 +127,9 @@ class GameSaveStore(context: Context) {
         save(
             GameSave(
                 trainerName = trainerName,
-                team = player.team.map { it.toSavedChimera() },
-                inventoryItems = player.inventory.items.mapNotNull { (item, amount) ->
-                    item.toItemName()?.let { SavedItem(it, amount) }
+                team = player.team.map(mapper::toSavedChimera),
+                inventoryItems = player.inventory.items.map { (item, amount) ->
+                    mapper.toSavedItem(item, amount)
                 },
                 money = player.money,
                 playerColumn = playerColumn,
@@ -145,8 +142,8 @@ class GameSaveStore(context: Context) {
     fun createPlayer(gameSave: GameSave): Player {
         return Player(
             name = gameSave.trainerName,
-            team = gameSave.team.map { it.toChimera() }.toMutableList(),
-            inventory = gameSave.inventoryItems.toInventory(),
+            team = gameSave.team.map(mapper::toChimera).toMutableList(),
+            inventory = mapper.toInventory(gameSave.inventoryItems),
             money = gameSave.money
         )
     }
@@ -155,7 +152,7 @@ class GameSaveStore(context: Context) {
         val prefix = "$id.$TeamKey.$index"
 
         prefs.edit()
-            .putString("$prefix.$SpeciesKey", chimera.species.saveName())
+            .putString("$prefix.$SpeciesKey", mapper.speciesSaveName(chimera.species))
             .putString("$prefix.$NicknameKey", chimera.nickname)
             .putInt("$prefix.$LevelKey", chimera.level)
             .putInt("$prefix.$ExpKey", chimera.exp)
@@ -176,7 +173,7 @@ class GameSaveStore(context: Context) {
         val prefix = "$id.$InventoryKey.$index"
 
         prefs.edit()
-            .putString("$prefix.$ItemNameKey", item.itemName.saveName())
+            .putString("$prefix.$ItemNameKey", mapper.itemSaveName(item.itemName))
             .putInt("$prefix.$ItemAmountKey", item.amount)
             .apply()
     }
@@ -197,8 +194,8 @@ class GameSaveStore(context: Context) {
 
     private fun loadChimera(id: String, index: Int): SavedChimera? {
         val prefix = "$id.$TeamKey.$index"
-        val species = prefs.getString("$prefix.$SpeciesKey", null)?.toChimeraSpecies() ?: return null
-        val nickname = prefs.getString("$prefix.$NicknameKey", null) ?: species.battleName()
+        val species = prefs.getString("$prefix.$SpeciesKey", null)?.let(mapper::toChimeraSpecies) ?: return null
+        val nickname = prefs.getString("$prefix.$NicknameKey", null) ?: mapper.battleName(species)
 
         return SavedChimera(
             species = species,
@@ -240,7 +237,7 @@ class GameSaveStore(context: Context) {
 
     private fun loadItem(id: String, index: Int): SavedItem? {
         val prefix = "$id.$InventoryKey.$index"
-        val itemName = prefs.getString("$prefix.$ItemNameKey", null)?.toItemName() ?: return null
+        val itemName = prefs.getString("$prefix.$ItemNameKey", null)?.let(mapper::toItemName) ?: return null
         val amount = prefs.getInt("$prefix.$ItemAmountKey", 0)
 
         if (amount <= 0) return null
@@ -249,13 +246,13 @@ class GameSaveStore(context: Context) {
     }
 
     private fun loadLegacyStarter(id: String): SavedChimera? {
-        val species = prefs.getString("$id.$StarterSpeciesKey", null)?.toChimeraSpecies() ?: return null
+        val species = prefs.getString("$id.$StarterSpeciesKey", null)?.let(mapper::toChimeraSpecies) ?: return null
         val savedCurrentHp = prefs.getInt("$id.$StarterCurrentHpKey", NoSavedHp)
         val starter = ChimeraFactory.createChimera(species, prefs.getInt("$id.$StarterLevelKey", 5))
 
         return SavedChimera(
             species = species,
-            nickname = prefs.getString("$id.$StarterNicknameKey", null) ?: species.battleName(),
+            nickname = prefs.getString("$id.$StarterNicknameKey", null) ?: mapper.battleName(species),
             level = starter.level,
             exp = prefs.getInt("$id.$StarterExpKey", 0).coerceAtLeast(0),
             currentHp = savedCurrentHp.takeIf { it != NoSavedHp } ?: starter.stats.maxHp,
@@ -264,105 +261,12 @@ class GameSaveStore(context: Context) {
         )
     }
 
-    private fun Chimera.toSavedChimera(): SavedChimera {
-        return SavedChimera(
-            species = species,
-            nickname = name,
-            level = level,
-            exp = exp,
-            currentHp = stats.currentHp,
-            ivStats = ivStats,
-            moves = moves.map { move ->
-                SavedMovePp(
-                    moveName = move.name,
-                    pp = move.pp
-                )
-            }
-        )
-    }
-
-    private fun SavedChimera.toChimera(): Chimera {
-        return ChimeraFactory.createChimera(
-            species = species,
-            level = level,
-            ivStats = ivStats
-        ).also { chimera ->
-            chimera.rename(nickname)
-            if (exp > 0) {
-                chimera.gainExp(exp)
-            }
-            chimera.stats.restoreHp(currentHp)
-            val savedPpsByMoveName = moves.associateBy { it.moveName }
-            chimera.moves.forEach { move ->
-                savedPpsByMoveName[move.name]?.let { savedMove ->
-                    move.restorePp(savedMove.pp)
-                }
-            }
-        }
-    }
-
-    private fun List<SavedItem>.toInventory(): Inventory {
-        return Inventory().also { inventory ->
-            forEach { savedItem ->
-                inventory.addItem(ItemFactory.createItem(savedItem.itemName), savedItem.amount)
-            }
-        }
-    }
-
     private fun trainerIds(): Set<String> {
         return prefs.getStringSet(TrainerIdsKey, emptySet()).orEmpty()
     }
 
     private fun trainerId(trainerName: String): String {
         return trainerName.trim().lowercase()
-    }
-
-    private fun ChimeraSpecies.saveName(): String = when (this) {
-        ChimeraSpecies.Sunflare -> "Sunflare"
-        ChimeraSpecies.Solflare -> "Solflare"
-        ChimeraSpecies.Solignis -> "Solignis"
-        ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-        ChimeraSpecies.Aquantis -> "Aquantis"
-    }
-
-    private fun String.toChimeraSpecies(): ChimeraSpecies? = when (this) {
-        "Sunflare" -> ChimeraSpecies.Sunflare
-        "Solflare" -> ChimeraSpecies.Solflare
-        "Solignis" -> ChimeraSpecies.Solignis
-        "Sylvhorn" -> ChimeraSpecies.Sylvhorn
-        "Aquantis" -> ChimeraSpecies.Aquantis
-        else -> null
-    }
-
-    private fun Item.toItemName(): ItemName? = when (name) {
-        "Potion" -> ItemName.POTION
-        "Super Potion" -> ItemName.SUPER_POTION
-        "Revive" -> ItemName.REVIVE
-        "Poke Ball", "Binding Stone" -> ItemName.BINDING_STONE
-        else -> null
-    }
-
-    private fun ItemName.saveName(): String = when (this) {
-        ItemName.POTION -> "Potion"
-        ItemName.SUPER_POTION -> "Super Potion"
-        ItemName.REVIVE -> "Revive"
-        ItemName.BINDING_STONE -> "Binding Stone"
-    }
-
-    private fun String.toItemName(): ItemName? = when (this) {
-        "Potion" -> ItemName.POTION
-        "Super Potion" -> ItemName.SUPER_POTION
-        "Revive" -> ItemName.REVIVE
-        "Poke Ball", "Binding Stone" -> ItemName.BINDING_STONE
-        else -> null
-    }
-
-    private fun ChimeraSpecies.battleName(): String = when (this) {
-        ChimeraSpecies.Sunflare -> "Sunflare"
-        ChimeraSpecies.Solflare -> "Solflare"
-        ChimeraSpecies.Solignis -> "Solignis"
-        ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-        ChimeraSpecies.Aquantis -> "Aquantis"
     }
 
     private companion object {

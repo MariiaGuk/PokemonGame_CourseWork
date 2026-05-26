@@ -4,19 +4,20 @@ import com.example.chimeralis.logic.items.itemEffects.IItemEffect
 import com.example.chimeralis.logic.chimeras.Chimera
 
 class Item(
-    val name: String,
+    val itemName: ItemName,
     val effects: List<IItemEffect>
 ) {
+    val name: String get() = itemName.displayName
+
     val isCaptureItem: Boolean
-        get() = name == "Binding Stone" || name == "Poke Ball"
+        get() = itemName.kind == ItemKind.Capture
 
     fun canUseOn(target: Chimera): Boolean {
-        return when (name) {
-            "Potion", "Super Potion" -> target.stats.isAlive() &&
+        return when (itemName.kind) {
+            ItemKind.Healing -> target.stats.isAlive() &&
                     target.stats.currentHp < target.stats.maxHp
-            "Revive" -> !target.stats.isAlive()
-            "Binding Stone", "Poke Ball" -> false
-            else -> true
+            ItemKind.Revival -> !target.stats.isAlive()
+            ItemKind.Capture -> false
         }
     }
 

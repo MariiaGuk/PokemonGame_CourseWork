@@ -79,6 +79,7 @@ internal fun BattlePanel(
     team: List<Chimera>,
     activeChimera: Chimera,
     inventoryItems: Map<Item, Int>,
+    canUseCaptureItems: Boolean = true,
     onFight: () -> Unit,
     onBag: () -> Unit,
     onTeam: () -> Unit,
@@ -178,6 +179,7 @@ internal fun BattlePanel(
                     BattlePanelMode.Bag -> BattleInventoryButtons(
                         inventoryItems = inventoryItems,
                         team = team,
+                        canUseCaptureItems = canUseCaptureItems,
                         onItemSelected = onItemSelected
                     )
                     BattlePanelMode.ItemTarget -> BattleItemTargetButtons(
@@ -440,6 +442,7 @@ internal fun BattleTeamSlot(
 internal fun BattleInventoryButtons(
     inventoryItems: Map<Item, Int>,
     team: List<Chimera>,
+    canUseCaptureItems: Boolean = true,
     onItemSelected: (Item) -> Unit
 ) {
     Column(
@@ -458,7 +461,11 @@ internal fun BattleInventoryButtons(
             inventoryItems.entries.sortedBy { it.key.name }.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowItems.forEach { (item, amount) ->
-                        val canUseItem = item.isCaptureItem || team.any { item.canUseOn(it) }
+                        val canUseItem = if (item.isCaptureItem) {
+                            canUseCaptureItems
+                        } else {
+                            team.any { item.canUseOn(it) }
+                        }
                         MenuButton(
                             text = "${item.name} x$amount",
                             enabled = canUseItem,

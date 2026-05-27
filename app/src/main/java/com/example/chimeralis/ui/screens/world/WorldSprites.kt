@@ -1,4 +1,4 @@
-package com.example.chimeralis.ui.screens.world
+﻿package com.example.chimeralis.ui.screens.world
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearEasing
@@ -119,6 +119,14 @@ internal fun shiftNpcIdleFrame(frameIndex: Int): Int {
     return shiftNpcIdleFrames[frameIndex % shiftNpcIdleFrames.size]
 }
 
+internal fun trainerNpcIdleFrame(frameIndex: Int): Int {
+    return trainerNpcIdleFrames[frameIndex % trainerNpcIdleFrames.size]
+}
+
+internal fun trainerNpcDialogFrame(frameIndex: Int): Int {
+    return trainerNpcDialogFrames[frameIndex % trainerNpcDialogFrames.size]
+}
+
 internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
     val frames = when (step) {
         0 -> shiftNpcSeriousDialogFrames
@@ -127,6 +135,14 @@ internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
     }
 
     return frames[frameIndex % frames.size]
+}
+
+internal fun trainerNpcDialogText(step: Int): String {
+    return if (step == 0) {
+        "Hey! You look like you have a strong team. I have been waiting for a real challenge."
+    } else {
+        "Want to test your chimeras against mine?"
+    }
 }
 
 internal fun shiftNpcDialogText(step: Int): String {
@@ -190,6 +206,17 @@ internal val shiftNpcIdleFrames = listOf(
     R.drawable.shift_npc_1,
     R.drawable.shift_npc_2,
     R.drawable.shift_npc_3
+)
+
+internal val trainerNpcIdleFrames = listOf(
+    R.drawable.trainer_npc_idle_1,
+    R.drawable.trainer_npc_idle_2,
+    R.drawable.trainer_npc_idle_3
+)
+
+internal val trainerNpcDialogFrames = listOf(
+    R.drawable.trainer_npc_dialog_1,
+    R.drawable.trainer_npc_dialog_2
 )
 
 internal val nurseIdleFrames = listOf(

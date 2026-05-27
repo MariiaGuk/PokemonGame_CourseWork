@@ -12,6 +12,7 @@ import com.example.chimeralis.R
 object GameSoundPlayer {
     private var soundPool: SoundPool? = null
     private val soundIds = mutableMapOf<Int, Int>()
+    private val activeStreams = mutableMapOf<Int, MutableList<Int>>()
     private val loadedSounds = mutableSetOf<Int>()
     private val pendingSounds = mutableSetOf<Int>()
     private var isEnabled: Boolean = true
@@ -61,10 +62,22 @@ object GameSoundPlayer {
         val soundId = soundIds[soundResId] ?: preload(context, soundResId)
 
         if (soundId in loadedSounds) {
-            pool.play(soundId, volume, volume, 1, 0, 1f)
+            val streamId = pool.play(soundId, volume, volume, 1, 0, 1f)
+            activeStreams.getOrPut(soundResId) { mutableListOf() }.add(streamId)
         } else {
             pendingSounds.add(soundId)
         }
+    }
+
+    fun stop(@RawRes soundResId: Int) {
+        val pool = soundPool ?: return
+        activeStreams.remove(soundResId)?.forEach(pool::stop)
+    }
+
+    fun stopBattleResultSounds() {
+        stop(R.raw.battle_victory)
+        stop(R.raw.battle_loss)
+        stop(R.raw.caught_a_chimera)
     }
 
     fun configure(enabled: Boolean, soundVolume: Float) {
@@ -79,6 +92,7 @@ object GameSoundPlayer {
         soundPool?.release()
         soundPool = null
         soundIds.clear()
+        activeStreams.clear()
         loadedSounds.clear()
         pendingSounds.clear()
     }

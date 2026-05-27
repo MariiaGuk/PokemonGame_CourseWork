@@ -119,6 +119,7 @@ fun WorldScreen(
     onReturnToLavaField: () -> Unit = {},
     onEnterTownInterior: (TownInterior) -> Unit = {},
     onShiftNpcIntroSeen: () -> Unit = {},
+    onTrainerChallenge: () -> Unit = {},
     onBackToMainMenu: () -> Unit,
     onExitGame: () -> Unit,
     onWildEncounter: (ChimeraSpecies) -> Unit
@@ -145,6 +146,8 @@ fun WorldScreen(
     var pendingItemUseConfirmation by remember { mutableStateOf<Pair<Item, Chimera>?>(null) }
     var shiftNpcIdleFrame by remember { mutableIntStateOf(0) }
     var shiftNpcDialogStep by remember { mutableStateOf<Int?>(null) }
+    var trainerNpcIdleFrame by remember { mutableIntStateOf(0) }
+    var trainerNpcDialogStep by remember { mutableStateOf<Int?>(null) }
     var activeTownSign by remember { mutableStateOf<TownSign?>(null) }
     val groundTexture = ImageBitmap.imageResource(
         id = if (field == WorldField.Grass) R.drawable.grass_field_ground else R.drawable.lava_ground
@@ -159,16 +162,23 @@ fun WorldScreen(
         LavaShiftNpcColumn to LavaShiftNpcRow
     }
     val isShiftNpcDialogOpen = shiftNpcDialogStep != null
+    val isTrainerNpcDialogOpen = trainerNpcDialogStep != null
+    val trainerNpcTile = GrassTrainerNpcColumn to GrassTrainerNpcRow
     val canInteractWithShiftNpc = showShiftNpc &&
             !isShiftNpcDialogOpen &&
+            !isTrainerNpcDialogOpen &&
             abs(playerColumn - shiftNpcTile.first) + abs(playerRow - shiftNpcTile.second) == 1
+    val canInteractWithTrainerNpc = field == WorldField.Grass &&
+            !isShiftNpcDialogOpen &&
+            !isTrainerNpcDialogOpen &&
+            abs(playerColumn - trainerNpcTile.first) + abs(playerRow - trainerNpcTile.second) == 1
     val townInteriorAtDoor = when {
         field == WorldField.Grass && playerRow == 4 && playerColumn in 7..8 -> TownInterior.ChimeraCenter
         field == WorldField.Grass && playerRow == 4 && playerColumn in 12..13 -> TownInterior.ChimeraStore
         else -> null
     }
-    val canEnterTownInterior = townInteriorAtDoor != null && !isShiftNpcDialogOpen
-    val readableTownSign = if (field == WorldField.Grass && !isShiftNpcDialogOpen) {
+    val canEnterTownInterior = townInteriorAtDoor != null && !isShiftNpcDialogOpen && !isTrainerNpcDialogOpen
+    val readableTownSign = if (field == WorldField.Grass && !isShiftNpcDialogOpen && !isTrainerNpcDialogOpen) {
         grassTownSigns.firstOrNull { sign ->
             abs(playerColumn - sign.column) + abs(playerRow - sign.row) <= 1
         }
@@ -225,6 +235,15 @@ fun WorldScreen(
         }
     }
 
+    LaunchedEffect(field) {
+        if (field != WorldField.Grass) return@LaunchedEffect
+
+        while (true) {
+            trainerNpcIdleFrame++
+            delay(ShiftNpcIdleFrameDelayMs)
+        }
+    }
+
     LaunchedEffect(Unit) {
         while (true) {
             if (isGameMenuOpen ||
@@ -232,6 +251,7 @@ fun WorldScreen(
                 isWildEncounterStarting ||
                 isWorldInputLocked ||
                 shiftNpcDialogStep != null ||
+                trainerNpcDialogStep != null ||
                 activeTownSign != null ||
                 itemTargetSelection != null ||
                 pendingItemUseConfirmation != null
@@ -260,6 +280,11 @@ fun WorldScreen(
             }
 
             if (showShiftNpc && nextTile == shiftNpcTile) {
+                delay(HeldStepDelayMs)
+                continue
+            }
+
+            if (field == WorldField.Grass && nextTile == trainerNpcTile) {
                 delay(HeldStepDelayMs)
                 continue
             }
@@ -345,6 +370,20 @@ fun WorldScreen(
                 scaleX = if (field == WorldField.Grass) -1f else 1f
             }
         val shouldDrawShiftNpcBeforePlayer = showShiftNpc && animatedRow > shiftNpcTile.second
+        val trainerNpcCenterX = mapLeft + (trainerNpcTile.first + 0.5f) * tileWidth
+        val trainerNpcBottomY = mapTop + (trainerNpcTile.second + 0.89f) * tileHeight
+        val trainerNpcModifier = Modifier
+            .offset {
+                IntOffset(
+                    x = (trainerNpcCenterX - npcWidth / 2f).roundToInt(),
+                    y = (trainerNpcBottomY - npcHeight).roundToInt()
+                )
+            }
+            .size(
+                width = with(density) { npcWidth.toDp() },
+                height = with(density) { npcHeight.toDp() }
+            )
+        val shouldDrawTrainerNpcBeforePlayer = field == WorldField.Grass && animatedRow > trainerNpcTile.second
 
         Box(
             modifier = Modifier
@@ -395,6 +434,13 @@ fun WorldScreen(
                 )
             }
 
+            if (shouldDrawTrainerNpcBeforePlayer) {
+                TrainerNpcWorldSprite(
+                    frameIndex = trainerNpcIdleFrame,
+                    modifier = trainerNpcModifier
+                )
+            }
+
             Image(
                 painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),
                 contentDescription = "Player",
@@ -422,6 +468,13 @@ fun WorldScreen(
                 )
             }
 
+            if (field == WorldField.Grass && !shouldDrawTrainerNpcBeforePlayer) {
+                TrainerNpcWorldSprite(
+                    frameIndex = trainerNpcIdleFrame,
+                    modifier = trainerNpcModifier
+                )
+            }
+
             if (field == WorldField.Grass) {
                 TownLocationBuildings(
                     drawOverPlayer = true,
@@ -439,6 +492,7 @@ fun WorldScreen(
                 !isWildEncounterStarting &&
                 !isWorldInputLocked &&
                 !isShiftNpcDialogOpen &&
+                !isTrainerNpcDialogOpen &&
                 activeTownSign == null &&
                 itemTargetSelection == null &&
                 pendingItemUseConfirmation == null
@@ -446,6 +500,7 @@ fun WorldScreen(
             when {
                 canEnterTownInterior -> "Enter"
                 canInteractWithShiftNpc -> "Talk"
+                canInteractWithTrainerNpc -> "Talk"
                 canReadTownSign -> "Read"
                 else -> null
             }
@@ -465,7 +520,7 @@ fun WorldScreen(
                 }
             },
             onMenu = {
-                if (isWorldInputLocked || isShiftNpcDialogOpen || activeTownSign != null) return@WorldControlsOverlay
+                if (isWorldInputLocked || isShiftNpcDialogOpen || isTrainerNpcDialogOpen || activeTownSign != null) return@WorldControlsOverlay
 
                 requestedDirection = null
                 isMoving = false
@@ -474,7 +529,7 @@ fun WorldScreen(
                 isGameMenuOpen = true
             },
             onBag = {
-                if (isWorldInputLocked || isShiftNpcDialogOpen || activeTownSign != null) return@WorldControlsOverlay
+                if (isWorldInputLocked || isShiftNpcDialogOpen || isTrainerNpcDialogOpen || activeTownSign != null) return@WorldControlsOverlay
 
                 requestedDirection = null
                 isMoving = false
@@ -490,6 +545,8 @@ fun WorldScreen(
                     townInteriorAtDoor?.let(onEnterTownInterior)
                 } else if (canInteractWithShiftNpc) {
                     shiftNpcDialogStep = 0
+                } else if (canInteractWithTrainerNpc) {
+                    trainerNpcDialogStep = 0
                 } else {
                     activeTownSign = readableTownSign
                 }
@@ -678,6 +735,24 @@ fun WorldScreen(
                         }
                         onTravelToGrassField()
                     }
+                }
+            )
+        }
+
+        trainerNpcDialogStep?.let { step ->
+            TrainerNpcChallengeOverlay(
+                step = step,
+                onNext = {
+                    trainerNpcDialogStep = ((trainerNpcDialogStep ?: step) + 1).coerceAtMost(1)
+                },
+                onDecline = {
+                    trainerNpcDialogStep = null
+                },
+                onChallenge = {
+                    trainerNpcDialogStep = null
+                    requestedDirection = null
+                    isMoving = false
+                    onTrainerChallenge()
                 }
             )
         }

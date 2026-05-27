@@ -29,6 +29,45 @@ internal fun createBattleManager(
     return BattleManager(player = player, enemy = enemy, randomProvider = randomProvider)
 }
 
+internal fun createTrainerBattleManager(
+    player: Player,
+    randomProvider: RandomProvider = DefaultRandomProvider
+): BattleManager {
+    player.resetActiveChimeraToTeamLead()
+
+    val playerTeam = player.team.ifEmpty {
+        listOf(ChimeraFactory.createChimera(ChimeraSpecies.Sylvhorn, level = 5))
+    }
+    val trainerTeam = List(playerTeam.size.coerceIn(1, MaxBattleTeamSize)) { index ->
+        ChimeraFactory.createChimera(
+            species = trainerBattleSpecies(randomProvider),
+            level = playerTeam[randomProvider.nextInt(playerTeam.indices)].level
+        )
+    }
+    val enemy = NPC(
+        name = "Rival Trainer",
+        team = trainerTeam.toMutableList(),
+        dialogue = "Want to test your chimeras against mine?"
+    )
+
+    return BattleManager(
+        player = player,
+        enemy = enemy,
+        canCaptureEnemy = false,
+        randomProvider = randomProvider
+    )
+}
+
+private fun trainerBattleSpecies(randomProvider: RandomProvider): ChimeraSpecies {
+    val pool = listOf(
+        ChimeraSpecies.Sunflare,
+        ChimeraSpecies.Sylvhorn,
+        ChimeraSpecies.Aquantis
+    )
+
+    return pool[randomProvider.nextInt(pool.indices)]
+}
+
 internal fun ChimeraSpecies.battleName(): String = when (this) {
     ChimeraSpecies.Sunflare -> "Sunflare"
     ChimeraSpecies.Solflare -> "Solflare"

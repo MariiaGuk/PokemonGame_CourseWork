@@ -3,10 +3,14 @@ package com.example.chimeralis.ui.screens.battle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -36,18 +40,28 @@ fun BattleScreen(
     player: Player,
     battleKey: Any? = null,
     wildSpecies: ChimeraSpecies,
+    isTrainerBattle: Boolean = false,
     onBattleResultSoundStarted: () -> Unit = {},
     onBattleFinished: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
-    val battleManager = remember(player, battleKey, wildSpecies) {
-        createBattleManager(
-            player = player,
-            wildSpecies = wildSpecies
-        )
+    val battleManager = remember(player, battleKey, wildSpecies, isTrainerBattle) {
+        if (isTrainerBattle) {
+            createTrainerBattleManager(player = player)
+        } else {
+            createBattleManager(
+                player = player,
+                wildSpecies = wildSpecies
+            )
+        }
     }
-    val uiState = rememberBattleUiState(battleManager)
+    val openingMessage = if (isTrainerBattle) {
+        "${battleManager.enemy.name} challenged you!"
+    } else {
+        "A wild ${battleManager.enemyChimera.name} appeared!"
+    }
+    val uiState = rememberBattleUiState(battleManager, openingMessage)
     val playerChimera = battleManager.playerChimera
     val wildChimera = battleManager.enemyChimera
 
@@ -193,6 +207,12 @@ fun BattleScreen(
                 onBattleResultSoundStarted()
                 GameSoundPlayer.play(context, R.raw.battle_victory)
             }
+            isTrainerBattle &&
+                    uiState.currentBattleMessage.startsWith("Enemy ") &&
+                    " has 0/" in uiState.currentBattleMessage &&
+                    uiState.currentBattleMessage.endsWith(" HP.") -> {
+                uiState.revealEnemyDefeatForCurrentMessage()
+            }
             uiState.currentBattleMessage == "You lost!" -> {
                 onBattleResultSoundStarted()
                 GameSoundPlayer.play(context, R.raw.battle_loss)
@@ -287,6 +307,11 @@ fun BattleScreen(
             activeFeedback = playerFeedback,
             frameIndex = uiState.battleFeedbackFrameIndex
         )
+        val shouldForceHideEnemy = (!battleManager.isBattleActive && uiState.visualWildStats.currentHp <= 0) ||
+                (isTrainerBattle &&
+                        !battleManager.isBattleActive &&
+                        (uiState.currentBattleMessage == "You won!" ||
+                                uiState.revealedEnemyDefeatCount >= battleManager.enemy.team.size))
         val wildAlpha = fighterAlpha(
             currentHp = uiState.visualWildStats.currentHp,
             hasPendingFaint = wildFaintPending,
@@ -294,7 +319,7 @@ fun BattleScreen(
             activeFeedback = wildFeedback,
             frameIndex = uiState.battleFeedbackFrameIndex
         ) * captureTargetAlpha(activeCaptureAnimation, uiState.activeCaptureProgress) *
-                if (uiState.isEnemyCapturedHidden || isEnemyHeldInCaptureStone) 0f else 1f
+                if (uiState.isEnemyCapturedHidden || isEnemyHeldInCaptureStone || shouldForceHideEnemy) 0f else 1f
 
         Image(
             painter = painterResource(id = R.drawable.battle_arena),
@@ -351,6 +376,16 @@ fun BattleScreen(
                         y = 14.dp
                     )
             )
+
+            if (isTrainerBattle) {
+                TrainerBindingStoneColumn(
+                    teamSize = battleManager.enemy.team.size,
+                    defeatedCount = uiState.revealedEnemyDefeatCount,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 60.dp, end = 24.dp)
+                )
+            }
 
             BattleFighter(
                 imageRes = playerImageRes,
@@ -412,6 +447,7 @@ fun BattleScreen(
                 team = player.team,
                 activeChimera = playerChimera,
                 inventoryItems = player.inventory.items,
+                canUseCaptureItems = !isTrainerBattle,
                 onFight = { uiState.panelMode = BattlePanelMode.Moves },
                 onBag = { uiState.panelMode = BattlePanelMode.Bag },
                 onTeam = { uiState.panelMode = BattlePanelMode.Team },
@@ -428,7 +464,12 @@ fun BattleScreen(
                     uiState.performBattleAction(BattleAction.SwitchChimera(chimera))
                 },
                 onItemSelected = { item ->
-                    if (item.isCaptureItem) {
+                    if (item.isCaptureItem && isTrainerBattle) {
+                        uiState.showBattleResult(
+                            log = listOf("You cannot catch another trainer's chimera."),
+                            animations = emptyList()
+                        )
+                    } else if (item.isCaptureItem) {
                         uiState.performBattleAction(BattleAction.UseItem(item))
                     } else {
                         uiState.selectedBattleItem = item
@@ -455,6 +496,39 @@ fun BattleScreen(
                 colors = colors,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+            )
+        }
+    }
+}
+
+@Composable
+private fun TrainerBindingStoneColumn(
+    teamSize: Int,
+    defeatedCount: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        repeat(MaxBattleTeamSize) { index ->
+            val isTrainerSlot = index < teamSize
+            val isDefeated = index < defeatedCount
+            Image(
+                painter = painterResource(
+                    id = when {
+                        isDefeated -> R.drawable.binding_stone_broken
+                        isTrainerSlot -> R.drawable.binding_stone_captured
+                        else -> R.drawable.binding_stone_base
+                    }
+                ),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(26.dp)
+                    .graphicsLayer {
+                        alpha = if (isTrainerSlot) 1f else 0.7f
+                    }
             )
         }
     }

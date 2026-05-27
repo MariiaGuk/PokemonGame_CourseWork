@@ -81,6 +81,14 @@ internal fun GameSessionState.WorldRoute(
         onShiftNpcIntroSeen = {
             shiftNpcIntroSeen = true
         },
+        onTrainerChallenge = {
+            if (player?.isDefeated() != false) return@WorldScreen
+
+            trainerBattleKey = (trainerBattleKey ?: 0) + 1
+            wildEncounter = null
+            returnWorldScreen = screen
+            transition.transitionTo(GameScreen.Battle, this)
+        },
         onBackToMainMenu = {
             currentScreen = GameScreen.MainMenu
         },
@@ -89,6 +97,7 @@ internal fun GameSessionState.WorldRoute(
             if (player?.isDefeated() != false) return@WorldScreen
 
             wildEncounter = wildSpecies
+            trainerBattleKey = null
             returnWorldScreen = screen
             transition.transitionTo(GameScreen.Battle, this)
         }

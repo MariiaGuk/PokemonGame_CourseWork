@@ -35,6 +35,7 @@ class GameSessionState(
     var lastSavedTeamSignature by mutableStateOf("")
     var trainerNameError by mutableStateOf<String?>(null)
     var wildEncounter by mutableStateOf<ChimeraSpecies?>(null)
+    var trainerBattleKey by mutableStateOf<Int?>(null)
     var saves by mutableStateOf(saveStore.loadAll())
     var isScreenTransitionRunning by mutableStateOf(false)
     var musicEnabled by mutableStateOf(true)

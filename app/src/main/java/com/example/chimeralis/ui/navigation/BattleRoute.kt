@@ -10,10 +10,12 @@ internal fun GameSessionState.BattleRoute(transition: GameTransitionState) {
         if (currentPlayer.isDefeated()) {
             currentScreen = returnWorldScreen
         } else {
+            val isTrainerBattle = trainerBattleKey != null
             BattleScreen(
                 player = currentPlayer,
-                battleKey = wildEncounter,
+                battleKey = trainerBattleKey ?: wildEncounter,
                 wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
+                isTrainerBattle = isTrainerBattle,
                 onBattleResultSoundStarted = {
                     isBattleResultMusicSuppressed = true
                 },

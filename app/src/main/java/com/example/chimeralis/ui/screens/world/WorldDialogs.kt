@@ -345,3 +345,92 @@ internal fun ShiftNpcDialogOverlay(
     }
 }
 
+@Composable
+internal fun TrainerNpcChallengeOverlay(
+    step: Int,
+    onNext: () -> Unit,
+    onDecline: () -> Unit,
+    onChallenge: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    var portraitFrame by remember(step) { mutableIntStateOf(0) }
+
+    LaunchedEffect(step) {
+        while (true) {
+            portraitFrame++
+            delay(560L)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.34f))
+    ) {
+        Image(
+            painter = painterResource(id = trainerNpcDialogFrame(portraitFrame)),
+            contentDescription = "Trainer NPC dialog",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 120.dp)
+                .height(620.dp)
+                .graphicsLayer(
+                    scaleX = 1.45f,
+                    scaleY = 1.45f,
+                    transformOrigin = TransformOrigin(0.2f, 0.2f)
+                )
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(152.dp)
+                .background(colors.surface.copy(alpha = 0.78f))
+                .border(1.dp, colors.primary.copy(alpha = 0.42f))
+                .padding(horizontal = 90.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = trainerNpcDialogText(step),
+                color = colors.primary,
+                fontSize = 17.sp,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = CinzelFamily,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (step == 0) {
+                Box(
+                    modifier = Modifier
+                        .width(160.dp)
+                        .height(42.dp)
+                ) {
+                    MenuButton(text = "Next", onClick = onNext)
+                }
+            } else {
+                Column(
+                    modifier = Modifier.width(174.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Battle?",
+                        color = colors.onSurface.copy(alpha = 0.82f),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = CinzelFamily,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    MenuButton(text = "Yes", onClick = onChallenge)
+                    MenuButton(text = "No", onClick = onDecline)
+                }
+            }
+        }
+    }
+}
+

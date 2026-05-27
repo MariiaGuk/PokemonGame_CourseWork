@@ -19,6 +19,7 @@ data class MoveLearnRequest(
 class BattleManager(
     val player: Player,
     val enemy: NPC,
+    private val canCaptureEnemy: Boolean = true,
     private val randomProvider: RandomProvider = DefaultRandomProvider,
     private val rewardCalculator: BattleRewardCalculator = BattleRewardCalculator(),
     private val captureResolver: BattleCaptureResolver = BattleCaptureResolver(randomProvider),
@@ -45,6 +46,7 @@ class BattleManager(
         get() = pendingMoveLearning != null
     private var escapeAttempts = 0
     private val playerBattleParticipants = linkedSetOf<Chimera>()
+    private var pendingEnemySwitch: Chimera? = null
 
     init {
         markPlayerParticipant(playerChimera)
@@ -154,6 +156,15 @@ class BattleManager(
         return log.ifEmpty { listOf("Nothing happened.") }
     }
 
+    /** Sends out the next enemy chimera after the faint log has been shown. */
+    fun resolvePendingEnemySwitch() {
+        val nextChimera = pendingEnemySwitch ?: return
+        if (nextChimera.stats.isAlive()) {
+            enemy.switchChimera(nextChimera)
+        }
+        pendingEnemySwitch = null
+    }
+
     /** Executes an enemy move and resolves resulting faint states. */
     private fun enemyTurn(log: MutableList<String>): BattleMoveAnimation {
         val enemyMove = enemyMoveSelector.selectMove(enemyChimera)
@@ -230,6 +241,11 @@ class BattleManager(
         log: MutableList<String>,
         animations: MutableList<BattleMoveAnimation>
     ): Boolean {
+        if (!canCaptureEnemy) {
+            log.add("You cannot catch another trainer's chimera.")
+            return false
+        }
+
         val canStoreCaughtChimera = player.team.size < PlayerCollectionLimits.MaxTeamSize ||
                 player.storage.size < PlayerCollectionLimits.MaxStorageSize
         if (!canStoreCaughtChimera) {
@@ -293,11 +309,16 @@ class BattleManager(
     private fun resolveEnemyFaint(log: MutableList<String>, defeatedChimera: Chimera) {
         if (defeatedChimera.stats.isAlive()) return
 
+        awardExperience(log, defeatedChimera)
+
         if (enemy.isDefeated()) {
             isBattleActive = false
             log.add("You won!")
-            awardExperience(log, defeatedChimera)
             awardMoney(log, defeatedChimera)
+        } else {
+            val nextChimera = enemy.team.firstOrNull { it.stats.isAlive() } ?: return
+            pendingEnemySwitch = nextChimera
+            log.add("${enemy.name} sent out ${nextChimera.name}!")
         }
     }
 

@@ -205,6 +205,19 @@ internal fun ShiftNpcWorldSprite(
 }
 
 @Composable
+internal fun TrainerNpcWorldSprite(
+    frameIndex: Int,
+    modifier: Modifier = Modifier
+) {
+    Image(
+        painter = painterResource(id = trainerNpcIdleFrame(frameIndex)),
+        contentDescription = "Trainer NPC",
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+    )
+}
+
+@Composable
 internal fun SmallWorldMenuButton(
     text: String,
     enabled: Boolean = true,

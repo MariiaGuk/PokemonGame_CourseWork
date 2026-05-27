@@ -76,6 +76,7 @@ class GameTransitionState(
                 animationSpec = tween(durationMillis = 1180)
             )
             if (screen != GameScreen.Battle) {
+                GameSoundPlayer.stopBattleResultSounds()
                 session.isBattleResultMusicSuppressed = false
             }
             session.isScreenTransitionRunning = false

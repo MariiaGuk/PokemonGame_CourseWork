@@ -27,6 +27,7 @@ fun GameSessionState.resetForNewGame() {
     lastSavedLocation = SavedGameLocation.LavaField
     lastSavedTeamSignature = ""
     wildEncounter = null
+    trainerBattleKey = null
 }
 
 fun GameSessionState.startNewGame(starter: ChimeraSpecies, nickname: String) {

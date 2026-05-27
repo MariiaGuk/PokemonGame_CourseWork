@@ -15,10 +15,11 @@ import com.example.chimeralis.logic.battle.BattleSide
 import com.example.chimeralis.logic.items.Item
 
 internal class BattleUiState(
-    private val battleManager: BattleManager
+    private val battleManager: BattleManager,
+    openingMessage: String
 ) {
     var panelMode by mutableStateOf(BattlePanelMode.Log)
-    var battleLogMessages by mutableStateOf(listOf("A wild ${battleManager.enemyChimera.name} appeared!"))
+    var battleLogMessages by mutableStateOf(listOf(openingMessage))
     var battleLogIndex by mutableIntStateOf(0)
     var battleLogAnimations by mutableStateOf<Map<Int, BattleMoveAnimation>>(emptyMap())
     var activeMoveAnimation by mutableStateOf<BattleMoveAnimation?>(null)
@@ -37,7 +38,9 @@ internal class BattleUiState(
     var selectedBattleItem by mutableStateOf<Item?>(null)
     var isBattleIntroLocked by mutableStateOf(true)
     var isBattleExitPending by mutableStateOf(false)
+    var revealedEnemyDefeatCount by mutableIntStateOf(0)
     var uiVersion by mutableIntStateOf(0)
+    private var lastEnemyDefeatRevealKey: String? = null
 
     val refreshKey: Int get() = uiVersion
     val currentBattleMessage: String get() = battleLogMessages.getOrElse(battleLogIndex) { "" }
@@ -94,6 +97,8 @@ internal class BattleUiState(
         } else if (battleManager.isBattleActive) {
             captureResultAnimation = null
             isCaptureResultRevealed = false
+            battleManager.resolvePendingEnemySwitch()
+            visualWildStats = battleManager.enemyChimera.stats.toBattleStatsSnapshot()
             panelMode = if (battleManager.isWaitingForPlayerSwitch) {
                 BattlePanelMode.Team
             } else {
@@ -165,9 +170,20 @@ internal class BattleUiState(
         visualPlayerExp = exp
         uiVersion++
     }
+
+    fun revealEnemyDefeatForCurrentMessage() {
+        val key = "$battleLogIndex:$currentBattleMessage"
+        if (lastEnemyDefeatRevealKey == key) return
+
+        lastEnemyDefeatRevealKey = key
+        revealedEnemyDefeatCount = (revealedEnemyDefeatCount + 1).coerceAtMost(6)
+    }
 }
 
 @Composable
-internal fun rememberBattleUiState(battleManager: BattleManager): BattleUiState {
-    return remember(battleManager) { BattleUiState(battleManager) }
+internal fun rememberBattleUiState(
+    battleManager: BattleManager,
+    openingMessage: String
+): BattleUiState {
+    return remember(battleManager, openingMessage) { BattleUiState(battleManager, openingMessage) }
 }

@@ -14,6 +14,7 @@ import com.example.chimeralis.ui.screens.world.Joystick
 import com.example.chimeralis.ui.screens.world.SmallWorldMenuButton
 import com.example.chimeralis.ui.screens.world.TeamSlots
 
+/** Renders the world controls overlay UI. */
 @Composable
 fun BoxScope.WorldControlsOverlay(
     team: List<Chimera>,

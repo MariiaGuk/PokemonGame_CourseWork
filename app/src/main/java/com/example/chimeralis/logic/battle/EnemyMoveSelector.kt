@@ -7,6 +7,7 @@ import com.example.chimeralis.logic.chimeras.moves.Move
 class EnemyMoveSelector(
     private val randomProvider: RandomProvider = DefaultRandomProvider
 ) {
+
     /** Returns one available move from the enemy chimera. */
     fun selectMove(chimera: Chimera): Move {
         val moves = chimera.moves

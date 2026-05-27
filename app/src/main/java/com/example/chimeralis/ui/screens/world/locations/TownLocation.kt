@@ -18,6 +18,7 @@ import com.example.chimeralis.ui.screens.world.MapColumns
 import com.example.chimeralis.ui.screens.world.MapRows
 import kotlin.math.roundToInt
 
+/** Stores town building data. */
 internal data class TownBuilding(
     val imageRes: Int,
     val column: Int,
@@ -26,6 +27,7 @@ internal data class TownBuilding(
     val rows: Int = 4
 )
 
+/** Stores town sign data. */
 internal data class TownSign(
     val column: Int,
     val row: Int,
@@ -120,6 +122,7 @@ internal val grassTownPathTiles = buildSet {
     }
 }
 
+/** Renders the town location tiles UI. */
 @Composable
 internal fun TownLocationTiles(
     mapLeft: Float,
@@ -162,6 +165,7 @@ internal fun TownLocationTiles(
     }
 }
 
+/** Renders the town location buildings UI. */
 @Composable
 internal fun TownLocationBuildings(
     drawOverPlayer: Boolean,
@@ -209,6 +213,7 @@ internal fun TownLocationBuildings(
     }
 }
 
+/** Renders the town location signs UI. */
 @Composable
 internal fun TownLocationSigns(
     mapLeft: Float,

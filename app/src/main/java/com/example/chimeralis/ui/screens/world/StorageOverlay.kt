@@ -66,6 +66,7 @@ internal fun ChimeraStorageOverlay(
     var selectedStorageIndex by remember(teamStateKey) { mutableStateOf<Int?>(null) }
     val storageScrollState = rememberScrollState()
 
+    /** Selects a team slot for storage actions. */
     fun selectTeam(index: Int) {
         val storageIndex = selectedStorageIndex
         if (storageIndex != null) {
@@ -77,6 +78,7 @@ internal fun ChimeraStorageOverlay(
         }
     }
 
+    /** Selects a storage slot for team actions. */
     fun selectStorage(index: Int) {
         val teamIndex = selectedTeamIndex
         if (teamIndex != null) {

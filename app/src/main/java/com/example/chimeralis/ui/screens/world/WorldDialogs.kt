@@ -76,6 +76,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the item target selection overlay UI. */
 @Composable
 internal fun ItemTargetSelectionOverlay(
     item: Item,
@@ -139,6 +140,7 @@ internal fun ItemTargetSelectionOverlay(
     }
 }
 
+/** Renders the confirm item use dialog UI. */
 @Composable
 internal fun ConfirmItemUseDialog(
     item: Item,
@@ -187,6 +189,7 @@ internal fun ConfirmItemUseDialog(
     }
 }
 
+/** Renders the town sign dialog overlay UI. */
 @Composable
 internal fun TownSignDialogOverlay(
     sign: TownSign,
@@ -245,6 +248,7 @@ internal fun TownSignDialogOverlay(
     }
 }
 
+/** Renders the shift npc dialog overlay UI. */
 @Composable
 internal fun ShiftNpcDialogOverlay(
     step: Int,
@@ -345,6 +349,7 @@ internal fun ShiftNpcDialogOverlay(
     }
 }
 
+/** Renders the trainer npc challenge overlay UI. */
 @Composable
 internal fun TrainerNpcChallengeOverlay(
     step: Int,

@@ -9,10 +9,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
+import com.example.chimeralis.ui.navigation.session.GameSessionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/** Represents the game transition state. */
 class GameTransitionState(
     private val context: Context,
     private val scope: CoroutineScope
@@ -20,6 +22,7 @@ class GameTransitionState(
     val whiteAlpha = Animatable(0f)
     val battleZoomScale = Animatable(1f)
 
+    /** Handles transition to behavior. */
     fun transitionTo(
         screen: GameScreen,
         session: GameSessionState
@@ -84,6 +87,7 @@ class GameTransitionState(
     }
 }
 
+/** Remembers the remember game transition state state. */
 @Composable
 fun rememberGameTransitionState(): GameTransitionState {
     val context = LocalContext.current

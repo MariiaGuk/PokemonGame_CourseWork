@@ -8,6 +8,7 @@ import com.example.chimeralis.logic.chimeras.Stats
 
 /** Creates move instances from move identifiers. */
 object MoveFactory {
+
     /** Builds one move with type, PP, accuracy, and effects. */
     fun createMove(move: MoveName): Move {
         return when (move) {

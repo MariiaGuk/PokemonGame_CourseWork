@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.navigation.GameScreen
 
+/** Plays the looping music for the active screen. */
 @Composable
 fun GameMusic(
     currentScreen: GameScreen,
@@ -75,6 +76,7 @@ fun GameMusic(
     }
 }
 
+/** Selects the music resource for a screen. */
 private fun GameScreen.musicResId(): Int {
     return when (this) {
         GameScreen.LavaField -> R.raw.lava_field_theme

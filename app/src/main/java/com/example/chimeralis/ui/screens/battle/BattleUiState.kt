@@ -14,6 +14,7 @@ import com.example.chimeralis.logic.battle.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.BattleSide
 import com.example.chimeralis.logic.items.Item
 
+/** Represents the battle ui state. */
 internal class BattleUiState(
     private val battleManager: BattleManager,
     openingMessage: String
@@ -48,6 +49,7 @@ internal class BattleUiState(
     val isBattleFeedbackPlaying: Boolean get() = activeBattleFeedbacks.isNotEmpty()
     val isBattleInputLocked: Boolean get() = isBattleIntroLocked || isBattleExitPending
 
+    /** Handles show battle log behavior. */
     fun showBattleLog(
         messages: List<String>,
         animations: List<BattleMoveAnimation> = emptyList()
@@ -66,6 +68,7 @@ internal class BattleUiState(
         panelMode = BattlePanelMode.Log
     }
 
+    /** Handles advance battle log behavior. */
     fun advanceBattleLog() {
         if (panelMode != BattlePanelMode.Log ||
             isMoveAnimationPlaying ||
@@ -109,6 +112,7 @@ internal class BattleUiState(
         }
     }
 
+    /** Handles show battle result behavior. */
     fun showBattleResult(
         log: List<String>,
         animations: List<BattleMoveAnimation>
@@ -117,6 +121,7 @@ internal class BattleUiState(
         uiVersion++
     }
 
+    /** Handles apply animation visual state behavior. */
     fun applyAnimationVisualState(animation: BattleMoveAnimation) {
         val userAfter = animation.userAfter
         val targetAfter = animation.targetAfter
@@ -136,6 +141,7 @@ internal class BattleUiState(
         }
     }
 
+    /** Handles perform battle action behavior. */
     fun performBattleAction(action: BattleAction) {
         val playerChimera = battleManager.playerChimera
         val wildChimera = battleManager.enemyChimera
@@ -165,12 +171,14 @@ internal class BattleUiState(
         showBattleResult(result.log, result.animations)
     }
 
+    /** Handles set visual player progress behavior. */
     fun setVisualPlayerProgress(level: Int, exp: Int) {
         visualPlayerLevel = level
         visualPlayerExp = exp
         uiVersion++
     }
 
+    /** Handles reveal enemy defeat for current message behavior. */
     fun revealEnemyDefeatForCurrentMessage() {
         val key = "$battleLogIndex:$currentBattleMessage"
         if (lastEnemyDefeatRevealKey == key) return
@@ -180,6 +188,7 @@ internal class BattleUiState(
     }
 }
 
+/** Remembers the remember battle ui state state. */
 @Composable
 internal fun rememberBattleUiState(
     battleManager: BattleManager,

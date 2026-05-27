@@ -12,6 +12,7 @@ class DamageEffect(private val power: Int): IMoveEffect
         target.stats.takeDamage(damage)
     }
     companion object {
+
         /** Calculates typed damage with effectiveness and same-type attack bonus. */
         fun calculateDamageAmount(attacker: Chimera, target: Chimera, moveType: ChimeraType, power: Int): Int {
             val effectiveness = moveType.typeEffectiveness(target.type)

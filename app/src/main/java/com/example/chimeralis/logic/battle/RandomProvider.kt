@@ -4,6 +4,7 @@ import kotlin.random.Random
 
 /** Abstraction over randomness used to keep battle logic testable. */
 interface RandomProvider {
+
     /** Returns a random double in the default range. */
     fun nextDouble(): Double
 
@@ -13,6 +14,7 @@ interface RandomProvider {
 
 /** Production random provider backed by Kotlin Random. */
 object DefaultRandomProvider : RandomProvider {
+
     /** Returns a random double in the default range. */
     override fun nextDouble(): Double = Random.nextDouble()
 

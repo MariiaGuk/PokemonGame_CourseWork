@@ -97,6 +97,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the town interior screen UI. */
 @Composable
 fun TownInteriorScreen(
     interior: TownInterior,

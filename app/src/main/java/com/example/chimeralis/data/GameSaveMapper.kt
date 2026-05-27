@@ -8,7 +8,10 @@ import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 
+/** Represents the game save mapper. */
 class GameSaveMapper {
+
+    /** Converts data into saved chimera. */
     fun toSavedChimera(chimera: Chimera): SavedChimera {
         return SavedChimera(
             species = chimera.species,
@@ -26,6 +29,7 @@ class GameSaveMapper {
         )
     }
 
+    /** Converts data into chimera. */
     fun toChimera(savedChimera: SavedChimera): Chimera {
         return ChimeraFactory.createChimera(
             species = savedChimera.species,
@@ -46,6 +50,7 @@ class GameSaveMapper {
         }
     }
 
+    /** Converts data into inventory. */
     fun toInventory(savedItems: List<SavedItem>): Inventory {
         return Inventory().also { inventory ->
             savedItems.forEach { savedItem ->
@@ -54,10 +59,12 @@ class GameSaveMapper {
         }
     }
 
+    /** Converts data into saved item. */
     fun toSavedItem(item: Item, amount: Int): SavedItem {
         return SavedItem(item.itemName, amount)
     }
 
+    /** Handles species save name behavior. */
     fun speciesSaveName(species: ChimeraSpecies): String = when (species) {
         ChimeraSpecies.Sunflare -> "Sunflare"
         ChimeraSpecies.Solflare -> "Solflare"
@@ -66,8 +73,10 @@ class GameSaveMapper {
         ChimeraSpecies.Aquantis -> "Aquantis"
     }
 
+    /** Handles item save name behavior. */
     fun itemSaveName(itemName: ItemName): String = itemName.displayName
 
+    /** Converts data into chimera species. */
     fun toChimeraSpecies(value: String): ChimeraSpecies? = when (value) {
         "Sunflare" -> ChimeraSpecies.Sunflare
         "Solflare" -> ChimeraSpecies.Solflare
@@ -77,12 +86,11 @@ class GameSaveMapper {
         else -> null
     }
 
+    /** Converts data into item name. */
     fun toItemName(value: String): ItemName? = ItemName.values().firstOrNull {
         it.displayName == value
-    } ?: when (value) {
-        "Poke Ball" -> ItemName.BINDING_STONE
-        else -> null
     }
 
+    /** Handles battle name behavior. */
     fun battleName(species: ChimeraSpecies): String = speciesSaveName(species)
 }

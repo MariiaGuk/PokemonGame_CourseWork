@@ -4,7 +4,10 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.items.Item
 
+/** Represents the battle move reporter. */
 class BattleMoveReporter {
+
+    /** Handles report move behavior. */
     fun reportMove(
         log: MutableList<String>,
         side: BattleSide,
@@ -50,6 +53,7 @@ class BattleMoveReporter {
         )
     }
 
+    /** Handles report item behavior. */
     fun reportItem(
         item: Item,
         target: Chimera,
@@ -67,6 +71,7 @@ class BattleMoveReporter {
         )
     }
 
+    /** Handles report capture behavior. */
     fun reportCapture(item: Item, target: Chimera, captureResult: BattleCaptureResult): BattleMoveAnimation {
         return BattleMoveAnimation(
             side = BattleSide.Player,
@@ -78,6 +83,7 @@ class BattleMoveReporter {
         )
     }
 
+    /** Handles append battle changes behavior. */
     private fun appendBattleChanges(
         log: MutableList<String>,
         targetLabel: String,
@@ -99,6 +105,7 @@ class BattleMoveReporter {
         }
     }
 
+    /** Handles collect move feedbacks behavior. */
     private fun collectMoveFeedbacks(
         targetSide: BattleSide,
         targetBefore: BattleStatsSnapshot,
@@ -113,6 +120,7 @@ class BattleMoveReporter {
         }.distinct()
     }
 
+    /** Handles add feedbacks for stat snapshot behavior. */
     private fun MutableList<BattleMoveFeedback>.addFeedbacksForStatSnapshot(
         side: BattleSide,
         before: BattleStatsSnapshot,
@@ -132,6 +140,7 @@ class BattleMoveReporter {
         }
     }
 
+    /** Handles append hp change behavior. */
     private fun appendHpChange(
         log: MutableList<String>,
         label: String,
@@ -143,6 +152,7 @@ class BattleMoveReporter {
         }
     }
 
+    /** Handles append stat changes behavior. */
     private fun appendStatChanges(
         log: MutableList<String>,
         label: String,
@@ -154,6 +164,7 @@ class BattleMoveReporter {
         appendStatChange(log, label, "speed", before.speed, after.speed)
     }
 
+    /** Handles append stat change behavior. */
     private fun appendStatChange(
         log: MutableList<String>,
         label: String,
@@ -167,6 +178,7 @@ class BattleMoveReporter {
         }
     }
 
+    /** Handles opponent behavior. */
     private fun BattleSide.opponent(): BattleSide {
         return when (this) {
             BattleSide.Player -> BattleSide.Enemy

@@ -1,5 +1,5 @@
 package com.example.chimeralis.logic.items
-
+/** Handles price behavior. */
 fun ItemName.price(): Int = when (this) {
     ItemName.POTION -> 30
     ItemName.SUPER_POTION -> 80

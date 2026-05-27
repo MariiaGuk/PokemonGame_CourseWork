@@ -76,6 +76,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the team slots UI. */
 @Composable
 internal fun TeamSlots(
     team: List<Chimera>,
@@ -104,6 +105,7 @@ internal fun TeamSlots(
     }
 }
 
+/** Renders the team slot UI. */
 @Composable
 internal fun TeamSlot(
     chimera: Chimera?,
@@ -191,6 +193,7 @@ internal fun TeamSlot(
     }
 }
 
+/** Renders the shift npc world sprite UI. */
 @Composable
 internal fun ShiftNpcWorldSprite(
     frameIndex: Int,
@@ -204,6 +207,7 @@ internal fun ShiftNpcWorldSprite(
     )
 }
 
+/** Renders the trainer npc world sprite UI. */
 @Composable
 internal fun TrainerNpcWorldSprite(
     frameIndex: Int,
@@ -217,6 +221,7 @@ internal fun TrainerNpcWorldSprite(
     )
 }
 
+/** Renders the small world menu button UI. */
 @Composable
 internal fun SmallWorldMenuButton(
     text: String,

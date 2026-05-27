@@ -49,6 +49,7 @@ data class GameSave(
     val location: SavedGameLocation = SavedGameLocation.LavaField,
     val updatedAt: Long
 ) {
+
     /** Returns the first team member species for compact save descriptions. */
     val starterSpecies: ChimeraSpecies get() = team.first().species
 

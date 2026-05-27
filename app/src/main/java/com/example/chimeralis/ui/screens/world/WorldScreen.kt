@@ -84,6 +84,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the world screen UI. */
 @Composable
 fun WorldScreen(
     starter: ChimeraSpecies?,

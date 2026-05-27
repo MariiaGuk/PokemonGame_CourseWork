@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
+/** Renders the trainer name screen UI. */
 @Composable
 fun TrainerNameScreen(
     onNameConfirmed: (String) -> Unit,

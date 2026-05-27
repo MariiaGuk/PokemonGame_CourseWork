@@ -24,6 +24,7 @@ internal val grassTiles = setOf(
     2 to 8, 3 to 8, 18 to 8, 19 to 8
 )
 
+/** Renders the wild field location tiles UI. */
 @Composable
 internal fun WildFieldLocationTiles(
     mapLeft: Float,

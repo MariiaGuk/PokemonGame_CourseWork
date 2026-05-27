@@ -23,6 +23,7 @@ import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.locations.TownInteriorData
 import kotlin.math.roundToInt
 
+/** Renders the town interior scene UI. */
 @Composable
 internal fun BoxScope.TownInteriorScene(
     interior: TownInterior,

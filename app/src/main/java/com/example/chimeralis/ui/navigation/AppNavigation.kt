@@ -10,11 +10,20 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.chimeralis.audio.GameMusic
 import com.example.chimeralis.audio.GameSoundEffects
 import com.example.chimeralis.data.GameSaveStore
+import com.example.chimeralis.ui.navigation.routes.BattleRoute
+import com.example.chimeralis.ui.navigation.routes.ContinueRoute
+import com.example.chimeralis.ui.navigation.routes.MainMenuRoute
+import com.example.chimeralis.ui.navigation.routes.StarterSelectionRoute
+import com.example.chimeralis.ui.navigation.routes.TownInteriorRoute
+import com.example.chimeralis.ui.navigation.routes.TrainerNameRoute
+import com.example.chimeralis.ui.navigation.routes.WorldRoute
+import com.example.chimeralis.ui.navigation.session.rememberGameSessionState
 import com.example.chimeralis.ui.overlays.LocationTransitionOverlay
 import com.example.chimeralis.ui.screens.onboarding.SplashScreen
 import com.example.chimeralis.ui.screens.world.WorldField
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
+/** Renders the app navigation UI. */
 @Composable
 fun AppNavigation(onExitGame: () -> Unit) {
     val context = LocalContext.current
@@ -39,8 +48,8 @@ fun AppNavigation(onExitGame: () -> Unit) {
             volume = soundVolume
         )
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) { // Outer for overlays
+            Box(modifier = Modifier.fillMaxSize()) { // Inner for screens
                 when (currentScreen) {
                     GameScreen.Splash -> SplashScreen(
                         onFinished = { currentScreen = GameScreen.MainMenu }

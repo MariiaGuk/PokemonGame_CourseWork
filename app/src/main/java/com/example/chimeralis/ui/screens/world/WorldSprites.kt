@@ -1,4 +1,4 @@
-﻿package com.example.chimeralis.ui.screens.world
+package com.example.chimeralis.ui.screens.world
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearEasing
@@ -76,6 +76,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Handles service npc idle frame behavior. */
 internal fun serviceNpcIdleFrame(interior: TownInterior, frameIndex: Int): Int {
     val frames = when (interior) {
         TownInterior.ChimeraCenter -> nurseIdleFrames
@@ -85,6 +86,7 @@ internal fun serviceNpcIdleFrame(interior: TownInterior, frameIndex: Int): Int {
     return frames[frameIndex % frames.size]
 }
 
+/** Handles service npc dialog frame behavior. */
 internal fun serviceNpcDialogFrame(interior: TownInterior, step: Int, frameIndex: Int): Int {
     val frames = when (interior) {
         TownInterior.ChimeraCenter -> if (step == 0) {
@@ -102,6 +104,7 @@ internal fun serviceNpcDialogFrame(interior: TownInterior, step: Int, frameIndex
     return frames[frameIndex % frames.size]
 }
 
+/** Handles player frame behavior. */
 internal fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: Int): Int {
     val frames = when {
         isMoving && direction == Direction.Down -> frontRunFrames
@@ -115,18 +118,22 @@ internal fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: In
     return frames[frameIndex % frames.size]
 }
 
+/** Handles shift npc idle frame behavior. */
 internal fun shiftNpcIdleFrame(frameIndex: Int): Int {
     return shiftNpcIdleFrames[frameIndex % shiftNpcIdleFrames.size]
 }
 
+/** Handles trainer npc idle frame behavior. */
 internal fun trainerNpcIdleFrame(frameIndex: Int): Int {
     return trainerNpcIdleFrames[frameIndex % trainerNpcIdleFrames.size]
 }
 
+/** Handles trainer npc dialog frame behavior. */
 internal fun trainerNpcDialogFrame(frameIndex: Int): Int {
     return trainerNpcDialogFrames[frameIndex % trainerNpcDialogFrames.size]
 }
 
+/** Handles shift npc dialog frame behavior. */
 internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
     val frames = when (step) {
         0 -> shiftNpcSeriousDialogFrames
@@ -137,6 +144,7 @@ internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
     return frames[frameIndex % frames.size]
 }
 
+/** Handles trainer npc dialog text behavior. */
 internal fun trainerNpcDialogText(step: Int): String {
     return if (step == 0) {
         "Hey! You look like you have a strong team. I have been waiting for a real challenge."
@@ -145,6 +153,7 @@ internal fun trainerNpcDialogText(step: Int): String {
     }
 }
 
+/** Handles shift npc dialog text behavior. */
 internal fun shiftNpcDialogText(step: Int): String {
     return when (step) {
         0 -> "Hey, who are you and what do you want?"
@@ -265,6 +274,7 @@ internal val shiftNpcCalmDialogFrames = listOf(
     R.drawable.dialog_shift_npc_calm_2
 )
 
+/** Handles random wild chimera behavior. */
 internal fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {
     val pool = listOf(
         ChimeraSpecies.Sunflare,
@@ -275,6 +285,7 @@ internal fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {
     return pool.random()
 }
 
+/** Handles team image res behavior. */
 internal fun ChimeraSpecies.teamImageRes(): Int = when (this) {
     ChimeraSpecies.Sunflare,
     ChimeraSpecies.Solflare,
@@ -283,6 +294,7 @@ internal fun ChimeraSpecies.teamImageRes(): Int = when (this) {
     ChimeraSpecies.Aquantis -> R.drawable.starter_water
 }
 
+/** Draws the draw bush tile. */
 internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBushTile(
     left: Float,
     top: Float,

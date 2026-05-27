@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 
+/** Renders the location transition overlay UI. */
 @Composable
 fun LocationTransitionOverlay(
     alpha: Float,

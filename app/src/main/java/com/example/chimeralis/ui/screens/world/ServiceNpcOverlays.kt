@@ -77,6 +77,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the service npc dialog overlay UI. */
 @Composable
 internal fun ServiceNpcDialogOverlay(
     interior: TownInterior,
@@ -168,6 +169,7 @@ internal fun ServiceNpcDialogOverlay(
     }
 }
 
+/** Renders the healing overlay UI. */
 @Composable
 internal fun HealingOverlay() {
     Box(
@@ -190,6 +192,7 @@ internal fun HealingOverlay() {
     }
 }
 
+/** Renders the shop overlay UI. */
 @Composable
 internal fun ShopOverlay(
     money: Int,
@@ -277,6 +280,7 @@ internal fun ShopOverlay(
     }
 }
 
+/** Renders the shop item row UI. */
 @Composable
 internal fun ShopItemRow(
     itemName: ItemName,
@@ -383,6 +387,7 @@ internal fun ShopItemRow(
     }
 }
 
+/** Renders the shop stepper button UI. */
 @Composable
 internal fun ShopStepperButton(
     label: String,

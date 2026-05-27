@@ -1,4 +1,4 @@
-package com.example.chimeralis.ui.navigation
+package com.example.chimeralis.ui.navigation.session
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,8 +11,10 @@ import com.example.chimeralis.data.GameSaveStore
 import com.example.chimeralis.data.SavedGameLocation
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
+import com.example.chimeralis.ui.navigation.GameScreen
 import com.example.chimeralis.ui.screens.world.Direction
 
+/** Represents the game session state. */
 class GameSessionState(
     internal val saveStore: GameSaveStore
 ) {
@@ -58,6 +60,7 @@ class GameSessionState(
                 teamSignature != lastSavedTeamSignature
 }
 
+/** Remembers the remember game session state state. */
 @Composable
 fun rememberGameSessionState(saveStore: GameSaveStore): GameSessionState {
     return remember(saveStore) { GameSessionState(saveStore) }

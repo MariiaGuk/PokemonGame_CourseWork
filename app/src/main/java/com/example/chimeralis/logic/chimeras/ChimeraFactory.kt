@@ -5,6 +5,7 @@ import com.example.chimeralis.logic.chimeras.moves.MoveName
 
 /** Creates configured chimera instances for every species in the game. */
 object ChimeraFactory {
+
     /** Generates random individual values for a new chimera. */
     fun generateRandomIV(): Stats = Stats(
         maxHp = (0..15).random(),

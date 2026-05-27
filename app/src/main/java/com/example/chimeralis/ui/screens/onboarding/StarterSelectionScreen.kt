@@ -50,6 +50,7 @@ import com.example.chimeralis.logic.chimeras.Stats
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
+/** Stores starter option data. */
 private data class StarterOption(
     val species: ChimeraSpecies,
     val accent: Color,
@@ -57,6 +58,7 @@ private data class StarterOption(
     val imageRes: Int
 )
 
+/** Renders the starter selection screen UI. */
 @Composable
 fun StarterSelectionScreen(
     onStarterSelected: (ChimeraSpecies, String) -> Unit,
@@ -64,8 +66,8 @@ fun StarterSelectionScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     var selectedStarter by remember { mutableStateOf<StarterOption?>(null) }
-    var pokemonName by remember { mutableStateOf(TextFieldValue("")) }
-    var isPokemonNameFocused by remember { mutableStateOf(false) }
+    var chimeraName by remember { mutableStateOf(TextFieldValue("")) }
+    var isChimeraNameFocused by remember { mutableStateOf(false) }
     val starters = listOf(
         StarterOption(
             species = ChimeraSpecies.Sunflare,
@@ -149,8 +151,8 @@ fun StarterSelectionScreen(
                         starter = starter,
                         onClick = {
                             selectedStarter = starter
-                            pokemonName = TextFieldValue(starter.species.defaultName())
-                            isPokemonNameFocused = false
+                            chimeraName = TextFieldValue(starter.species.defaultName())
+                            isChimeraNameFocused = false
                         },
                         modifier = Modifier
                             .weight(1f)
@@ -164,23 +166,23 @@ fun StarterSelectionScreen(
         }
 
         selectedStarter?.let { starter ->
-            PokemonNameOverlay(
+            ChimeraNameOverlay(
                 starter = starter,
-                name = pokemonName,
-                isNameFocused = isPokemonNameFocused,
+                name = chimeraName,
+                isNameFocused = isChimeraNameFocused,
                 onNameChanged = { value ->
-                    if (value.text.length <= MaxPokemonNameLength) {
-                        pokemonName = value
+                    if (value.text.length <= MaxChimeraNameLength) {
+                        chimeraName = value
                     }
                 },
-                onFocusChanged = { focused -> isPokemonNameFocused = focused },
+                onFocusChanged = { focused -> isChimeraNameFocused = focused },
                 onBack = {
                     selectedStarter = null
-                    pokemonName = TextFieldValue("")
-                    isPokemonNameFocused = false
+                    chimeraName = TextFieldValue("")
+                    isChimeraNameFocused = false
                 },
                 onConfirm = {
-                    val finalName = pokemonName.text.trim().ifBlank { starter.species.defaultName() }
+                    val finalName = chimeraName.text.trim().ifBlank { starter.species.defaultName() }
                     onStarterSelected(starter.species, finalName)
                 }
             )
@@ -188,8 +190,9 @@ fun StarterSelectionScreen(
     }
 }
 
+/** Renders the chimera name overlay UI. */
 @Composable
-private fun PokemonNameOverlay(
+private fun ChimeraNameOverlay(
     starter: StarterOption,
     name: TextFieldValue,
     isNameFocused: Boolean,
@@ -294,6 +297,7 @@ private fun PokemonNameOverlay(
     }
 }
 
+/** Renders the starter card UI. */
 @Composable
 private fun StarterCard(
     starter: StarterOption,
@@ -354,6 +358,7 @@ private fun StarterCard(
     }
 }
 
+/** Renders the starter image UI. */
 @Composable
 private fun StarterImage(starter: StarterOption, name: String) {
     Box(
@@ -374,6 +379,7 @@ private fun StarterImage(starter: StarterOption, name: String) {
     }
 }
 
+/** Handles as ui stats behavior. */
 private fun Stats.asUiStats(): List<Pair<String, Int>> = listOf(
     "HP" to maxHp,
     "ATK" to attack,
@@ -381,11 +387,13 @@ private fun Stats.asUiStats(): List<Pair<String, Int>> = listOf(
     "SPD" to speed
 )
 
+/** Handles display name behavior. */
 private fun ChimeraType.displayName(): String {
     val lower = name.lowercase()
     return lower.replaceFirstChar { it.uppercase() }
 }
 
+/** Handles battle trait behavior. */
 private fun ChimeraType.battleTrait(): String = when (this) {
     ChimeraType.FIRE -> "Fast striker"
     ChimeraType.GRASS -> "Steady fighter"
@@ -393,6 +401,7 @@ private fun ChimeraType.battleTrait(): String = when (this) {
     ChimeraType.NORMAL -> "Balanced fighter"
 }
 
+/** Handles default name behavior. */
 private fun ChimeraSpecies.defaultName(): String = when (this) {
     ChimeraSpecies.Sunflare -> "Sunflare"
     ChimeraSpecies.Solflare -> "Solflare"
@@ -401,8 +410,9 @@ private fun ChimeraSpecies.defaultName(): String = when (this) {
     ChimeraSpecies.Aquantis -> "Aquantis"
 }
 
-private const val MaxPokemonNameLength = 12
+private const val MaxChimeraNameLength = 12
 
+/** Renders the stats grid UI. */
 @Composable
 private fun StatsGrid(
     stats: List<Pair<String, Int>>,
@@ -430,6 +440,7 @@ private fun StatsGrid(
     }
 }
 
+/** Renders the stat row UI. */
 @Composable
 private fun StatRow(
     name: String,

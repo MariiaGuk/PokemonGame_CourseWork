@@ -1,11 +1,20 @@
-package com.example.chimeralis.ui.navigation
+package com.example.chimeralis.ui.navigation.routes
 
 import androidx.compose.runtime.Composable
+import com.example.chimeralis.ui.navigation.GameScreen
+import com.example.chimeralis.ui.navigation.session.GameSessionState
+import com.example.chimeralis.ui.navigation.session.loadSave
+import com.example.chimeralis.ui.navigation.session.refreshSaves
+import com.example.chimeralis.ui.navigation.session.resetForNewGame
+import com.example.chimeralis.ui.navigation.session.saveCurrentGame
+import com.example.chimeralis.ui.navigation.session.startNewGame
+import com.example.chimeralis.ui.navigation.session.toGameScreen
 import com.example.chimeralis.ui.screens.menu.ContinueScreen
 import com.example.chimeralis.ui.screens.menu.MainMenuScreen
 import com.example.chimeralis.ui.screens.onboarding.StarterSelectionScreen
 import com.example.chimeralis.ui.screens.onboarding.TrainerNameScreen
 
+/** Renders the main menu route UI. */
 @Composable
 internal fun GameSessionState.MainMenuRoute(onExitGame: () -> Unit) {
     MainMenuScreen(
@@ -31,6 +40,7 @@ internal fun GameSessionState.MainMenuRoute(onExitGame: () -> Unit) {
     )
 }
 
+/** Renders the continue route UI. */
 @Composable
 internal fun GameSessionState.ContinueRoute() {
     ContinueScreen(
@@ -47,6 +57,7 @@ internal fun GameSessionState.ContinueRoute() {
     )
 }
 
+/** Renders the trainer name route UI. */
 @Composable
 internal fun GameSessionState.TrainerNameRoute() {
     TrainerNameScreen(
@@ -68,6 +79,7 @@ internal fun GameSessionState.TrainerNameRoute() {
     )
 }
 
+/** Renders the starter selection route UI. */
 @Composable
 internal fun GameSessionState.StarterSelectionRoute() {
     StarterSelectionScreen(

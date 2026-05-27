@@ -35,6 +35,7 @@ import com.example.chimeralis.logic.trainers.Player
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
+/** Renders the battle screen UI. */
 @Composable
 fun BattleScreen(
     player: Player,
@@ -501,6 +502,7 @@ fun BattleScreen(
     }
 }
 
+/** Renders the trainer binding stone column UI. */
 @Composable
 private fun TrainerBindingStoneColumn(
     teamSize: Int,

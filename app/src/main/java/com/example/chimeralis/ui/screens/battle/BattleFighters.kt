@@ -68,7 +68,7 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-
+/** Renders the battle fighter UI. */
 @Composable
 internal fun BattleFighter(
     imageRes: Int,
@@ -97,6 +97,7 @@ internal fun BattleFighter(
     )
 }
 
+/** Renders the capture ball animation UI. */
 @Composable
 internal fun CaptureBallAnimation(
     progress: Float,
@@ -188,6 +189,7 @@ internal fun CaptureBallAnimation(
     }
 }
 
+/** Renders the capture result binding stone UI. */
 @Composable
 internal fun CaptureResultBindingStone(
     caught: Boolean,
@@ -212,6 +214,7 @@ internal fun CaptureResultBindingStone(
     }
 }
 
+/** Renders the binding stone capture sprite UI. */
 @Composable
 internal fun BindingStoneCaptureSprite(
     phase: CaptureBallPhase,
@@ -233,6 +236,7 @@ internal fun BindingStoneCaptureSprite(
     )
 }
 
+/** Renders the capture absorb flash UI. */
 @Composable
 internal fun CaptureAbsorbFlash(
     progress: Float,
@@ -254,6 +258,7 @@ internal fun CaptureAbsorbFlash(
     }
 }
 
+/** Lists the capture ball phase values. */
 internal enum class CaptureBallPhase {
     Throwing,
     Absorbing,
@@ -262,6 +267,7 @@ internal enum class CaptureBallPhase {
     Locked
 }
 
+/** Handles capture throw point behavior. */
 internal fun captureThrowPoint(
     progress: Float,
     startX: Dp,
@@ -277,6 +283,7 @@ internal fun captureThrowPoint(
     return x to y
 }
 
+/** Handles trajectory rotation degrees behavior. */
 internal fun trajectoryRotationDegrees(
     previousPoint: Pair<Dp, Dp>,
     nextPoint: Pair<Dp, Dp>
@@ -290,6 +297,7 @@ internal fun trajectoryRotationDegrees(
     return directionDegrees - 18f
 }
 
+/** Handles ease in out cubic behavior. */
 internal fun easeInOutCubic(progress: Float): Float {
     val p = progress.coerceIn(0f, 1f)
     return if (p < 0.5f) {
@@ -300,6 +308,7 @@ internal fun easeInOutCubic(progress: Float): Float {
     }
 }
 
+/** Handles ease in cubic behavior. */
 internal fun easeInCubic(progress: Float): Float {
     val p = progress.coerceIn(0f, 1f)
     return p * p * p

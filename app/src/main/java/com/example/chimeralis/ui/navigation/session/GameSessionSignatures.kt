@@ -1,9 +1,10 @@
-package com.example.chimeralis.ui.navigation
+package com.example.chimeralis.ui.navigation.session
 
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
 
+/** Handles team signature behavior. */
 internal fun Player.teamSignature(): String {
     val teamState = team.joinToString(separator = "|") { chimera -> chimera.signature() }
     val storageState = storage.joinToString(separator = "|") { chimera -> chimera.signature() }
@@ -14,6 +15,7 @@ internal fun Player.teamSignature(): String {
     return "$teamState#$storageState#$inventoryState#$money"
 }
 
+/** Handles signature behavior. */
 private fun Chimera.signature(): String {
     return listOf(
         species.battleName(),
@@ -29,6 +31,7 @@ private fun Chimera.signature(): String {
     ).joinToString(separator = ":")
 }
 
+/** Handles battle name behavior. */
 private fun ChimeraSpecies.battleName(): String = when (this) {
     ChimeraSpecies.Sunflare -> "Sunflare"
     ChimeraSpecies.Solflare -> "Solflare"

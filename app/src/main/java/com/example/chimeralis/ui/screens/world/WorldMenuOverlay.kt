@@ -76,6 +76,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the in game menu overlay UI. */
 @Composable
 internal fun InGameMenuOverlay(
     showSaveAndExit: Boolean = true,
@@ -192,6 +193,7 @@ internal fun InGameMenuOverlay(
     }
 }
 
+/** Renders the world inventory panel UI. */
 @Composable
 internal fun WorldInventoryPanel(
     inventoryItems: Map<Item, Int>,
@@ -276,6 +278,7 @@ internal fun WorldInventoryPanel(
     }
 }
 
+/** Renders the inventory item details plate UI. */
 @Composable
 internal fun InventoryItemDetailsPlate(
     item: Item,
@@ -335,6 +338,7 @@ internal fun InventoryItemDetailsPlate(
     }
 }
 
+/** Renders the world inventory slot UI. */
 @Composable
 internal fun WorldInventorySlot(
     slot: Pair<Item, Int>?,
@@ -389,6 +393,7 @@ internal fun WorldInventorySlot(
     }
 }
 
+/** Renders the item icon UI. */
 @Composable
 internal fun ItemIcon(item: Item) {
     val imageRes = when (item.itemName) {
@@ -406,6 +411,7 @@ internal fun ItemIcon(item: Item) {
     )
 }
 
+/** Handles description behavior. */
 internal fun Item.description(): String {
     return when (itemName) {
         ItemName.POTION -> "Restores 20 HP to one chimera."
@@ -415,6 +421,7 @@ internal fun Item.description(): String {
     }
 }
 
+/** Handles item icon res behavior. */
 internal fun itemIconRes(item: Item): Int {
     return when (item.itemName) {
         ItemName.POTION -> R.drawable.potion
@@ -424,6 +431,7 @@ internal fun itemIconRes(item: Item): Int {
     }
 }
 
+/** Renders the save message plate UI. */
 @Composable
 internal fun SaveMessagePlate(modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme

@@ -1,13 +1,25 @@
-package com.example.chimeralis.ui.navigation
+package com.example.chimeralis.ui.navigation.routes
 
 import android.content.Context
 import androidx.compose.runtime.Composable
 import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
+import com.example.chimeralis.ui.navigation.GameScreen
+import com.example.chimeralis.ui.navigation.GameTransitionState
+import com.example.chimeralis.ui.navigation.session.GameSessionState
+import com.example.chimeralis.ui.navigation.session.buyItem
+import com.example.chimeralis.ui.navigation.session.depositTeamMember
+import com.example.chimeralis.ui.navigation.session.healTeam
+import com.example.chimeralis.ui.navigation.session.saveCurrentGame
+import com.example.chimeralis.ui.navigation.session.swapTeamMembers
+import com.example.chimeralis.ui.navigation.session.swapTeamWithStorage
+import com.example.chimeralis.ui.navigation.session.useInventoryItem
+import com.example.chimeralis.ui.navigation.session.withdrawStoredChimera
 import com.example.chimeralis.ui.screens.world.Direction
 import com.example.chimeralis.ui.screens.world.interior.TownInteriorScreen
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
+/** Renders the town interior route UI. */
 @Composable
 internal fun GameSessionState.TownInteriorRoute(
     interior: TownInterior,

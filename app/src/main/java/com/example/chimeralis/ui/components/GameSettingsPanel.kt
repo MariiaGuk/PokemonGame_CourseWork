@@ -28,6 +28,7 @@ import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlin.math.roundToInt
 
+/** Renders the game settings panel UI. */
 @Composable
 fun GameSettingsPanel(
     musicEnabled: Boolean,
@@ -69,6 +70,7 @@ fun GameSettingsPanel(
     }
 }
 
+/** Renders the settings toggle slider UI. */
 @Composable
 private fun SettingsToggleSlider(
     title: String,
@@ -89,6 +91,7 @@ private fun SettingsToggleSlider(
     }
 }
 
+/** Renders the compact gameplay settings UI. */
 @Composable
 private fun CompactGameplaySettings(
     encounterChance: Float,
@@ -105,6 +108,7 @@ private fun CompactGameplaySettings(
     }
 }
 
+/** Renders the setting card UI. */
 @Composable
 private fun SettingCard(content: @Composable ColumnScope.() -> Unit) {
     val colors = MaterialTheme.colorScheme
@@ -121,6 +125,7 @@ private fun SettingCard(content: @Composable ColumnScope.() -> Unit) {
     )
 }
 
+/** Renders the settings control row UI. */
 @Composable
 private fun SettingsControlRow(
     title: String,

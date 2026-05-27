@@ -2,6 +2,7 @@ package com.example.chimeralis.ui.screens.world.locations
 
 import com.example.chimeralis.R
 
+/** Stores town interior data data. */
 data class TownInteriorData(
     val backgroundRes: Int,
     val walkableTiles: Set<Pair<Int, Int>>,

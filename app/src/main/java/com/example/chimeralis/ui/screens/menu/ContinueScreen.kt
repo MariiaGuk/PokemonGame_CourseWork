@@ -40,6 +40,7 @@ import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
+/** Renders the continue screen UI. */
 @Composable
 fun ContinueScreen(
     saves: List<GameSave>,
@@ -134,6 +135,7 @@ fun ContinueScreen(
     }
 }
 
+/** Renders the delete save confirmation UI. */
 @Composable
 private fun DeleteSaveConfirmation(
     save: GameSave,
@@ -176,6 +178,7 @@ private fun DeleteSaveConfirmation(
     }
 }
 
+/** Renders the save list UI. */
 @Composable
 private fun SaveList(
     saves: List<GameSave>,
@@ -234,6 +237,7 @@ private fun SaveList(
     }
 }
 
+/** Renders the save row UI. */
 @Composable
 private fun SaveRow(
     save: GameSave,
@@ -276,6 +280,7 @@ private fun SaveRow(
     }
 }
 
+/** Renders the save action button UI. */
 @Composable
 private fun SaveActionButton(
     text: String,
@@ -306,6 +311,7 @@ private fun SaveActionButton(
 
 private val ContinueVisibleSaveRowsHeight = 250.dp
 
+/** Handles display name behavior. */
 private fun ChimeraSpecies.displayName(): String = when (this) {
     ChimeraSpecies.Sunflare -> "Sunflare"
     ChimeraSpecies.Solflare -> "Solflare"

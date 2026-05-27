@@ -33,7 +33,7 @@ import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 import androidx.compose.foundation.shape.RoundedCornerShape
 
-
+/** Renders the main menu screen UI. */
 @Composable
 fun MainMenuScreen(
     musicEnabled: Boolean = true,
@@ -99,6 +99,7 @@ fun MainMenuScreen(
     }
 }
 
+/** Renders the main menu settings overlay UI. */
 @Composable
 private fun MainMenuSettingsOverlay(
     musicEnabled: Boolean,
@@ -160,6 +161,7 @@ private fun MainMenuSettingsOverlay(
     }
 }
 
+/** Renders the main menu exit confirmation UI. */
 @Composable
 private fun MainMenuExitConfirmation(
     onConfirm: () -> Unit,

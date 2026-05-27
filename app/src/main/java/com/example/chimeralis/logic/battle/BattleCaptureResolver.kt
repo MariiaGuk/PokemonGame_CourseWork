@@ -12,6 +12,7 @@ data class BattleCaptureResult(
 class BattleCaptureResolver(
     private val randomProvider: RandomProvider = DefaultRandomProvider
 ) {
+
     /** Resolves a capture attempt for one target chimera. */
     fun resolve(target: Chimera): BattleCaptureResult {
         val chance = catchChance(target)

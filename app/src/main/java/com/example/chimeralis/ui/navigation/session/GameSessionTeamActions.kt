@@ -1,4 +1,4 @@
-package com.example.chimeralis.ui.navigation
+package com.example.chimeralis.ui.navigation.session
 
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item

@@ -17,6 +17,7 @@ private val ChimeralisColorScheme = darkColorScheme(
     onSurface = Gold,
 )
 
+/** Renders the chimeralis theme UI. */
 @Composable
 fun ChimeralisTheme(content: @Composable () -> Unit) {
     MaterialTheme(

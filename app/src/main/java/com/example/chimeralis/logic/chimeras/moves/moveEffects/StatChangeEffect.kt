@@ -10,6 +10,7 @@ class StatChangeEffect(
     private val amount: Int,
     private val onTarget: Boolean = true
 ): IMoveEffect {
+
     /** Applies the stat-stage change to the configured subject. */
     override fun apply(attacker: Chimera, target: Chimera, moveType: ChimeraType)
     {

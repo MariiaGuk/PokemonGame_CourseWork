@@ -68,18 +68,20 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-
+/** Stores battle feedback data. */
 internal data class BattleFeedback(
     val side: BattleSide,
     val type: BattleFeedbackType
 )
 
+/** Lists the battle feedback type values. */
 internal enum class BattleFeedbackType {
     Damage,
     Faint,
     StatChange
 }
 
+/** Lists the battle panel mode values. */
 internal enum class BattlePanelMode {
     Actions,
     Moves,
@@ -90,6 +92,7 @@ internal enum class BattlePanelMode {
     Log
 }
 
+/** Converts data into battle feedbacks. */
 internal fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> {
     return map { feedback ->
         BattleFeedback(
@@ -103,6 +106,7 @@ internal fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> 
     }
 }
 
+/** Handles shake offset behavior. */
 internal fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
     if (this?.type != BattleFeedbackType.Damage && this?.type != BattleFeedbackType.Faint) return 0.dp
 
@@ -114,12 +118,14 @@ internal fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
     }
 }
 
+/** Handles faint drop offset behavior. */
 internal fun BattleFeedback?.faintDropOffset(frameIndex: Int): Dp {
     if (this?.type != BattleFeedbackType.Faint) return 0.dp
 
     return (34f * faintProgress(frameIndex)).dp
 }
 
+/** Handles tint color behavior. */
 internal fun BattleFeedback?.tintColor(): Color? {
     return when (this?.type) {
         BattleFeedbackType.Damage -> Color(0xFFFF3535).copy(alpha = 0.42f)
@@ -129,6 +135,7 @@ internal fun BattleFeedback?.tintColor(): Color? {
     }
 }
 
+/** Handles fighter alpha behavior. */
 internal fun fighterAlpha(
     currentHp: Int,
     hasPendingFaint: Boolean,
@@ -147,16 +154,19 @@ internal fun fighterAlpha(
     return 1f
 }
 
+/** Handles faint progress behavior. */
 internal fun faintProgress(frameIndex: Int): Float {
     return (frameIndex / 6f).coerceIn(0f, 1f)
 }
 
+/** Checks whether faint feedback exists. */
 internal fun BattleMoveAnimation?.hasFaintFeedback(side: BattleSide): Boolean {
     return this?.feedbacks?.any {
         it.side == side && it.type == BattleMoveFeedbackType.Faint
     } == true
 }
 
+/** Converts data into battle stats snapshot. */
 internal fun com.example.chimeralis.logic.chimeras.Stats.toBattleStatsSnapshot(): BattleStatsSnapshot {
     return BattleStatsSnapshot(
         currentHp = currentHp,
@@ -170,6 +180,7 @@ internal fun com.example.chimeralis.logic.chimeras.Stats.toBattleStatsSnapshot()
     )
 }
 
+/** Handles capture target alpha behavior. */
 internal fun captureTargetAlpha(animation: BattleMoveAnimation?, progress: Float): Float {
     if (animation == null) return 1f
 
@@ -183,6 +194,7 @@ internal fun captureTargetAlpha(animation: BattleMoveAnimation?, progress: Float
     }
 }
 
+/** Handles map animations to log messages behavior. */
 internal fun mapAnimationsToLogMessages(
     messages: List<String>,
     animations: List<BattleMoveAnimation>
@@ -207,6 +219,7 @@ internal fun mapAnimationsToLogMessages(
     return mappedAnimations
 }
 
+/** Handles message behavior. */
 internal fun BattleMoveAnimation.message(): String {
     when (kind) {
         BattleAnimationKind.Capture -> return "You threw a $moveName!"
@@ -222,12 +235,14 @@ internal fun BattleMoveAnimation.message(): String {
     return "$owner $chimeraName used $moveName!"
 }
 
+/** Stores battle animation frame data. */
 internal data class BattleAnimationFrame(
     val imageRes: Int,
     val durationMillis: Long,
     val feedbacks: List<BattleMoveFeedback> = emptyList()
 )
 
+/** Handles animation frames behavior. */
 internal fun BattleMoveAnimation.animationFrames(): List<BattleAnimationFrame> {
     if (kind == BattleAnimationKind.Capture) {
         val frameCount = if (captureSucceeded) 15 else 16

@@ -76,6 +76,7 @@ import kotlin.math.hypot
 import kotlin.random.Random
 import kotlin.math.roundToInt
 
+/** Renders the joystick UI. */
 @Composable
 internal fun Joystick(
     modifier: Modifier = Modifier,
@@ -144,6 +145,7 @@ internal fun Joystick(
     }
 }
 
+/** Handles joystick direction behavior. */
 internal fun joystickDirection(x: Float, y: Float): Direction? {
     if (abs(x) < JoystickDeadZone && abs(y) < JoystickDeadZone) return null
     return if (abs(x) > abs(y)) {
@@ -153,6 +155,7 @@ internal fun joystickDirection(x: Float, y: Float): Direction? {
     }
 }
 
+/** Handles next tile behavior. */
 internal fun nextTile(column: Int, row: Int, direction: Direction): Pair<Int, Int> = when (direction) {
     Direction.Down -> column to (row + 1).coerceAtMost(MapRows - 1)
     Direction.Up -> column to (row - 1).coerceAtLeast(0)
@@ -160,6 +163,7 @@ internal fun nextTile(column: Int, row: Int, direction: Direction): Pair<Int, In
     Direction.Right -> (column + 1).coerceAtMost(MapColumns - 1) to row
 }
 
+/** Handles next interior tile behavior. */
 internal fun nextInteriorTile(column: Int, row: Int, direction: Direction): Pair<Int, Int> = when (direction) {
     Direction.Down -> column to (row + 1).coerceAtMost(InteriorRows - 1)
     Direction.Up -> column to (row - 1).coerceAtLeast(0)

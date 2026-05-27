@@ -9,7 +9,7 @@ import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 
-
+/** Creates the create battle manager. */
 internal fun createBattleManager(
     player: Player,
     wildSpecies: ChimeraSpecies,
@@ -29,6 +29,7 @@ internal fun createBattleManager(
     return BattleManager(player = player, enemy = enemy, randomProvider = randomProvider)
 }
 
+/** Creates the create trainer battle manager. */
 internal fun createTrainerBattleManager(
     player: Player,
     randomProvider: RandomProvider = DefaultRandomProvider
@@ -58,6 +59,7 @@ internal fun createTrainerBattleManager(
     )
 }
 
+/** Handles trainer battle species behavior. */
 private fun trainerBattleSpecies(randomProvider: RandomProvider): ChimeraSpecies {
     val pool = listOf(
         ChimeraSpecies.Sunflare,
@@ -68,6 +70,7 @@ private fun trainerBattleSpecies(randomProvider: RandomProvider): ChimeraSpecies
     return pool[randomProvider.nextInt(pool.indices)]
 }
 
+/** Handles battle name behavior. */
 internal fun ChimeraSpecies.battleName(): String = when (this) {
     ChimeraSpecies.Sunflare -> "Sunflare"
     ChimeraSpecies.Solflare -> "Solflare"
@@ -76,6 +79,7 @@ internal fun ChimeraSpecies.battleName(): String = when (this) {
     ChimeraSpecies.Aquantis -> "Aquantis"
 }
 
+/** Handles scaled wild chimera level behavior. */
 internal fun Player.scaledWildChimeraLevel(randomProvider: RandomProvider = DefaultRandomProvider): Int {
     val strongestLevel = team
         .filter { it.stats.isAlive() }
@@ -88,10 +92,12 @@ internal fun Player.scaledWildChimeraLevel(randomProvider: RandomProvider = Defa
     return minLevel + randomProvider.nextInt(0 until levelRange)
 }
 
+/** Handles exp to next level behavior. */
 internal fun Int.expToNextLevel(): Int {
     return (this * this * this).coerceAtLeast(1)
 }
 
+/** Handles battle image res behavior. */
 internal fun ChimeraSpecies.battleImageRes(): Int = when (this) {
     ChimeraSpecies.Sunflare,
     ChimeraSpecies.Solflare,

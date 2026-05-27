@@ -68,7 +68,7 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-
+/** Renders the status plate UI. */
 @Composable
 internal fun StatusPlate(
     name: String,
@@ -152,6 +152,7 @@ internal fun StatusPlate(
     }
 }
 
+/** Renders the exp bar UI. */
 @Composable
 internal fun ExpBar(
     currentExp: Int,
@@ -200,6 +201,7 @@ internal fun ExpBar(
     }
 }
 
+/** Renders the stat stages row UI. */
 @Composable
 internal fun StatStagesRow(
     attackStage: Int,
@@ -226,6 +228,7 @@ internal fun StatStagesRow(
     }
 }
 
+/** Renders the stat stage chip UI. */
 @Composable
 internal fun StatStageChip(
     label: String,

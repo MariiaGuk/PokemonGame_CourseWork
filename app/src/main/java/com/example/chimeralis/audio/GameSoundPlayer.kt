@@ -9,6 +9,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import com.example.chimeralis.R
 
+/** Provides game sound player behavior. */
 object GameSoundPlayer {
     private var soundPool: SoundPool? = null
     private val soundIds = mutableMapOf<Int, Int>()
@@ -18,6 +19,7 @@ object GameSoundPlayer {
     private var isEnabled: Boolean = true
     private var volume: Float = 1f
 
+    /** Handles initialize behavior. */
     fun initialize(context: Context) {
         if (soundPool != null) return
 
@@ -53,6 +55,7 @@ object GameSoundPlayer {
         preload(context, R.raw.end_transition)
     }
 
+    /** Handles play behavior. */
     fun play(context: Context, @RawRes soundResId: Int, force: Boolean = false) {
         if ((!isEnabled && !force) || volume <= 0f) return
 
@@ -69,17 +72,20 @@ object GameSoundPlayer {
         }
     }
 
+    /** Handles stop behavior. */
     fun stop(@RawRes soundResId: Int) {
         val pool = soundPool ?: return
         activeStreams.remove(soundResId)?.forEach(pool::stop)
     }
 
+    /** Handles stop battle result sounds behavior. */
     fun stopBattleResultSounds() {
         stop(R.raw.battle_victory)
         stop(R.raw.battle_loss)
         stop(R.raw.caught_a_chimera)
     }
 
+    /** Handles configure behavior. */
     fun configure(enabled: Boolean, soundVolume: Float) {
         isEnabled = enabled
         volume = soundVolume.coerceIn(0f, 1f)
@@ -88,6 +94,7 @@ object GameSoundPlayer {
         }
     }
 
+    /** Handles release behavior. */
     fun release() {
         soundPool?.release()
         soundPool = null
@@ -97,6 +104,7 @@ object GameSoundPlayer {
         pendingSounds.clear()
     }
 
+    /** Handles preload behavior. */
     private fun preload(context: Context, @RawRes soundResId: Int): Int {
         val existingId = soundIds[soundResId]
         if (existingId != null) return existingId
@@ -107,6 +115,7 @@ object GameSoundPlayer {
     }
 }
 
+/** Renders the game sound effects UI. */
 @Composable
 fun GameSoundEffects(
     enabled: Boolean = true,

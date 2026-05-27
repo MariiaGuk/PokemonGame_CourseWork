@@ -5,6 +5,7 @@ import com.example.chimeralis.logic.chimeras.ChimeraType
 
 /** Defines polymorphic behavior for effects produced by moves. */
 interface IMoveEffect {
+
     /** Applies the effect from an attacker to a target using the move type. */
     fun apply(attacker: Chimera, target: Chimera, moveType: ChimeraType)
 }

@@ -27,6 +27,7 @@ import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.ui.theme.CinzelFamily
 
+/** Renders the menu button UI. */
 @Composable
 fun MenuButton(
     text: String,

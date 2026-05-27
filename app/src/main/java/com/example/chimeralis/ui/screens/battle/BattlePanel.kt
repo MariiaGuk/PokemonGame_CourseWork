@@ -68,7 +68,7 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-
+/** Renders the battle panel UI. */
 @Composable
 internal fun BattlePanel(
     message: String,
@@ -203,6 +203,7 @@ internal fun BattlePanel(
     }
 }
 
+/** Renders the battle back arrow button UI. */
 @Composable
 internal fun BattleBackArrowButton(
     onClick: () -> Unit,
@@ -237,6 +238,7 @@ internal fun BattleBackArrowButton(
     }
 }
 
+/** Renders the battle message UI. */
 @Composable
 internal fun BattleMessage(
     text: String,
@@ -255,6 +257,7 @@ internal fun BattleMessage(
     )
 }
 
+/** Renders the battle action buttons UI. */
 @Composable
 internal fun BattleActionButtons(
     onFight: () -> Unit,
@@ -277,6 +280,7 @@ internal fun BattleActionButtons(
     }
 }
 
+/** Renders the battle team buttons UI. */
 @Composable
 internal fun BattleTeamButtons(
     team: List<Chimera>,
@@ -308,6 +312,7 @@ internal fun BattleTeamButtons(
     }
 }
 
+/** Renders the empty battle team slot UI. */
 @Composable
 internal fun EmptyBattleTeamSlot() {
     val colors = MaterialTheme.colorScheme
@@ -322,6 +327,7 @@ internal fun EmptyBattleTeamSlot() {
     )
 }
 
+/** Renders the battle team slot UI. */
 @Composable
 internal fun BattleTeamSlot(
     chimera: Chimera,
@@ -438,6 +444,7 @@ internal fun BattleTeamSlot(
     }
 }
 
+/** Renders the battle inventory buttons UI. */
 @Composable
 internal fun BattleInventoryButtons(
     inventoryItems: Map<Item, Int>,
@@ -478,6 +485,7 @@ internal fun BattleInventoryButtons(
     }
 }
 
+/** Renders the battle item target buttons UI. */
 @Composable
 internal fun BattleItemTargetButtons(
     item: Item?,
@@ -507,6 +515,7 @@ internal fun BattleItemTargetButtons(
     }
 }
 
+/** Renders the battle item target slot UI. */
 @Composable
 internal fun BattleItemTargetSlot(
     chimera: Chimera,
@@ -618,6 +627,7 @@ internal fun BattleItemTargetSlot(
     }
 }
 
+/** Renders the move learning buttons UI. */
 @Composable
 internal fun MoveLearningButtons(
     request: MoveLearnRequest?,
@@ -651,6 +661,7 @@ internal fun MoveLearningButtons(
     }
 }
 
+/** Renders the move buttons UI. */
 @Composable
 internal fun MoveButtons(
     moves: List<Move>,

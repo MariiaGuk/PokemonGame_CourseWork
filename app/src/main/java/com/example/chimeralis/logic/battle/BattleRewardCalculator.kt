@@ -5,6 +5,7 @@ import com.example.chimeralis.logic.trainers.Player
 
 /** Calculates and applies battle rewards after victory or capture. */
 class BattleRewardCalculator {
+
     /** Awards experience to all living participants and logs level-up events. */
     fun awardExperience(
         playerBattleParticipants: Collection<Chimera>,

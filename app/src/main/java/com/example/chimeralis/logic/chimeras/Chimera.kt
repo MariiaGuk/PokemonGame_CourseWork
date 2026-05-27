@@ -2,9 +2,7 @@ package com.example.chimeralis.logic.chimeras
 
 import com.example.chimeralis.logic.chimeras.moves.Move
 
-/**
- * Basic class for every chimera in the game.
- */
+/** Represents one playable or enemy chimera with stats, moves, growth, and evolution. */
 class Chimera (
     name: String,
     val species: ChimeraSpecies,
@@ -50,6 +48,7 @@ class Chimera (
             }
     }
 
+    /** Renames the chimera after validating the nickname length and content. */
     fun rename(newName: String) {
         val trimmedName = newName.trim()
         if (trimmedName.isNotBlank() && trimmedName.length <= 12) {
@@ -60,6 +59,7 @@ class Chimera (
         }
     }
 
+    /** Adds experience and triggers all resulting level-ups. */
     fun gainExp(amount: Int) {
         exp += amount
         var expNeeded = level * level * level
@@ -70,6 +70,7 @@ class Chimera (
         }
     }
 
+    /** Recalculates battle stats from base stats, IV stats, and current level. */
     private fun recalculateStats() {
         val oldMaxHp = stats.maxHp
 
@@ -82,6 +83,7 @@ class Chimera (
         stats.heal(hpGain)
     }
 
+    /** Increases the level and resolves stat growth, evolution, and new moves. */
     fun levelUp() {
         level++
         recalculateStats()
@@ -97,6 +99,7 @@ class Chimera (
             }
     }
 
+    /** Learns a new move or stores it as pending when the move list is full. */
     private fun learnMove(move: Move) {
         if (_moves.any { it.name == move.name }) return
 
@@ -112,6 +115,7 @@ class Chimera (
         }
     }
 
+    /** Replaces an existing move with the pending move-learning request. */
     fun replaceMoveWithPending(index: Int): Pair<Move, Move>? {
         val pendingMove = pendingMoveToLearn ?: return null
         if (index !in _moves.indices) return null
@@ -122,12 +126,14 @@ class Chimera (
         return forgottenMove to pendingMove
     }
 
+    /** Cancels the pending move-learning request and returns the skipped move. */
     fun skipPendingMove(): Move? {
         val pendingMove = pendingMoveToLearn ?: return null
         pendingMoveToLearn = null
         return pendingMove
     }
 
+    /** Creates the evolved chimera form when the current species supports it. */
     fun evolution() {
         val nextSpecies = species.evolvesInto ?: return
         val evolved = ChimeraFactory.createChimera(nextSpecies, level)

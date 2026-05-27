@@ -3,7 +3,9 @@ package com.example.chimeralis.logic.battle
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.trainers.Player
 
+/** Calculates and applies battle rewards after victory or capture. */
 class BattleRewardCalculator {
+    /** Awards experience to all living participants and logs level-up events. */
     fun awardExperience(
         playerBattleParticipants: Collection<Chimera>,
         defeatedChimera: Chimera,
@@ -39,6 +41,7 @@ class BattleRewardCalculator {
         }
     }
 
+    /** Awards coins to the player based on the defeated chimera. */
     fun awardMoney(
         player: Player,
         defeatedChimera: Chimera,
@@ -49,10 +52,12 @@ class BattleRewardCalculator {
         log.add("You earned $moneyReward coins.")
     }
 
+    /** Calculates experience from defeated chimera level. */
     private fun experienceReward(defeatedChimera: Chimera): Int {
         return (defeatedChimera.level * ExpPerLevel).coerceAtLeast(1)
     }
 
+    /** Calculates coin reward from defeated chimera level. */
     private fun moneyReward(defeatedChimera: Chimera): Int {
         return (defeatedChimera.level * CoinsPerLevel).coerceAtLeast(MinCoins)
     }

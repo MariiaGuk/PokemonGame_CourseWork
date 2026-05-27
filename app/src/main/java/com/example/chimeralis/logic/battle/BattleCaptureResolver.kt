@@ -2,14 +2,17 @@ package com.example.chimeralis.logic.battle
 
 import com.example.chimeralis.logic.chimeras.Chimera
 
+/** Contains the computed capture chance and final capture result. */
 data class BattleCaptureResult(
     val chance: Float,
     val caught: Boolean
 )
 
+/** Calculates whether a capture attempt succeeds. */
 class BattleCaptureResolver(
     private val randomProvider: RandomProvider = DefaultRandomProvider
 ) {
+    /** Resolves a capture attempt for one target chimera. */
     fun resolve(target: Chimera): BattleCaptureResult {
         val chance = catchChance(target)
         return BattleCaptureResult(
@@ -18,6 +21,7 @@ class BattleCaptureResolver(
         )
     }
 
+    /** Computes catch chance from target HP. */
     private fun catchChance(target: Chimera): Float {
         val hpRatio = target.stats.currentHp.toFloat() / target.stats.maxHp.toFloat()
         return (BaseChance + (1f - hpRatio) * MissingHpBonus).coerceIn(MinChance, MaxChance)

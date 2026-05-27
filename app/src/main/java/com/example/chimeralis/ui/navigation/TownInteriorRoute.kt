@@ -18,6 +18,7 @@ internal fun GameSessionState.TownInteriorRoute(
     TownInteriorScreen(
         interior = interior,
         team = player?.team.orEmpty(),
+        storage = player?.storage.orEmpty(),
         inventoryItems = player?.inventory?.items.orEmpty(),
         teamStateKey = teamVersion,
         money = player?.money ?: 0,
@@ -54,6 +55,18 @@ internal fun GameSessionState.TownInteriorRoute(
             playerRow = row
         },
         onPlayerDirectionChanged = { playerDirection = it },
+        onSwapTeamMembers = { fromIndex, toIndex ->
+            swapTeamMembers(fromIndex, toIndex)
+        },
+        onDepositTeamMember = { teamIndex ->
+            depositTeamMember(teamIndex)
+        },
+        onWithdrawStoredChimera = { storageIndex ->
+            withdrawStoredChimera(storageIndex)
+        },
+        onSwapTeamWithStorage = { teamIndex, storageIndex ->
+            swapTeamWithStorage(teamIndex, storageIndex)
+        },
         onSaveGame = { column, row ->
             playerColumn = column
             playerRow = row

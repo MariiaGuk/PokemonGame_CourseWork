@@ -3,7 +3,9 @@ package com.example.chimeralis.logic.items
 import com.example.chimeralis.logic.items.itemEffects.HealItemEffect
 import com.example.chimeralis.logic.items.itemEffects.ReviveItemEffect
 
+/** Creates item instances from item identifiers. */
 object ItemFactory {
+    /** Builds an item with the effects required by its name. */
     fun createItem(itemName: ItemName): Item = when (itemName) {
         ItemName.POTION -> Item(
             itemName = itemName,

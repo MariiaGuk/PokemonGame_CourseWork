@@ -12,6 +12,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
+import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.world.Direction
 import com.example.chimeralis.ui.screens.world.MapColumns
 import com.example.chimeralis.ui.screens.world.MapRows
@@ -44,6 +45,12 @@ internal fun BoxScope.TownInteriorScene(
     val playerCenterY = imageTop + (animatedRow + 0.5f) * tileSize
     val npcCenterX = imageLeft + (interiorData.npcColumn + 0.5f) * tileSize
     val npcCenterY = imageTop + (interiorData.npcRow + 0.5f) * tileSize
+    val storageCenterX = interiorData.storageColumn?.let { column ->
+        imageLeft + (column + 0.5f) * tileSize
+    }
+    val storageCenterY = interiorData.storageRow?.let { row ->
+        imageTop + (row + 0.5f) * tileSize
+    }
     val worldLikeTileSize = minOf(widthPx / MapColumns * WorldZoom, heightPx / MapRows * WorldZoom)
     val spriteWidth = worldLikeTileSize * 1.06f
     val spriteHeight = worldLikeTileSize * 1.62f
@@ -75,6 +82,25 @@ internal fun BoxScope.TownInteriorScene(
                 height = with(density) { serviceNpcHeight.toDp() }
             )
     )
+
+    if (storageCenterX != null && storageCenterY != null) {
+        Image(
+            painter = painterResource(id = R.drawable.storage),
+            contentDescription = "Chimera Storage",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = (storageCenterX - spriteWidth * 0.45f).roundToInt(),
+                        y = (storageCenterY - spriteHeight * 0.58f).roundToInt()
+                    )
+                }
+                .size(
+                    width = with(density) { (spriteWidth * 0.9f).toDp() },
+                    height = with(density) { (spriteHeight * 0.72f).toDp() }
+                )
+        )
+    }
 
     Image(
         painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),

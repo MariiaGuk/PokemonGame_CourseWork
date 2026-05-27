@@ -5,14 +5,16 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
+import com.example.chimeralis.logic.trainers.PlayerCollectionLimits
 
+/** Describes a pending move-learning choice for one chimera. */
 data class MoveLearnRequest(
     val chimera: Chimera,
     val move: Move
 )
 
 /**
- * Manager to guide the course of the battle
+ * Coordinates battle turns, captures, switching, rewards, and move learning.
  */
 class BattleManager(
     val player: Player,
@@ -48,10 +50,7 @@ class BattleManager(
         markPlayerParticipant(playerChimera)
     }
 
-    fun performTurn(playerAction: BattleAction): List<String> {
-        return performTurnWithAnimations(playerAction).log
-    }
-
+    /** Executes one player action and returns UI log messages with animations. */
     fun performTurnWithAnimations(playerAction: BattleAction): BattleTurnResult {
         val log = mutableListOf<String>()
         val animations = mutableListOf<BattleMoveAnimation>()
@@ -128,6 +127,7 @@ class BattleManager(
         )
     }
 
+    /** Applies the player's decision for a pending move-learning request. */
     fun resolvePendingMoveLearning(replaceIndex: Int?): List<String> {
         val request = pendingMoveLearning ?: return emptyList()
         val log = mutableListOf<String>()
@@ -154,6 +154,7 @@ class BattleManager(
         return log.ifEmpty { listOf("Nothing happened.") }
     }
 
+    /** Executes an enemy move and resolves resulting faint states. */
     private fun enemyTurn(log: MutableList<String>): BattleMoveAnimation {
         val enemyMove = enemyMoveSelector.selectMove(enemyChimera)
         val beforeTargetStats = playerChimera.stats.toBattleStatsSnapshot()
@@ -175,6 +176,7 @@ class BattleManager(
         return animation
     }
 
+    /** Executes a player move and resolves resulting faint states. */
     private fun playerTurn(playerMove: Move, log: MutableList<String>): BattleMoveAnimation {
         markPlayerParticipant(playerChimera)
         val beforeTargetStats = enemyChimera.stats.toBattleStatsSnapshot()
@@ -196,6 +198,7 @@ class BattleManager(
         return animation
     }
 
+    /** Applies a battle item or redirects capture items into catch logic. */
     private fun useItem(
         item: Item,
         target: Chimera?,
@@ -221,13 +224,16 @@ class BattleManager(
         return true
     }
 
+    /** Resolves a capture attempt and stores the caught chimera when possible. */
     private fun tryCatchChimera(
         item: Item,
         log: MutableList<String>,
         animations: MutableList<BattleMoveAnimation>
     ): Boolean {
-        if (player.team.size >= MaxTeamSize) {
-            log.add("Your team is full!")
+        val canStoreCaughtChimera = player.team.size < PlayerCollectionLimits.MaxTeamSize ||
+                player.storage.size < PlayerCollectionLimits.MaxStorageSize
+        if (!canStoreCaughtChimera) {
+            log.add("Storage is full. You cannot catch more chimeras.")
             return false
         }
 
@@ -244,9 +250,16 @@ class BattleManager(
 
         if (captureResult.caught) {
             enemyChimera.stats.resetBattleStages()
-            player.team.add(enemyChimera)
+            if (player.team.size < PlayerCollectionLimits.MaxTeamSize) {
+                player.team.add(enemyChimera)
+            } else {
+                player.storage.add(enemyChimera)
+            }
             isBattleActive = false
             log.add("Gotcha! ${enemyChimera.name} was caught!")
+            if (enemyChimera in player.storage) {
+                log.add("${enemyChimera.name} was sent to storage.")
+            }
             awardExperience(log, enemyChimera)
         } else {
             log.add("${enemyChimera.name} broke free!")
@@ -255,12 +268,14 @@ class BattleManager(
         return isBattleActive
     }
 
+    /** Switches the active chimera and marks it as a battle participant. */
     private fun switchChimera(chimera: Chimera, log: MutableList<String>) {
         player.switchChimera(chimera)
         markPlayerParticipant(chimera)
         log.add("Go, ${chimera.name}!")
     }
 
+    /** Resolves the player's active chimera fainting. */
     private fun resolvePlayerFaint(log: MutableList<String>) {
         if (playerChimera.stats.isAlive()) return
 
@@ -274,6 +289,7 @@ class BattleManager(
         }
     }
 
+    /** Resolves the enemy chimera fainting and battle victory rewards. */
     private fun resolveEnemyFaint(log: MutableList<String>, defeatedChimera: Chimera) {
         if (defeatedChimera.stats.isAlive()) return
 
@@ -285,6 +301,7 @@ class BattleManager(
         }
     }
 
+    /** Prompts a forced switch or ends the battle when the player is defeated. */
     private fun promptForcedSwitch(log: MutableList<String>) {
         isWaitingForPlayerSwitch = !player.isDefeated()
         if (isWaitingForPlayerSwitch) {
@@ -295,6 +312,7 @@ class BattleManager(
         }
     }
 
+    /** Attempts to escape from the battle and lets the enemy act on failure. */
     private fun tryRun(
         log: MutableList<String>,
         animations: MutableList<BattleMoveAnimation>
@@ -314,21 +332,21 @@ class BattleManager(
         }
     }
 
+    /** Awards experience to all participating player chimeras. */
     private fun awardExperience(log: MutableList<String>, defeatedChimera: Chimera) {
         rewardCalculator.awardExperience(playerBattleParticipants, defeatedChimera, log)
     }
 
+    /** Records a living player chimera as eligible for experience. */
     private fun markPlayerParticipant(chimera: Chimera) {
         if (chimera.stats.isAlive()) {
             playerBattleParticipants.add(chimera)
         }
     }
 
+    /** Awards money after defeating an enemy trainer or wild chimera. */
     private fun awardMoney(log: MutableList<String>, defeatedChimera: Chimera) {
         rewardCalculator.awardMoney(player, defeatedChimera, log)
     }
 
-    private companion object {
-        const val MaxTeamSize = 6
-    }
 }

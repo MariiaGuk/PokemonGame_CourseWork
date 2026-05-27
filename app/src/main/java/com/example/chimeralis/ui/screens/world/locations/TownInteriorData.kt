@@ -7,6 +7,8 @@ data class TownInteriorData(
     val walkableTiles: Set<Pair<Int, Int>>,
     val npcColumn: Int,
     val npcRow: Int,
+    val storageColumn: Int? = null,
+    val storageRow: Int? = null,
     val buildingName: String,
     val npcName: String
 )
@@ -18,6 +20,8 @@ internal val TownInterior.data: TownInteriorData
             walkableTiles = chimeraCenterWalkableTiles,
             npcColumn = 10,
             npcRow = 5,
+            storageColumn = 5,
+            storageRow = 5,
             buildingName = "Chimera Center",
             npcName = "Nurse"
         )
@@ -46,6 +50,7 @@ private val chimeraCenterWalkableTiles = buildSet {
                 add(13 to row)
                 add(14 to row)
             }
+            add(5 to 5)
             for (column in 1..14) {
                 if (column !in 7..8) {
                     add(column to 14)

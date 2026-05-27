@@ -3,16 +3,17 @@ package com.example.chimeralis.logic.chimeras
 import com.example.chimeralis.logic.chimeras.moves.MoveFactory
 import com.example.chimeralis.logic.chimeras.moves.MoveName
 
-/**
- * Factory for every chimera in the game.
- */
+/** Creates configured chimera instances for every species in the game. */
 object ChimeraFactory {
+    /** Generates random individual values for a new chimera. */
     fun generateRandomIV(): Stats = Stats(
         maxHp = (0..15).random(),
         attack = (0..15).random(),
         defence = (0..15).random(),
         speed = (0..15).random()
     )
+
+    /** Creates one chimera with species, level, IV stats, and learnable moves. */
     fun createChimera(
         species: ChimeraSpecies,
         level: Int = 1,

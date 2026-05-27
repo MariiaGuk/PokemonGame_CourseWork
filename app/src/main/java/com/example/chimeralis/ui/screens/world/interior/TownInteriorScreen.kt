@@ -80,6 +80,7 @@ import com.example.chimeralis.ui.screens.world.InteriorStepDurationMs
 import com.example.chimeralis.ui.screens.world.InventoryItemDetailsPlate
 import com.example.chimeralis.ui.screens.world.ItemTargetSelectionOverlay
 import com.example.chimeralis.ui.screens.world.MovingFrameDelayMs
+import com.example.chimeralis.ui.screens.world.ChimeraStorageOverlay
 import com.example.chimeralis.ui.screens.world.ServiceNpcDialogOverlay
 import com.example.chimeralis.ui.screens.world.ServiceNpcIdleFrameDelayMs
 import com.example.chimeralis.ui.screens.world.ShopOverlay
@@ -100,6 +101,7 @@ import kotlin.math.roundToInt
 fun TownInteriorScreen(
     interior: TownInterior,
     team: List<Chimera> = emptyList(),
+    storage: List<Chimera> = emptyList(),
     inventoryItems: Map<Item, Int> = emptyMap(),
     teamStateKey: Int = 0,
     money: Int = 0,
@@ -123,6 +125,10 @@ fun TownInteriorScreen(
     onUseInventoryItem: (Item, Chimera) -> Unit = { _, _ -> },
     onPlayerPositionChanged: (Int, Int) -> Unit = { _, _ -> },
     onPlayerDirectionChanged: (Direction) -> Unit = {},
+    onSwapTeamMembers: (Int, Int) -> Unit = { _, _ -> },
+    onDepositTeamMember: (Int) -> Unit = {},
+    onWithdrawStoredChimera: (Int) -> Unit = {},
+    onSwapTeamWithStorage: (Int, Int) -> Unit = { _, _ -> },
     onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onBackToMainMenu: () -> Unit = {},
     onExitGame: () -> Unit = {},
@@ -140,6 +146,7 @@ fun TownInteriorScreen(
     var serviceNpcIdleFrame by remember(interior) { mutableIntStateOf(0) }
     var dialogStep by remember(interior) { mutableStateOf<Int?>(null) }
     var isShopOpen by remember(interior) { mutableStateOf(false) }
+    var isStorageOpen by remember(interior) { mutableStateOf(false) }
     var serviceMessage by remember(interior) { mutableStateOf<String?>(null) }
     var isGameMenuOpen by remember(interior) { mutableStateOf(false) }
     var isSettingsOpen by remember(interior) { mutableStateOf(false) }
@@ -160,6 +167,7 @@ fun TownInteriorScreen(
     val npcRow = interiorData.npcRow
     val isServiceUiOpen = dialogStep != null || isShopOpen
     val isInteriorUiOpen = isServiceUiOpen ||
+            isStorageOpen ||
             isHealingInProgress ||
             isInteriorInputLocked ||
             isGameMenuOpen ||
@@ -169,6 +177,12 @@ fun TownInteriorScreen(
     val canTalkToServiceNpc = !isMoving &&
             !isInteriorUiOpen &&
             (abs(playerColumn - npcColumn) + abs(playerRow - npcRow)) <= 3
+    val canOpenStorage = !isMoving &&
+            !isInteriorUiOpen &&
+            interiorData.storageColumn != null &&
+            interiorData.storageRow != null &&
+            (abs(playerColumn - interiorData.storageColumn) +
+                    abs(playerRow - interiorData.storageRow)) <= 1
 
     LaunchedEffect(isMoving) {
         while (true) {
@@ -287,6 +301,7 @@ fun TownInteriorScreen(
         )
 
         val interiorActionLabel = when {
+            canOpenStorage -> "Storage"
             canTalkToServiceNpc -> "Talk"
             canExit && !isServiceUiOpen -> "Exit"
             else -> null
@@ -324,7 +339,12 @@ fun TownInteriorScreen(
             },
             onAction = {
                 requestedDirection = null
-                if (canTalkToServiceNpc) {
+                if (canOpenStorage) {
+                    isStorageOpen = true
+                    isGameMenuOpen = false
+                    isInventoryOpen = false
+                    selectedInventoryItem = null
+                } else if (canTalkToServiceNpc) {
                     serviceMessage = null
                     dialogStep = 0
                 } else if (canExit && !isServiceUiOpen) {
@@ -520,6 +540,19 @@ fun TownInteriorScreen(
                     isShopOpen = false
                     serviceMessage = null
                 }
+            )
+        }
+
+        if (isStorageOpen) {
+            ChimeraStorageOverlay(
+                team = team,
+                storage = storage,
+                teamStateKey = teamStateKey,
+                onSwapTeamMembers = onSwapTeamMembers,
+                onDepositTeamMember = onDepositTeamMember,
+                onWithdrawStoredChimera = onWithdrawStoredChimera,
+                onSwapTeamWithStorage = onSwapTeamWithStorage,
+                onClose = { isStorageOpen = false }
             )
         }
 

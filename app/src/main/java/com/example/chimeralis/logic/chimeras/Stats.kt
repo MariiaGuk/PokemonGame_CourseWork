@@ -1,8 +1,6 @@
 package com.example.chimeralis.logic.chimeras
 
-/**
- * Class for stats of the chimera.
- */
+/** Stores mutable combat stats, HP, and temporary battle stages for a chimera. */
 class Stats(
     maxHp: Int,
     attack: Int,
@@ -54,22 +52,27 @@ class Stats(
         this.currentHp = this.maxHp
     }
 
+    /** Identifies the stat field targeted by stat operations. */
     enum class StatType {
         MAX_HP, ATTACK, DEFENCE, SPEED
     }
 
+    /** Applies direct HP damage without dropping below zero. */
     fun takeDamage(damage: Int) {
         currentHp -= damage
     }
 
+    /** Restores HP by a relative amount without exceeding max HP. */
     fun heal(amount: Int) {
         currentHp += amount
     }
 
+    /** Sets HP to an absolute value constrained by max HP. */
     fun restoreHp(amount: Int) {
         currentHp = amount
     }
 
+    /** Modifies a stat stage or max HP during battle. */
     fun modifyStat(statType: StatType, amount: Int) {
         when (statType) {
             StatType.ATTACK -> {
@@ -91,6 +94,7 @@ class Stats(
         }
     }
 
+    /** Sets a base stat value and reapplies its current battle stage. */
     fun setStat(statType: StatType, amount: Int) {
         when (statType) {
             StatType.ATTACK -> {
@@ -112,6 +116,7 @@ class Stats(
         }
     }
 
+    /** Clears all temporary battle stat stages. */
     fun resetBattleStages() {
         attackStage = 0
         defenceStage = 0
@@ -121,12 +126,14 @@ class Stats(
         speed = stagedStat(baseSpeed, speedStage)
     }
 
+    /** Returns whether the chimera can still fight. */
     fun isAlive(): Boolean = currentHp > 0
 
     companion object {
         private const val MIN_STAT_STAGE = -3
         private const val MAX_STAT_STAGE = 3
 
+        /** Applies a simple stage modifier to a base stat. */
         private fun stagedStat(baseValue: Int, stage: Int): Int {
             return (baseValue + stage).coerceAtLeast(1)
         }

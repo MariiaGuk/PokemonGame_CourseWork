@@ -5,9 +5,7 @@ import com.example.chimeralis.logic.chimeras.ChimeraType
 import com.example.chimeralis.logic.chimeras.moves.moveEffects.IMoveEffect
 import kotlin.random.Random
 
-/**
- * Basic class for every move in the game.
- */
+/** Represents a combat move with PP, accuracy, type, and effects. */
 class Move (
     val name: String,
     val type: ChimeraType,
@@ -18,10 +16,12 @@ class Move (
     var pp: Int = maxPp
         private set
 
+    /** Restores PP to a constrained value within this move's maximum. */
     fun restorePp(value: Int) {
         pp = value.coerceIn(0, maxPp)
     }
 
+    /** Executes the move against a target if PP and accuracy allow it. */
     fun execute(attacker: Chimera, target: Chimera) {
         if (pp <= 0) return
 

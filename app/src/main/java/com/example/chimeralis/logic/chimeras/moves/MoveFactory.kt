@@ -6,10 +6,9 @@ import com.example.chimeralis.logic.chimeras.moves.moveEffects.HealEffect
 import com.example.chimeralis.logic.chimeras.moves.moveEffects.StatChangeEffect
 import com.example.chimeralis.logic.chimeras.Stats
 
-/**
- * Factory for every move in the game.
- */
+/** Creates move instances from move identifiers. */
 object MoveFactory {
+    /** Builds one move with type, PP, accuracy, and effects. */
     fun createMove(move: MoveName): Move {
         return when (move) {
             MoveName.TACKLE -> Move(

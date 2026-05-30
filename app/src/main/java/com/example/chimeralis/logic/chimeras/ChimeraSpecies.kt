@@ -1,22 +1,26 @@
 package com.example.chimeralis.logic.chimeras
-/** Defines the chimera species hierarchy. */
-sealed class ChimeraSpecies(
-    val evolvesInto: ChimeraSpecies? = null,
-    val evolutionLevel: Int? = null
-) {
 
-    /** Provides solignis behavior. */
+/** Defines stable chimera species identifiers. */
+sealed class ChimeraSpecies {
+
+    /** Identifies the Solignis species. */
     object Solignis : ChimeraSpecies()
 
-    /** Provides solflare behavior. */
-    object Solflare : ChimeraSpecies(evolvesInto = Solignis, evolutionLevel = 36)
+    /** Identifies the Solflare species. */
+    object Solflare : ChimeraSpecies()
 
-    /** Provides sunflare behavior. */
-    object Sunflare : ChimeraSpecies(evolvesInto = Solflare, evolutionLevel = 16)
+    /** Identifies the Sunflare species. */
+    object Sunflare : ChimeraSpecies()
 
-    /** Provides sylvhorn behavior. */
+    /** Identifies the Sylvarchon species. */
+    object Sylvarchon : ChimeraSpecies()
+
+    /** Identifies the Sylvhorn species. */
     object Sylvhorn : ChimeraSpecies()
 
-    /** Provides aquantis behavior. */
+    /** Identifies the Leviantis species. */
+    object Leviantis : ChimeraSpecies()
+
+    /** Identifies the Aquantis species. */
     object Aquantis : ChimeraSpecies()
 }

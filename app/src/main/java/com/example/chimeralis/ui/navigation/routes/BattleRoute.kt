@@ -1,7 +1,7 @@
 package com.example.chimeralis.ui.navigation.routes
 
 import androidx.compose.runtime.Composable
-import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.ui.navigation.GameTransitionState
 import com.example.chimeralis.ui.navigation.session.GameSessionState
 import com.example.chimeralis.ui.screens.battle.BattleScreen
@@ -17,7 +17,7 @@ internal fun GameSessionState.BattleRoute(transition: GameTransitionState) {
             BattleScreen(
                 player = currentPlayer,
                 battleKey = trainerBattleKey ?: wildEncounter,
-                wildSpecies = wildEncounter ?: ChimeraSpecies.Sylvhorn,
+                wildSpecies = wildEncounter ?: ChimeraFactory.wildSpecies().first(),
                 isTrainerBattle = isTrainerBattle,
                 onBattleResultSoundStarted = {
                     isBattleResultMusicSuppressed = true

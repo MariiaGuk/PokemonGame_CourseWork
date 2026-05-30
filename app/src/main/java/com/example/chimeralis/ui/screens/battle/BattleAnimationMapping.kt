@@ -64,6 +64,7 @@ import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.components.MenuButton
+import com.example.chimeralis.ui.screens.chimera.battleMoveFrames
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
@@ -255,47 +256,7 @@ internal fun BattleMoveAnimation.animationFrames(): List<BattleAnimationFrame> {
     }
 
     val baseFrame = species.battleImageRes()
-    val moveKey = moveName.lowercase().replace(" ", "")
-
-    val actionFrames = when (species) {
-        ChimeraSpecies.Sunflare,
-        ChimeraSpecies.Solflare,
-        ChimeraSpecies.Solignis -> when (moveKey) {
-            "ember" -> listOf(
-                R.drawable.starter_fire_ember_1,
-                R.drawable.starter_fire_ember_2
-            )
-            "growl" -> listOf(
-                R.drawable.starter_fire_growl
-            )
-            "tackle" -> listOf(
-                R.drawable.starter_fire_tackle_1,
-                R.drawable.starter_fire_tackle_2
-            )
-            else -> emptyList()
-        }
-        ChimeraSpecies.Sylvhorn -> when (moveKey) {
-            "growl" -> listOf(
-                R.drawable.starter_grass_growl
-            )
-            "tackle" -> listOf(
-                R.drawable.starter_grass_tackle_1,
-                R.drawable.starter_grass_tackle_2
-            )
-            else -> emptyList()
-        }
-        ChimeraSpecies.Aquantis -> when (moveKey) {
-            "tailwhip" -> listOf(
-                R.drawable.starter_water_tailwhip_1,
-                R.drawable.starter_water_tailwhip_2
-            )
-            "tackle" -> listOf(
-                R.drawable.starter_water_tackle_1,
-                R.drawable.starter_water_tackle_2
-            )
-            else -> emptyList()
-        }
-    }
+    val actionFrames = species.battleMoveFrames(moveId)
 
     if (actionFrames.isEmpty()) {
         return listOf(

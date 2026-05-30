@@ -38,6 +38,7 @@ class BattleMoveReporter {
             species = user.species,
             chimeraName = user.name,
             moveName = move.name,
+            moveId = move.id,
             feedbacks = collectMoveFeedbacks(
                 targetSide = side.opponent(),
                 targetBefore = targetBefore,
@@ -65,6 +66,7 @@ class BattleMoveReporter {
             species = target.species,
             chimeraName = target.name,
             moveName = item.name,
+            moveId = null,
             kind = BattleAnimationKind.Item,
             userBefore = targetBefore,
             userAfter = targetAfter
@@ -78,6 +80,7 @@ class BattleMoveReporter {
             species = target.species,
             chimeraName = target.name,
             moveName = item.name,
+            moveId = null,
             kind = BattleAnimationKind.Capture,
             captureSucceeded = captureResult.caught
         )

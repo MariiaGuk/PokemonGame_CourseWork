@@ -7,6 +7,7 @@ import kotlin.random.Random
 
 /** Represents a combat move with PP, accuracy, type, and effects. */
 class Move (
+    val id: MoveName,
     val name: String,
     val type: ChimeraType,
     val maxPp: Int,

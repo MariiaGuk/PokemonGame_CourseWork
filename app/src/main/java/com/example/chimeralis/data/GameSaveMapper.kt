@@ -65,26 +65,13 @@ class GameSaveMapper {
     }
 
     /** Handles species save name behavior. */
-    fun speciesSaveName(species: ChimeraSpecies): String = when (species) {
-        ChimeraSpecies.Sunflare -> "Sunflare"
-        ChimeraSpecies.Solflare -> "Solflare"
-        ChimeraSpecies.Solignis -> "Solignis"
-        ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-        ChimeraSpecies.Aquantis -> "Aquantis"
-    }
+    fun speciesSaveName(species: ChimeraSpecies): String = battleName(species)
 
     /** Handles item save name behavior. */
     fun itemSaveName(itemName: ItemName): String = itemName.displayName
 
     /** Converts data into chimera species. */
-    fun toChimeraSpecies(value: String): ChimeraSpecies? = when (value) {
-        "Sunflare" -> ChimeraSpecies.Sunflare
-        "Solflare" -> ChimeraSpecies.Solflare
-        "Solignis" -> ChimeraSpecies.Solignis
-        "Sylvhorn" -> ChimeraSpecies.Sylvhorn
-        "Aquantis" -> ChimeraSpecies.Aquantis
-        else -> null
-    }
+    fun toChimeraSpecies(value: String): ChimeraSpecies? = ChimeraFactory.speciesByName(value)
 
     /** Converts data into item name. */
     fun toItemName(value: String): ItemName? = ItemName.values().firstOrNull {
@@ -92,5 +79,5 @@ class GameSaveMapper {
     }
 
     /** Handles battle name behavior. */
-    fun battleName(species: ChimeraSpecies): String = speciesSaveName(species)
+    fun battleName(species: ChimeraSpecies): String = ChimeraFactory.speciesName(species)
 }

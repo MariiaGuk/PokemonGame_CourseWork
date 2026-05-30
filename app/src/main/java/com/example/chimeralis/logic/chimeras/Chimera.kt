@@ -12,8 +12,7 @@ class Chimera (
     level: Int,
     val learnableMoves: List<Pair<Int, () -> Move>>,
     val onLevelUp: ((Chimera) -> Unit)? = null,
-    val onMoveLearn: ((Chimera, Move, onReplace: (Int) -> Unit) -> Unit)? = null,
-    val onEvolution: ((old: Chimera, new: Chimera) -> Unit)? = null
+    val onMoveLearn: ((Chimera, Move, onReplace: (Int) -> Unit) -> Unit)? = null
 ){
 
     var name: String = name.trim()
@@ -83,14 +82,12 @@ class Chimera (
         stats.heal(hpGain)
     }
 
-    /** Increases the level and resolves stat growth, evolution, and new moves. */
+    /** Increases the level and resolves stat growth and new moves. */
     fun levelUp() {
         level++
         recalculateStats()
 
         onLevelUp?.invoke(this)
-
-        if (level == species.evolutionLevel) evolution()
 
         learnableMoves
             .filter { it.first == this.level }
@@ -133,11 +130,27 @@ class Chimera (
         return pendingMove
     }
 
+    /** Returns true when this chimera has reached its evolution requirement. */
+    fun canEvolve(): Boolean {
+        val evolution = ChimeraFactory.speciesEvolution(species) ?: return false
+        return level >= evolution.level
+    }
+
     /** Creates the evolved chimera form when the current species supports it. */
-    fun evolution() {
-        val nextSpecies = species.evolvesInto ?: return
-        val evolved = ChimeraFactory.createChimera(nextSpecies, level)
+    fun evolution(): Chimera? {
+        if (!canEvolve()) return null
+        val nextSpecies = ChimeraFactory.speciesEvolution(species)?.evolvesInto ?: return null
+        val evolved = ChimeraFactory.createChimera(
+            species = nextSpecies,
+            level = level,
+            ivStats = ivStats
+        )
+        if (name != ChimeraFactory.speciesName(species)) {
+            evolved.rename(name)
+        }
+        val hpAfterEvolution = stats.currentHp + (evolved.stats.maxHp - stats.maxHp)
+        evolved.stats.restoreHp(hpAfterEvolution)
         evolved.gainExp(exp)
-        onEvolution?.invoke(this, evolved)
+        return evolved
     }
 }

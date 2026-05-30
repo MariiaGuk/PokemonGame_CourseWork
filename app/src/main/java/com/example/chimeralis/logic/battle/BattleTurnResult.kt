@@ -1,11 +1,24 @@
 package com.example.chimeralis.logic.battle
 
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.moves.MoveName
 
 /** Stores battle turn result data. */
 data class BattleTurnResult(
     val log: List<String>,
-    val animations: List<BattleMoveAnimation>
+    val animations: List<BattleMoveAnimation>,
+    val evolutions: List<ChimeraEvolutionEvent> = emptyList()
+)
+
+/** Stores one chimera evolution that should be shown after battle. */
+data class ChimeraEvolutionEvent(
+    val oldChimera: Chimera,
+    val newChimera: Chimera,
+    val oldSpecies: ChimeraSpecies,
+    val newSpecies: ChimeraSpecies,
+    val oldName: String,
+    val newName: String
 )
 
 /** Stores battle move animation data. */
@@ -14,6 +27,7 @@ data class BattleMoveAnimation(
     val species: ChimeraSpecies,
     val chimeraName: String,
     val moveName: String,
+    val moveId: MoveName?,
     val feedbacks: List<BattleMoveFeedback> = emptyList(),
     val kind: BattleAnimationKind = BattleAnimationKind.Move,
     val captureSucceeded: Boolean = false,

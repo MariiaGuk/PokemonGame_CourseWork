@@ -1,6 +1,5 @@
 package com.example.chimeralis.ui.screens.battle
 
-import com.example.chimeralis.R
 import com.example.chimeralis.logic.battle.BattleManager
 import com.example.chimeralis.logic.battle.DefaultRandomProvider
 import com.example.chimeralis.logic.battle.RandomProvider
@@ -8,6 +7,7 @@ import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
+import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
 
 /** Creates the create battle manager. */
 internal fun createBattleManager(
@@ -37,7 +37,7 @@ internal fun createTrainerBattleManager(
     player.resetActiveChimeraToTeamLead()
 
     val playerTeam = player.team.ifEmpty {
-        listOf(ChimeraFactory.createChimera(ChimeraSpecies.Sylvhorn, level = 5))
+        listOf(ChimeraFactory.createChimera(ChimeraFactory.trainerBattleSpecies().first(), level = 5))
     }
     val trainerTeam = List(playerTeam.size.coerceIn(1, MaxBattleTeamSize)) { index ->
         ChimeraFactory.createChimera(
@@ -61,23 +61,12 @@ internal fun createTrainerBattleManager(
 
 /** Handles trainer battle species behavior. */
 private fun trainerBattleSpecies(randomProvider: RandomProvider): ChimeraSpecies {
-    val pool = listOf(
-        ChimeraSpecies.Sunflare,
-        ChimeraSpecies.Sylvhorn,
-        ChimeraSpecies.Aquantis
-    )
-
+    val pool = ChimeraFactory.trainerBattleSpecies()
     return pool[randomProvider.nextInt(pool.indices)]
 }
 
 /** Handles battle name behavior. */
-internal fun ChimeraSpecies.battleName(): String = when (this) {
-    ChimeraSpecies.Sunflare -> "Sunflare"
-    ChimeraSpecies.Solflare -> "Solflare"
-    ChimeraSpecies.Solignis -> "Solignis"
-    ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-    ChimeraSpecies.Aquantis -> "Aquantis"
-}
+internal fun ChimeraSpecies.battleName(): String = ChimeraFactory.speciesName(this)
 
 /** Handles scaled wild chimera level behavior. */
 internal fun Player.scaledWildChimeraLevel(randomProvider: RandomProvider = DefaultRandomProvider): Int {
@@ -98,10 +87,4 @@ internal fun Int.expToNextLevel(): Int {
 }
 
 /** Handles battle image res behavior. */
-internal fun ChimeraSpecies.battleImageRes(): Int = when (this) {
-    ChimeraSpecies.Sunflare,
-    ChimeraSpecies.Solflare,
-    ChimeraSpecies.Solignis -> R.drawable.starter_fire
-    ChimeraSpecies.Sylvhorn -> R.drawable.starter_grass
-    ChimeraSpecies.Aquantis -> R.drawable.starter_water
-}
+internal fun ChimeraSpecies.battleImageRes(): Int = chimeraImageRes()

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.data.GameSave
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
@@ -312,10 +313,4 @@ private fun SaveActionButton(
 private val ContinueVisibleSaveRowsHeight = 250.dp
 
 /** Handles display name behavior. */
-private fun ChimeraSpecies.displayName(): String = when (this) {
-    ChimeraSpecies.Sunflare -> "Sunflare"
-    ChimeraSpecies.Solflare -> "Solflare"
-    ChimeraSpecies.Solignis -> "Solignis"
-    ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-    ChimeraSpecies.Aquantis -> "Aquantis"
-}
+private fun ChimeraSpecies.displayName(): String = ChimeraFactory.speciesName(this)

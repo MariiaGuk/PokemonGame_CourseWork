@@ -47,6 +47,8 @@ class BattleManager(
     private var escapeAttempts = 0
     private val playerBattleParticipants = linkedSetOf<Chimera>()
     private var pendingEnemySwitch: Chimera? = null
+    private val pendingEvolutionEvents = mutableListOf<ChimeraEvolutionEvent>()
+    private val queuedEvolutionSources = mutableSetOf<Chimera>()
 
     init {
         markPlayerParticipant(playerChimera)
@@ -56,6 +58,7 @@ class BattleManager(
     fun performTurnWithAnimations(playerAction: BattleAction): BattleTurnResult {
         val log = mutableListOf<String>()
         val animations = mutableListOf<BattleMoveAnimation>()
+        pendingEvolutionEvents.clear()
 
         if (!isBattleActive) {
             return BattleTurnResult(
@@ -125,7 +128,8 @@ class BattleManager(
 
         return BattleTurnResult(
             log = log,
-            animations = animations
+            animations = animations,
+            evolutions = pendingEvolutionEvents.toList()
         )
     }
 
@@ -163,6 +167,19 @@ class BattleManager(
             enemy.switchChimera(nextChimera)
         }
         pendingEnemySwitch = null
+    }
+
+    /** Applies a queued evolution when the post-battle animation starts. */
+    fun applyEvolution(event: ChimeraEvolutionEvent) {
+        val teamIndex = player.team.indexOf(event.oldChimera)
+        if (teamIndex == -1) return
+
+        player.team[teamIndex] = event.newChimera
+        if (player.activeChimera === event.oldChimera && event.newChimera.stats.isAlive()) {
+            player.switchChimera(event.newChimera)
+        }
+        playerBattleParticipants.remove(event.oldChimera)
+        playerBattleParticipants.add(event.newChimera)
     }
 
     /** Executes an enemy move and resolves resulting faint states. */
@@ -356,6 +373,27 @@ class BattleManager(
     /** Awards experience to all participating player chimeras. */
     private fun awardExperience(log: MutableList<String>, defeatedChimera: Chimera) {
         rewardCalculator.awardExperience(playerBattleParticipants, defeatedChimera, log)
+        queueReadyEvolutions()
+    }
+
+    /** Queues evolution events without changing battle sprites or team members yet. */
+    private fun queueReadyEvolutions() {
+        playerBattleParticipants.forEach { chimera ->
+            if (!chimera.canEvolve() || chimera in queuedEvolutionSources) return@forEach
+
+            val evolvedChimera = chimera.evolution() ?: return@forEach
+            queuedEvolutionSources.add(chimera)
+            pendingEvolutionEvents.add(
+                ChimeraEvolutionEvent(
+                    oldChimera = chimera,
+                    newChimera = evolvedChimera,
+                    oldSpecies = chimera.species,
+                    newSpecies = evolvedChimera.species,
+                    oldName = chimera.name,
+                    newName = evolvedChimera.name
+                )
+            )
+        }
     }
 
     /** Records a living player chimera as eligible for experience. */

@@ -75,10 +75,25 @@ fun BattleScreen(
         if (!uiState.isBattleExitPending) return@LaunchedEffect
 
         delay(BattleEndInputLockMillis)
+        uiState.pendingEvolutionEvents.forEach { event ->
+            uiState.activeEvolutionEvent = event
+            GameSoundPlayer.stopBattleResultSounds()
+            GameSoundPlayer.play(context, R.raw.chimera_evolution)
+            delay(EvolutionRevealMillis)
+            GameSoundPlayer.stop(R.raw.chimera_evolution)
+            GameSoundPlayer.play(context, R.raw.chimera_evolved)
+            delay(EvolutionRevealMillis  )
+            battleManager.applyEvolution(event)
+            delay(EvolutionOverlayDurationMillis - EvolutionRevealMillis)
+        }
+        uiState.activeEvolutionEvent = null
+        uiState.pendingEvolutionEvents = emptyList()
         player.team.forEach { chimera ->
             chimera.stats.resetBattleStages()
         }
-        wildChimera.stats.resetBattleStages()
+        battleManager.enemy.team.forEach { chimera ->
+            chimera.stats.resetBattleStages()
+        }
         onBattleFinished()
     }
 
@@ -497,6 +512,13 @@ fun BattleScreen(
                 colors = colors,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+            )
+        }
+
+        uiState.activeEvolutionEvent?.let { event ->
+            EvolutionOverlay(
+                event = event,
+                modifier = Modifier.fillMaxSize()
             )
         }
     }

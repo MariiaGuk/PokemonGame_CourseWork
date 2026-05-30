@@ -48,6 +48,9 @@ import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.ChimeraType
 import com.example.chimeralis.logic.chimeras.Stats
 import com.example.chimeralis.ui.components.MenuButton
+import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
+import com.example.chimeralis.ui.screens.chimera.starterAccentColor
+import com.example.chimeralis.ui.screens.chimera.starterShadowColor
 import com.example.chimeralis.ui.theme.CinzelFamily
 
 /** Stores starter option data. */
@@ -68,26 +71,14 @@ fun StarterSelectionScreen(
     var selectedStarter by remember { mutableStateOf<StarterOption?>(null) }
     var chimeraName by remember { mutableStateOf(TextFieldValue("")) }
     var isChimeraNameFocused by remember { mutableStateOf(false) }
-    val starters = listOf(
+    val starters = ChimeraFactory.starterSpecies().map { species ->
         StarterOption(
-            species = ChimeraSpecies.Sunflare,
-            accent = Color(0xFFFF6A2A),
-            shadow = Color(0xFF5A1708),
-            imageRes = R.drawable.starter_fire
-        ),
-        StarterOption(
-            species = ChimeraSpecies.Sylvhorn,
-            accent = Color(0xFF66C96A),
-            shadow = Color(0xFF143D22),
-            imageRes = R.drawable.starter_grass
-        ),
-        StarterOption(
-            species = ChimeraSpecies.Aquantis,
-            accent = Color(0xFF4EB4FF),
-            shadow = Color(0xFF0D3156),
-            imageRes = R.drawable.starter_water
+            species = species,
+            accent = species.starterAccentColor(),
+            shadow = species.starterShadowColor(),
+            imageRes = species.chimeraImageRes()
         )
-    )
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -402,13 +393,7 @@ private fun ChimeraType.battleTrait(): String = when (this) {
 }
 
 /** Handles default name behavior. */
-private fun ChimeraSpecies.defaultName(): String = when (this) {
-    ChimeraSpecies.Sunflare -> "Sunflare"
-    ChimeraSpecies.Solflare -> "Solflare"
-    ChimeraSpecies.Solignis -> "Solignis"
-    ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-    ChimeraSpecies.Aquantis -> "Aquantis"
-}
+private fun ChimeraSpecies.defaultName(): String = ChimeraFactory.speciesName(this)
 
 private const val MaxChimeraNameLength = 12
 

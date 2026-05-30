@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleAnimationKind
+import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
 import com.example.chimeralis.logic.battle.BattleManager
 import com.example.chimeralis.logic.battle.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.BattleSide
@@ -39,6 +40,8 @@ internal class BattleUiState(
     var selectedBattleItem by mutableStateOf<Item?>(null)
     var isBattleIntroLocked by mutableStateOf(true)
     var isBattleExitPending by mutableStateOf(false)
+    var activeEvolutionEvent by mutableStateOf<ChimeraEvolutionEvent?>(null)
+    var pendingEvolutionEvents by mutableStateOf<List<ChimeraEvolutionEvent>>(emptyList())
     var revealedEnemyDefeatCount by mutableIntStateOf(0)
     var uiVersion by mutableIntStateOf(0)
     private var lastEnemyDefeatRevealKey: String? = null
@@ -167,6 +170,7 @@ internal class BattleUiState(
             else -> playerExpBefore
         }
         visualWildStats = wildBefore
+        pendingEvolutionEvents = pendingEvolutionEvents + result.evolutions
 
         showBattleResult(result.log, result.animations)
     }

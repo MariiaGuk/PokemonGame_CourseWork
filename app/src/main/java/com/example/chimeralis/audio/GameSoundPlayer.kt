@@ -51,6 +51,7 @@ object GameSoundPlayer {
         preload(context, R.raw.battle_loss)
         preload(context, R.raw.battle_victory)
         preload(context, R.raw.caught_a_chimera)
+        preload(context, R.raw.chimera_evolution)
         preload(context, R.raw.start_transition)
         preload(context, R.raw.end_transition)
     }

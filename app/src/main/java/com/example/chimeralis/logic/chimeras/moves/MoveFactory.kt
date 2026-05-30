@@ -13,6 +13,7 @@ object MoveFactory {
     fun createMove(move: MoveName): Move {
         return when (move) {
             MoveName.TACKLE -> Move(
+                id = MoveName.TACKLE,
                 name = "Tackle",
                 type = ChimeraType.NORMAL,
                 maxPp = 35,
@@ -21,6 +22,7 @@ object MoveFactory {
             )
 
             MoveName.EMBER -> Move(
+                id = MoveName.EMBER,
                 name = "Ember",
                 type = ChimeraType.FIRE,
                 maxPp = 25,
@@ -29,6 +31,7 @@ object MoveFactory {
             )
 
             MoveName.GROWL -> Move(
+                id = MoveName.GROWL,
                 name = "Growl",
                 type = ChimeraType.NORMAL,
                 maxPp = 40,
@@ -43,6 +46,7 @@ object MoveFactory {
             )
 
             MoveName.TAILWHIP -> Move(
+                id = MoveName.TAILWHIP,
                 name = "Tail Whip",
                 type = ChimeraType.NORMAL,
                 maxPp = 30,
@@ -57,6 +61,7 @@ object MoveFactory {
             )
 
             MoveName.RECOVER -> Move(
+                id = MoveName.RECOVER,
                 name = "Recover",
                 type = ChimeraType.NORMAL,
                 maxPp = 5,

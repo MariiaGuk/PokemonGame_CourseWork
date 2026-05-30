@@ -61,12 +61,14 @@ import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.ui.components.GameSettingsPanel
 import com.example.chimeralis.ui.components.MenuButton
+import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.locations.TownSign
 import com.example.chimeralis.ui.theme.CinzelFamily
@@ -276,23 +278,11 @@ internal val shiftNpcCalmDialogFrames = listOf(
 
 /** Handles random wild chimera behavior. */
 internal fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {
-    val pool = listOf(
-        ChimeraSpecies.Sunflare,
-        ChimeraSpecies.Sylvhorn,
-        ChimeraSpecies.Aquantis
-    )
-
-    return pool.random()
+    return ChimeraFactory.wildSpecies().random()
 }
 
 /** Handles team image res behavior. */
-internal fun ChimeraSpecies.teamImageRes(): Int = when (this) {
-    ChimeraSpecies.Sunflare,
-    ChimeraSpecies.Solflare,
-    ChimeraSpecies.Solignis -> R.drawable.starter_fire
-    ChimeraSpecies.Sylvhorn -> R.drawable.starter_grass
-    ChimeraSpecies.Aquantis -> R.drawable.starter_water
-}
+internal fun ChimeraSpecies.teamImageRes(): Int = chimeraImageRes()
 
 /** Draws the draw bush tile. */
 internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBushTile(

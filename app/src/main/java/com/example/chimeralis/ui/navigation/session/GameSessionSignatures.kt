@@ -1,6 +1,7 @@
 package com.example.chimeralis.ui.navigation.session
 
 import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
 
@@ -32,10 +33,4 @@ private fun Chimera.signature(): String {
 }
 
 /** Handles battle name behavior. */
-private fun ChimeraSpecies.battleName(): String = when (this) {
-    ChimeraSpecies.Sunflare -> "Sunflare"
-    ChimeraSpecies.Solflare -> "Solflare"
-    ChimeraSpecies.Solignis -> "Solignis"
-    ChimeraSpecies.Sylvhorn -> "Sylvhorn"
-    ChimeraSpecies.Aquantis -> "Aquantis"
-}
+private fun ChimeraSpecies.battleName(): String = ChimeraFactory.speciesName(this)

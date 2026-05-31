@@ -25,16 +25,12 @@ class Move (
     fun execute(
         attacker: Chimera,
         target: Chimera,
-        accuracyRoll: Int
+        hits: Boolean
     ): MoveExecutionResult {
-        require(accuracyRoll in MinAccuracyRoll..MaxAccuracyRoll) {
-            "Accuracy roll must be between $MinAccuracyRoll and $MaxAccuracyRoll"
-        }
-
         if (pp <= 0) return MoveExecutionResult.NoPowerPoints
 
         pp--
-        if (accuracyRoll > accuracy.coerceIn(0, MaxAccuracyRoll)) {
+        if (!hits) {
             return MoveExecutionResult.Missed
         }
 

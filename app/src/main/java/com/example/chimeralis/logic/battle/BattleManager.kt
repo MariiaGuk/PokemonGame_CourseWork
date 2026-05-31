@@ -2,6 +2,7 @@ package com.example.chimeralis.logic.battle
 
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
+import com.example.chimeralis.logic.chimeras.moves.MoveExecutionResult
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 
@@ -18,6 +19,7 @@ class BattleManager(
     private val enemyMoveSelector: EnemyMoveSelector = EnemyMoveSelector(randomProvider),
     private val escapeResolver: BattleEscapeResolver = BattleEscapeResolver(randomProvider),
     private val moveReporter: BattleMoveReporter = BattleMoveReporter(),
+    private val moveAccuracyResolver: BattleMoveAccuracyResolver = BattleMoveAccuracyResolver(randomProvider),
     private val turnOrderResolver: BattleTurnOrderResolver = BattleTurnOrderResolver(randomProvider),
     private val faintResolver: BattleFaintResolver = BattleFaintResolver(),
     private val itemResolver: BattleItemResolver = BattleItemResolver(
@@ -154,11 +156,7 @@ class BattleManager(
         val enemyMove = enemyMoveSelector.selectMove(enemyChimera)
         val beforeTargetStats = playerChimera.stats.toBattleStatsSnapshot()
         val beforeUserStats = enemyChimera.stats.toBattleStatsSnapshot()
-        val executionResult = enemyMove.execute(
-            attacker = enemyChimera,
-            target = playerChimera,
-            accuracyRoll = nextAccuracyRoll()
-        )
+        val executionResult = executeMove(enemyMove, enemyChimera, playerChimera)
         val animation = moveReporter.reportMove(
             log = log,
             side = BattleSide.Enemy,
@@ -181,11 +179,7 @@ class BattleManager(
         markPlayerParticipant(playerChimera)
         val beforeTargetStats = enemyChimera.stats.toBattleStatsSnapshot()
         val beforeUserStats = playerChimera.stats.toBattleStatsSnapshot()
-        val executionResult = playerMove.execute(
-            attacker = playerChimera,
-            target = enemyChimera,
-            accuracyRoll = nextAccuracyRoll()
-        )
+        val executionResult = executeMove(playerMove, playerChimera, enemyChimera)
         val animation = moveReporter.reportMove(
             log = log,
             side = BattleSide.Player,
@@ -296,9 +290,17 @@ class BattleManager(
         }
     }
 
-    /** Rolls the standard move-accuracy check for one attempted move. */
-    private fun nextAccuracyRoll(): Int {
-        return randomProvider.nextInt(Move.MinAccuracyRoll..Move.MaxAccuracyRoll)
+    /** Executes one move using the battle's injected accuracy resolver. */
+    private fun executeMove(
+        move: Move,
+        attacker: Chimera,
+        target: Chimera
+    ): MoveExecutionResult {
+        return move.execute(
+            attacker = attacker,
+            target = target,
+            hits = move.pp > 0 && moveAccuracyResolver.moveHits(move)
+        )
     }
 
     /** Awards money after defeating an enemy trainer or wild chimera. */

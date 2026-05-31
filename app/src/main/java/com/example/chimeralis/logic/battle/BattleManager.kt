@@ -1,11 +1,9 @@
 package com.example.chimeralis.logic.battle
 
-import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
-import com.example.chimeralis.logic.trainers.PlayerChimeraPlacement
 
 /**
  * Coordinates battle turns, captures, switching, rewards, and move learning.
@@ -19,7 +17,14 @@ class BattleManager(
     private val captureResolver: BattleCaptureResolver = BattleCaptureResolver(randomProvider),
     private val enemyMoveSelector: EnemyMoveSelector = EnemyMoveSelector(randomProvider),
     private val escapeResolver: BattleEscapeResolver = BattleEscapeResolver(randomProvider),
-    private val moveReporter: BattleMoveReporter = BattleMoveReporter()
+    private val moveReporter: BattleMoveReporter = BattleMoveReporter(),
+    private val turnOrderResolver: BattleTurnOrderResolver = BattleTurnOrderResolver(randomProvider),
+    private val faintResolver: BattleFaintResolver = BattleFaintResolver(),
+    private val itemResolver: BattleItemResolver = BattleItemResolver(
+        canCaptureEnemy = canCaptureEnemy,
+        captureResolver = captureResolver,
+        moveReporter = moveReporter
+    )
 ) {
     val playerChimera get() = player.activeChimera
     val enemyChimera get() = enemy.activeChimera
@@ -68,11 +73,7 @@ class BattleManager(
                     return BattleTurnResult(log = log, animations = animations)
                 }
 
-                val playerGoesFirst = playerChimera.stats.speed > enemyChimera.stats.speed ||
-                        (playerChimera.stats.speed == enemyChimera.stats.speed &&
-                                randomProvider.nextDouble() < 0.5)
-
-                if (playerGoesFirst) {
+                if (turnOrderResolver.playerActsFirst(playerChimera, enemyChimera)) {
                     animations.add(playerTurn(playerAction.move, log))
                     if (isBattleActive && playerChimera.stats.isAlive() && enemyChimera.stats.isAlive()) {
                         animations.add(enemyTurn(log))
@@ -91,7 +92,16 @@ class BattleManager(
                     return BattleTurnResult(log = log, animations = animations)
                 }
 
-                if (useItem(playerAction.item, playerAction.target, log, animations)) {
+                val itemResolution = itemResolver.resolve(
+                    item = playerAction.item,
+                    target = playerAction.target,
+                    player = player,
+                    playerChimera = playerChimera,
+                    enemyChimera = enemyChimera
+                )
+                applyItemResolution(itemResolution, log, animations)
+
+                if (itemResolution.shouldEnemyAct) {
                     animations.add(enemyTurn(log))
                 }
             }
@@ -183,73 +193,18 @@ class BattleManager(
         return animation
     }
 
-    /** Applies a battle item or redirects capture items into catch logic. */
-    private fun useItem(
-        item: Item,
-        target: Chimera?,
+    /** Applies the result of an item action to the battle manager state. */
+    private fun applyItemResolution(
+        resolution: BattleItemResolution,
         log: MutableList<String>,
         animations: MutableList<BattleMoveAnimation>
-    ): Boolean {
-        if (item.isCaptureItem) {
-            return tryCatchChimera(item, log, animations)
+    ) {
+        log.addAll(resolution.log)
+        resolution.animation?.let(animations::add)
+        isBattleActive = resolution.isBattleActive
+        resolution.caughtChimera?.let { chimera ->
+            awardExperience(log, chimera)
         }
-
-        val itemTarget = target ?: playerChimera
-        val targetBefore = itemTarget.stats.toBattleStatsSnapshot()
-        if (!player.useInventoryItem(item, itemTarget)) {
-            log.add("${item.name} cannot be used on ${itemTarget.name}.")
-            return false
-        }
-        val targetAfter = itemTarget.stats.toBattleStatsSnapshot()
-
-        log.add("Used ${item.name} on ${itemTarget.name}!")
-        if (itemTarget === playerChimera) {
-            animations.add(moveReporter.reportItem(item, itemTarget, targetBefore, targetAfter))
-        }
-        return true
-    }
-
-    /** Resolves a capture attempt and stores the caught chimera when possible. */
-    private fun tryCatchChimera(
-        item: Item,
-        log: MutableList<String>,
-        animations: MutableList<BattleMoveAnimation>
-    ): Boolean {
-        if (!canCaptureEnemy) {
-            log.add("You cannot catch another trainer's chimera.")
-            return false
-        }
-
-        if (!player.canStoreChimera()) {
-            log.add("Storage is full. You cannot catch more chimeras.")
-            return false
-        }
-
-        if (!player.inventory.consumeItem(item)) {
-            log.add("You do not have any ${item.name}s.")
-            return false
-        }
-
-        log.add("You threw a ${item.name}!")
-
-        val captureResult = captureResolver.resolve(enemyChimera)
-
-        animations.add(moveReporter.reportCapture(item, enemyChimera, captureResult))
-
-        if (captureResult.caught) {
-            enemyChimera.stats.resetBattleStages()
-            val placement = player.addCaughtChimera(enemyChimera)
-            isBattleActive = false
-            log.add("Gotcha! ${enemyChimera.name} was caught!")
-            if (placement == PlayerChimeraPlacement.Storage) {
-                log.add("${enemyChimera.name} was sent to storage.")
-            }
-            awardExperience(log, enemyChimera)
-        } else {
-            log.add("${enemyChimera.name} broke free!")
-        }
-
-        return isBattleActive
     }
 
     /** Switches the active chimera and marks it as a battle participant. */
@@ -261,44 +216,36 @@ class BattleManager(
 
     /** Resolves the player's active chimera fainting. */
     private fun resolvePlayerFaint(log: MutableList<String>) {
-        if (playerChimera.stats.isAlive()) return
+        val resolution = faintResolver.resolvePlayerFaint(player) ?: return
+        applyPlayerFaintResolution(resolution, log)
+    }
 
-        if (player.isDefeated()) {
-            isBattleActive = false
-            isWaitingForPlayerSwitch = false
-            log.add("You lost!")
-        } else {
-            isWaitingForPlayerSwitch = true
-            log.add("Choose your next chimera!")
-        }
+    /** Applies a player faint or forced-switch result to the battle state. */
+    private fun applyPlayerFaintResolution(
+        resolution: PlayerFaintResolution,
+        log: MutableList<String>
+    ) {
+        isBattleActive = resolution.isBattleActive
+        isWaitingForPlayerSwitch = resolution.isWaitingForPlayerSwitch
+        log.add(resolution.message)
     }
 
     /** Resolves the enemy chimera fainting and battle victory rewards. */
     private fun resolveEnemyFaint(log: MutableList<String>, defeatedChimera: Chimera) {
-        if (defeatedChimera.stats.isAlive()) return
+        val resolution = faintResolver.resolveEnemyFaint(enemy, defeatedChimera) ?: return
 
         awardExperience(log, defeatedChimera)
-
-        if (enemy.isDefeated()) {
-            isBattleActive = false
-            log.add("You won!")
+        isBattleActive = resolution.isBattleActive
+        pendingEnemySwitch = resolution.nextChimera
+        log.add(resolution.message)
+        if (resolution.shouldAwardMoney) {
             awardMoney(log, defeatedChimera)
-        } else {
-            val nextChimera = enemy.firstLivingChimera() ?: return
-            pendingEnemySwitch = nextChimera
-            log.add("${enemy.name} sent out ${nextChimera.name}!")
         }
     }
 
     /** Prompts a forced switch or ends the battle when the player is defeated. */
     private fun promptForcedSwitch(log: MutableList<String>) {
-        isWaitingForPlayerSwitch = !player.isDefeated()
-        if (isWaitingForPlayerSwitch) {
-            log.add("Choose your next chimera!")
-        } else {
-            isBattleActive = false
-            log.add("You lost!")
-        }
+        applyPlayerFaintResolution(faintResolver.promptForcedSwitch(player), log)
     }
 
     /** Attempts to escape from the battle and lets the enemy act on failure. */

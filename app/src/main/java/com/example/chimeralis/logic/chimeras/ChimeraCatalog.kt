@@ -12,6 +12,19 @@ interface ChimeraCatalog {
 
     /** Finds a species by its display name. */
     fun speciesByName(name: String): ChimeraSpecies? {
-        return definitions.firstOrNull { definition -> definition.displayName == name }?.species
+        val lookupKey = name.toLookupKey()
+        return definitions.firstOrNull { definition ->
+            definition.saveLookupNames().any { candidate -> candidate.toLookupKey() == lookupKey }
+        }?.species
     }
+}
+
+/** Returns every supported saved-name candidate for one chimera definition. */
+private fun ChimeraDefinition.saveLookupNames(): List<String> {
+    return listOf(displayName, species.javaClass.simpleName) + saveAliases
+}
+
+/** Normalizes persisted identifiers so old formatting does not break loading. */
+private fun String.toLookupKey(): String {
+    return filter(Char::isLetterOrDigit).lowercase()
 }

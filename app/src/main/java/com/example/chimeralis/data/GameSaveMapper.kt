@@ -7,6 +7,7 @@ import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
+import com.example.chimeralis.logic.chimeras.moves.Move
 
 /** Represents the game save mapper. */
 class GameSaveMapper {
@@ -36,14 +37,15 @@ class GameSaveMapper {
             level = savedChimera.level,
             ivStats = savedChimera.ivStats
         ).also { chimera ->
-            chimera.rename(savedChimera.nickname)
+            restoreNickname(chimera, savedChimera.nickname)
             if (savedChimera.exp > 0) {
                 chimera.gainExp(savedChimera.exp)
             }
-            chimera.stats.restoreHp(savedChimera.currentHp)
-            val savedPpsByMoveName = savedChimera.moves.associateBy { it.moveName }
+            if (savedChimera.currentHp >= 0) {
+                chimera.stats.restoreHp(savedChimera.currentHp)
+            }
             chimera.moves.forEach { move ->
-                savedPpsByMoveName[move.name]?.let { savedMove ->
+                savedMovePp(move, savedChimera.moves)?.let { savedMove ->
                     move.restorePp(savedMove.pp)
                 }
             }
@@ -74,8 +76,42 @@ class GameSaveMapper {
     fun toChimeraSpecies(value: String): ChimeraSpecies? = ChimeraFactory.speciesByName(value)
 
     /** Converts data into item name. */
-    fun toItemName(value: String): ItemName? = ItemName.values().firstOrNull {
-        it.displayName == value
+    fun toItemName(value: String): ItemName? {
+        val lookupKey = value.toLookupKey()
+        return ItemName.values().firstOrNull { itemName ->
+            itemName.displayName.toLookupKey() == lookupKey ||
+                    itemName.name.toLookupKey() == lookupKey ||
+                    itemName.legacySaveNames.any { legacyName -> legacyName.toLookupKey() == lookupKey }
+        }
+    }
+
+    /** Restores a nickname only when it still passes current validation rules. */
+    private fun restoreNickname(chimera: Chimera, nickname: String) {
+        if (nickname.isBlank()) return
+
+        runCatching {
+            chimera.rename(nickname)
+        }
+    }
+
+    /** Finds a saved PP row for a move using both enum and display-name formats. */
+    private fun savedMovePp(move: Move, savedMoves: List<SavedMovePp>): SavedMovePp? {
+        return savedMoves.firstOrNull { savedMove ->
+            savedMove.moveName.toLookupKey() == move.name.toLookupKey() ||
+                    savedMove.moveName.toLookupKey() == move.id.name.toLookupKey()
+        }
+    }
+
+    /** Lists legacy persisted item names accepted during loading. */
+    private val ItemName.legacySaveNames: List<String>
+        get() = when (this) {
+            ItemName.BINDING_STONE -> listOf("Binding Stone", "Binding Stone", "BINDING_STONE")
+            else -> emptyList()
+        }
+
+    /** Normalizes persisted identifiers so old formatting does not break loading. */
+    private fun String.toLookupKey(): String {
+        return filter(Char::isLetterOrDigit).lowercase()
     }
 
     /** Handles battle name behavior. */

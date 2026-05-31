@@ -70,7 +70,7 @@ class GameSaveStore(context: Context) {
     /** Loads all valid saves sorted from newest to oldest. */
     fun loadAll(): List<GameSave> {
         return trainerIds()
-            .mapNotNull(::load)
+            .mapNotNull { id -> runCatching { load(id) }.getOrNull() }
             .sortedByDescending { it.updatedAt }
     }
 
@@ -124,19 +124,19 @@ class GameSaveStore(context: Context) {
 
     /** Loads one save by its normalized trainer id. */
     private fun load(id: String): GameSave? {
-        val trainerName = prefs.getString("$id.$TrainerNameKey", null) ?: return null
+        val trainerName = stringPref("$id.$TrainerNameKey") ?: return null
         val team = loadTeam(id).ifEmpty { return null }
         val storage = loadStorage(id)
         val inventoryItems = loadInventoryItems(id)
-        val money = prefs.getInt("$id.$MoneyKey", StartingMoney)
-        val playerColumn = prefs.getInt("$id.$PlayerColumnKey", 1)
-        val playerRow = prefs.getInt("$id.$PlayerRowKey", 1)
-        val location = prefs.getString("$id.$LocationKey", null)
+        val money = intPref("$id.$MoneyKey", StartingMoney).coerceAtLeast(0)
+        val playerColumn = intPref("$id.$PlayerColumnKey", DefaultPlayerColumn).coerceAtLeast(0)
+        val playerRow = intPref("$id.$PlayerRowKey", DefaultPlayerRow).coerceAtLeast(0)
+        val location = stringPref("$id.$LocationKey")
             ?.let { savedName ->
                 SavedGameLocation.values().firstOrNull { it.name == savedName }
             }
             ?: SavedGameLocation.LavaField
-        val updatedAt = prefs.getLong("$id.$UpdatedAtKey", 0L)
+        val updatedAt = longPref("$id.$UpdatedAtKey", 0L).coerceAtLeast(0L)
 
         return GameSave(
             trainerName = trainerName,
@@ -178,11 +178,18 @@ class GameSaveStore(context: Context) {
 
     /** Recreates a runtime player model from a persisted save snapshot. */
     fun createPlayer(gameSave: GameSave): Player {
+        val team = gameSave.team.mapNotNull { savedChimera ->
+            runCatching { mapper.toChimera(savedChimera) }.getOrNull()
+        }
+        require(team.isNotEmpty()) { "Saved player must have at least one valid chimera" }
+
         return Player(
             name = gameSave.trainerName,
-            team = gameSave.team.map(mapper::toChimera).toMutableList(),
+            team = team,
             inventory = mapper.toInventory(gameSave.inventoryItems),
-            storage = gameSave.storage.map(mapper::toChimera).toMutableList(),
+            storage = gameSave.storage.mapNotNull { savedChimera ->
+                runCatching { mapper.toChimera(savedChimera) }.getOrNull()
+            },
             money = gameSave.money
         )
     }
@@ -231,7 +238,7 @@ class GameSaveStore(context: Context) {
 
     /** Loads the active team from the current save format. */
     private fun loadTeam(id: String): List<SavedChimera> {
-        val teamSize = prefs.getInt("$id.$TeamSizeKey", 0)
+        val teamSize = intPref("$id.$TeamSizeKey", 0).coerceAtLeast(0)
         if (teamSize > 0) {
             return (0 until teamSize).mapNotNull { index ->
                 loadChimera("$id.$TeamKey.$index")
@@ -243,7 +250,7 @@ class GameSaveStore(context: Context) {
 
     /** Loads the stored chimeras from the current save format. */
     private fun loadStorage(id: String): List<SavedChimera> {
-        val storageSize = prefs.getInt("$id.$StorageSizeKey", 0)
+        val storageSize = intPref("$id.$StorageSizeKey", 0).coerceAtLeast(0)
         return (0 until storageSize).mapNotNull { index ->
             loadChimera("$id.$StorageKey.$index")
         }
@@ -251,26 +258,26 @@ class GameSaveStore(context: Context) {
 
     /** Loads every valid inventory entry for one save. */
     private fun loadInventoryItems(id: String): List<SavedItem> {
-        val inventorySize = prefs.getInt("$id.$InventorySizeKey", 0)
+        val inventorySize = intPref("$id.$InventorySizeKey", 0).coerceAtLeast(0)
         return (0 until inventorySize).mapNotNull { loadItem(id, it) }
     }
 
     /** Loads one chimera snapshot from a preference prefix. */
     private fun loadChimera(prefix: String): SavedChimera? {
-        val species = prefs.getString("$prefix.$SpeciesKey", null)?.let(mapper::toChimeraSpecies) ?: return null
-        val nickname = prefs.getString("$prefix.$NicknameKey", null) ?: mapper.battleName(species)
+        val species = stringPref("$prefix.$SpeciesKey")?.let(mapper::toChimeraSpecies) ?: return null
+        val nickname = stringPref("$prefix.$NicknameKey") ?: mapper.battleName(species)
 
         return SavedChimera(
             species = species,
             nickname = nickname,
-            level = prefs.getInt("$prefix.$LevelKey", 5).coerceAtLeast(1),
-            exp = prefs.getInt("$prefix.$ExpKey", 0).coerceAtLeast(0),
-            currentHp = prefs.getInt("$prefix.$CurrentHpKey", NoSavedHp).coerceAtLeast(0),
+            level = intPref("$prefix.$LevelKey", DefaultChimeraLevel).coerceAtLeast(1),
+            exp = intPref("$prefix.$ExpKey", 0).coerceAtLeast(0),
+            currentHp = intPref("$prefix.$CurrentHpKey", NoSavedHp),
             ivStats = Stats(
-                maxHp = prefs.getInt("$prefix.$IvHpKey", 0),
-                attack = prefs.getInt("$prefix.$IvAttackKey", 0),
-                defence = prefs.getInt("$prefix.$IvDefenceKey", 0),
-                speed = prefs.getInt("$prefix.$IvSpeedKey", 0)
+                maxHp = intPref("$prefix.$IvHpKey", 0),
+                attack = intPref("$prefix.$IvAttackKey", 0),
+                defence = intPref("$prefix.$IvDefenceKey", 0),
+                speed = intPref("$prefix.$IvSpeedKey", 0)
             ),
             moves = loadMovePps(prefix)
         )
@@ -288,14 +295,14 @@ class GameSaveStore(context: Context) {
 
     /** Loads all saved move PP values for one chimera. */
     private fun loadMovePps(chimeraPrefix: String): List<SavedMovePp> {
-        val movePpSize = prefs.getInt("$chimeraPrefix.$MovePpSizeKey", 0)
+        val movePpSize = intPref("$chimeraPrefix.$MovePpSizeKey", 0).coerceAtLeast(0)
         return (0 until movePpSize).mapNotNull { index ->
             val prefix = "$chimeraPrefix.$MovePpKey.$index"
-            val moveName = prefs.getString("$prefix.$MoveNameKey", null) ?: return@mapNotNull null
+            val moveName = stringPref("$prefix.$MoveNameKey") ?: return@mapNotNull null
 
             SavedMovePp(
                 moveName = moveName,
-                pp = prefs.getInt("$prefix.$MovePpValueKey", 0)
+                pp = intPref("$prefix.$MovePpValueKey", 0)
             )
         }
     }
@@ -303,8 +310,8 @@ class GameSaveStore(context: Context) {
     /** Loads one inventory item entry. */
     private fun loadItem(id: String, index: Int): SavedItem? {
         val prefix = "$id.$InventoryKey.$index"
-        val itemName = prefs.getString("$prefix.$ItemNameKey", null)?.let(mapper::toItemName) ?: return null
-        val amount = prefs.getInt("$prefix.$ItemAmountKey", 0)
+        val itemName = stringPref("$prefix.$ItemNameKey")?.let(mapper::toItemName) ?: return null
+        val amount = intPref("$prefix.$ItemAmountKey", 0)
 
         if (amount <= 0) return null
 
@@ -313,12 +320,27 @@ class GameSaveStore(context: Context) {
 
     /** Returns all trainer ids currently known to the save store. */
     private fun trainerIds(): Set<String> {
-        return prefs.getStringSet(TrainerIdsKey, emptySet()).orEmpty()
+        return runCatching { prefs.getStringSet(TrainerIdsKey, emptySet()).orEmpty() }.getOrDefault(emptySet())
     }
 
     /** Normalizes a trainer name into the preference id format. */
     private fun trainerId(trainerName: String): String {
         return trainerName.trim().lowercase()
+    }
+
+    /** Safely reads a string preference and ignores values with an unexpected type. */
+    private fun stringPref(key: String): String? {
+        return runCatching { prefs.getString(key, null) }.getOrNull()
+    }
+
+    /** Safely reads an integer preference and ignores values with an unexpected type. */
+    private fun intPref(key: String, defaultValue: Int): Int {
+        return runCatching { prefs.getInt(key, defaultValue) }.getOrDefault(defaultValue)
+    }
+
+    /** Safely reads a long preference and ignores values with an unexpected type. */
+    private fun longPref(key: String, defaultValue: Long): Long {
+        return runCatching { prefs.getLong(key, defaultValue) }.getOrDefault(defaultValue)
     }
 
     private companion object {
@@ -353,5 +375,8 @@ class GameSaveStore(context: Context) {
         const val UpdatedAtKey = "updated_at"
         const val NoSavedHp = -1
         const val StartingMoney = 200
+        const val DefaultPlayerColumn = 1
+        const val DefaultPlayerRow = 1
+        const val DefaultChimeraLevel = 5
     }
 }

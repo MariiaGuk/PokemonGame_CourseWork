@@ -11,7 +11,8 @@ data class ChimeraDefinition(
     val learnset: List<LearnableMove>,
     val evolution: ChimeraEvolution? = null,
     val availability: ChimeraAvailability = ChimeraAvailability(),
-    val visuals: ChimeraVisualSet
+    val visuals: ChimeraVisualSet,
+    val saveAliases: List<String> = emptyList()
 )
 
 /** Describes the next species and level required for evolution. */

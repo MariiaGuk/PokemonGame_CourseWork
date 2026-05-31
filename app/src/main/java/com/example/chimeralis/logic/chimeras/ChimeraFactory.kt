@@ -9,8 +9,13 @@ object ChimeraFactory {
     var catalog: ChimeraCatalog = DefaultChimeraCatalog
         private set
 
+    init {
+        validateCatalog(catalog)
+    }
+
     /** Replaces the catalog source for tests or alternative game data. */
     fun configureCatalog(newCatalog: ChimeraCatalog) {
+        validateCatalog(newCatalog)
         catalog = newCatalog
     }
 
@@ -101,5 +106,46 @@ object ChimeraFactory {
     /** Creates a fresh move provider for the given move id. */
     private fun moveProvider(moveName: MoveName): () -> Move {
         return { MoveFactory.createMove(moveName) }
+    }
+
+    /** Validates that a catalog can safely be used by factories and save mapping. */
+    private fun validateCatalog(catalog: ChimeraCatalog) {
+        val definitions = catalog.definitions
+        require(definitions.isNotEmpty()) { "Chimera catalog must contain at least one definition" }
+        require(definitions.map { definition -> definition.species }.distinct().size == definitions.size) {
+            "Chimera catalog contains duplicate species"
+        }
+        require(definitions.all { definition -> definition.displayName.isNotBlank() }) {
+            "Chimera catalog contains a blank display name"
+        }
+        require(definitions.flatMap { definition -> definition.saveAliases }.all { alias -> alias.isNotBlank() }) {
+            "Chimera catalog contains a blank save alias"
+        }
+
+        val duplicateLookupKey = definitions
+            .flatMap { definition ->
+                definition.saveLookupNames().map { name -> name.toLookupKey() to definition.species }
+            }
+            .groupBy(
+                keySelector = { (lookupKey, _) -> lookupKey },
+                valueTransform = { (_, species) -> species }
+            )
+            .firstNotNullOfOrNull { (lookupKey, species) ->
+                lookupKey.takeIf { species.distinct().size > 1 }
+            }
+
+        require(duplicateLookupKey == null) {
+            "Chimera catalog contains duplicate saved-name mapping: $duplicateLookupKey"
+        }
+    }
+
+    /** Returns every supported saved-name candidate for one chimera definition. */
+    private fun ChimeraDefinition.saveLookupNames(): List<String> {
+        return listOf(displayName, species.javaClass.simpleName) + saveAliases
+    }
+
+    /** Normalizes persisted identifiers for duplicate lookup validation. */
+    private fun String.toLookupKey(): String {
+        return filter(Char::isLetterOrDigit).lowercase()
     }
 }

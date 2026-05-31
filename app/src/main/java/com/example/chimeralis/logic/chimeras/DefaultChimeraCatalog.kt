@@ -34,7 +34,8 @@ object DefaultChimeraCatalog : ChimeraCatalog {
                     MoveName.GROWL to listOf("sunflare_growl"),
                     MoveName.TACKLE to listOf("sunflare_tackle_1", "sunflare_tackle_2")
                 )
-            )
+            ),
+            saveAliases = listOf("Sunflare")
         ),
         ChimeraDefinition(
             species = ChimeraSpecies.Solflare,
@@ -59,7 +60,8 @@ object DefaultChimeraCatalog : ChimeraCatalog {
                     MoveName.GROWL to listOf("solflare_growl"),
                     MoveName.TACKLE to listOf("solflare_tackle_1", "solflare_tackle_2")
                 )
-            )
+            ),
+            saveAliases = listOf("Solflare")
         ),
         ChimeraDefinition(
             species = ChimeraSpecies.Solignis,
@@ -80,7 +82,8 @@ object DefaultChimeraCatalog : ChimeraCatalog {
                     MoveName.GROWL to listOf("solignis_growl_1", "solignis_growl_2"),
                     MoveName.TACKLE to listOf("solignis_tackle_1", "solignis_tackle_2")
                 )
-            )
+            ),
+            saveAliases = listOf("Solignis")
         ),
         ChimeraDefinition(
             species = ChimeraSpecies.Sylvhorn,
@@ -108,7 +111,8 @@ object DefaultChimeraCatalog : ChimeraCatalog {
                     MoveName.GROWL to listOf("sylvhorn_growl"),
                     MoveName.TACKLE to listOf("sylvhorn_tackle_1", "sylvhorn_tackle_2")
                 )
-            )
+            ),
+            saveAliases = listOf("Sylvhorn")
         ),
         ChimeraDefinition(
             species = ChimeraSpecies.Sylvarchon,
@@ -155,7 +159,8 @@ object DefaultChimeraCatalog : ChimeraCatalog {
                     MoveName.TAILWHIP to listOf("aquantis_tailwhip_1", "aquantis_tailwhip_2"),
                     MoveName.TACKLE to listOf("aquantis_tackle_1", "aquantis_tackle_2")
                 )
-            )
+            ),
+            saveAliases = listOf("Aquantis")
         ),
         ChimeraDefinition(
             species = ChimeraSpecies.Leviantis,

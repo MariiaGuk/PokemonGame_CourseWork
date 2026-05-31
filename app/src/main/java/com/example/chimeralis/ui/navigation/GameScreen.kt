@@ -1,4 +1,5 @@
 package com.example.chimeralis.ui.navigation
+
 /** Lists the game screen values. */
 enum class GameScreen {
     Splash,

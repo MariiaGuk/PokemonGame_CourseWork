@@ -1,7 +1,7 @@
 package com.example.chimeralis.logic.battle
 
-import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.moves.MoveName
 
 /** Stores battle turn result data. */

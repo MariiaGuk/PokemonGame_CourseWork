@@ -20,8 +20,8 @@ import com.example.chimeralis.ui.navigation.routes.WorldRoute
 import com.example.chimeralis.ui.navigation.session.rememberGameSessionState
 import com.example.chimeralis.ui.overlays.LocationTransitionOverlay
 import com.example.chimeralis.ui.screens.onboarding.SplashScreen
-import com.example.chimeralis.ui.screens.world.WorldField
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
+import com.example.chimeralis.ui.screens.world.WorldField
 
 /** Renders the app navigation UI. */
 @Composable

@@ -1,8 +1,9 @@
 package com.example.chimeralis.logic.trainers
 
+import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.ui.screens.world.MaxTeamSize
 
 /** Player-controlled trainer with inventory, storage, and money. */
 class Player(

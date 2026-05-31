@@ -2,17 +2,17 @@ package com.example.chimeralis.ui.navigation.routes
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
+import com.example.chimeralis.R
 import com.example.chimeralis.ui.navigation.GameScreen
 import com.example.chimeralis.ui.navigation.GameTransitionState
 import com.example.chimeralis.ui.navigation.session.GameSessionState
 import com.example.chimeralis.ui.navigation.session.saveCurrentGame
 import com.example.chimeralis.ui.navigation.session.useInventoryItem
 import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.WorldField
 import com.example.chimeralis.ui.screens.world.WorldScreen
-import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
 /** Renders the world route UI. */
 @Composable

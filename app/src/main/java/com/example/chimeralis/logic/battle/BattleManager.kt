@@ -1,5 +1,20 @@
 package com.example.chimeralis.logic.battle
 
+import com.example.chimeralis.logic.battle.ai.EnemyMoveSelector
+import com.example.chimeralis.logic.battle.progression.BattleEvolutionQueue
+import com.example.chimeralis.logic.battle.progression.BattleRewardCalculator
+import com.example.chimeralis.logic.battle.reporting.BattleMoveReporter
+import com.example.chimeralis.logic.battle.reporting.toBattleStatsSnapshot
+import com.example.chimeralis.logic.battle.resolution.BattleCaptureResolver
+import com.example.chimeralis.logic.battle.resolution.BattleEscapeResolver
+import com.example.chimeralis.logic.battle.resolution.BattleFaintResolver
+import com.example.chimeralis.logic.battle.resolution.BattleItemResolution
+import com.example.chimeralis.logic.battle.resolution.BattleItemResolver
+import com.example.chimeralis.logic.battle.resolution.BattleMoveAccuracyResolver
+import com.example.chimeralis.logic.battle.resolution.BattleMoveLearningResolver
+import com.example.chimeralis.logic.battle.resolution.BattleTurnOrderResolver
+import com.example.chimeralis.logic.battle.resolution.MoveLearnRequest
+import com.example.chimeralis.logic.battle.resolution.PlayerFaintResolution
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.chimeras.moves.MoveExecutionResult

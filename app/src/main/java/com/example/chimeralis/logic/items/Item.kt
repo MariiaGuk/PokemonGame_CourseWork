@@ -1,7 +1,7 @@
 package com.example.chimeralis.logic.items
 
-import com.example.chimeralis.logic.items.itemEffects.IItemEffect
 import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.items.itemEffects.IItemEffect
 
 /** Represents an inventory item and its domain effects. */
 class Item(

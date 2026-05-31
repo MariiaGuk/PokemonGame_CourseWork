@@ -1,8 +1,8 @@
 package com.example.chimeralis.logic.battle
 
-import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
+import com.example.chimeralis.logic.items.Item
 
 /** Defines the battle action hierarchy. */
 sealed class BattleAction {

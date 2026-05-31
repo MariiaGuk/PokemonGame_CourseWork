@@ -3,11 +3,11 @@ package com.example.chimeralis.data
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
-import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.toSaveLookupKey
 
 /** Represents the game save mapper. */

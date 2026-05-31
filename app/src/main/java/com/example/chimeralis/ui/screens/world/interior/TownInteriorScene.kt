@@ -6,21 +6,21 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.world.Direction
-import com.example.chimeralis.ui.screens.world.MapColumns
-import com.example.chimeralis.ui.screens.world.MapRows
-import com.example.chimeralis.ui.screens.world.WorldZoom
-import com.example.chimeralis.ui.screens.world.playerFrame
-import com.example.chimeralis.ui.screens.world.serviceNpcIdleFrame
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.locations.TownInteriorData
+import com.example.chimeralis.ui.screens.world.MapColumns
+import com.example.chimeralis.ui.screens.world.MapRows
+import com.example.chimeralis.ui.screens.world.sprites.playerFrame
+import com.example.chimeralis.ui.screens.world.sprites.serviceNpcIdleFrame
+import com.example.chimeralis.ui.screens.world.WorldZoom
 import kotlin.math.roundToInt
 
 /** Renders the town interior scene UI. */

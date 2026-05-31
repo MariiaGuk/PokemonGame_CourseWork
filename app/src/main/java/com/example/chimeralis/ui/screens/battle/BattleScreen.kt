@@ -4,9 +4,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import com.example.chimeralis.logic.battle.BattleScenarioFactory
+import com.example.chimeralis.logic.battle.scenario.BattleScenarioFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
+import com.example.chimeralis.ui.screens.battle.components.BattleArenaScene
+import com.example.chimeralis.ui.screens.battle.effects.BattleScreenEffects
+import com.example.chimeralis.ui.screens.battle.effects.BattleSoundEventHandler
+import com.example.chimeralis.ui.screens.battle.presentation.toBattlePanelPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.toEnemyStatusPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.toPlayerStatusPresentation
+import com.example.chimeralis.ui.screens.battle.state.rememberBattleUiState
 
 /** Renders the battle screen UI. */
 @Composable

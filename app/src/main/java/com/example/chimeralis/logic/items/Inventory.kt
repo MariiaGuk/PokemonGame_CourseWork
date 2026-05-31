@@ -5,7 +5,7 @@ import com.example.chimeralis.logic.chimeras.Chimera
 /** Stores item stacks and applies item usage to chimeras. */
 class Inventory {
     private val _items = mutableMapOf<Item, Int>()
-    val items: Map<Item, Int> get() = _items
+    val items: Map<Item, Int> get() = _items.toMap()
 
     /** Adds an item stack, merging by item name when possible. */
     fun addItem(item: Item, amount: Int = 1) {

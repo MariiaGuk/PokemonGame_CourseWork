@@ -129,6 +129,19 @@ class Stats(
     /** Returns whether the chimera can still fight. */
     fun isAlive(): Boolean = currentHp > 0
 
+    /** Creates an independent copy with the same stat values and battle stages. */
+    fun copy(): Stats {
+        return Stats(maxHp, baseAttack, baseDefence, baseSpeed).also { copiedStats ->
+            copiedStats.currentHp = currentHp
+            copiedStats.attackStage = attackStage
+            copiedStats.defenceStage = defenceStage
+            copiedStats.speedStage = speedStage
+            copiedStats.attack = stagedStat(copiedStats.baseAttack, copiedStats.attackStage)
+            copiedStats.defence = stagedStat(copiedStats.baseDefence, copiedStats.defenceStage)
+            copiedStats.speed = stagedStat(copiedStats.baseSpeed, copiedStats.speedStage)
+        }
+    }
+
     companion object {
         private const val MIN_STAT_STAGE = -3
         private const val MAX_STAT_STAGE = 3

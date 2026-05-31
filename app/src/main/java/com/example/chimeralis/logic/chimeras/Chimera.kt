@@ -7,13 +7,19 @@ class Chimera (
     name: String,
     val species: ChimeraSpecies,
     val type: ChimeraType,
-    val baseStats: Stats,
-    val ivStats: Stats,
+    baseStats: Stats,
+    ivStats: Stats,
     level: Int,
-    val learnableMoves: List<Pair<Int, () -> Move>>,
+    learnableMoves: List<Pair<Int, () -> Move>>,
     val onLevelUp: ((Chimera) -> Unit)? = null,
     val onMoveLearn: ((Chimera, Move, onReplace: (Int) -> Unit) -> Unit)? = null
 ){
+    private val baseStatsValue = baseStats.copy()
+    private val ivStatsValue = ivStats.copy()
+    private val learnableMoves = learnableMoves.toList()
+
+    val baseStats: Stats get() = baseStatsValue.copy()
+    val ivStats: Stats get() = ivStatsValue.copy()
 
     var name: String = name.trim()
         private set
@@ -28,7 +34,7 @@ class Chimera (
         }
 
     private val _moves = mutableListOf<Move>()
-    val moves: List<Move> get() = _moves
+    val moves: List<Move> get() = _moves.toList()
     var pendingMoveToLearn: Move? = null
         private set
 
@@ -72,11 +78,15 @@ class Chimera (
     /** Recalculates battle stats from base stats, IV stats, and current level. */
     private fun recalculateStats() {
         val oldMaxHp = stats.maxHp
+        val calculatedMaxHp = (((baseStatsValue.maxHp + ivStatsValue.maxHp) * 2 * level) / 100) + level + 10
+        val calculatedAttack = (((baseStatsValue.attack + ivStatsValue.attack) * 2 * level) / 100) + 5
+        val calculatedDefence = (((baseStatsValue.defence + ivStatsValue.defence) * 2 * level) / 100) + 5
+        val calculatedSpeed = (((baseStatsValue.speed + ivStatsValue.speed) * 2 * level) / 100) + 5
 
-        stats.setStat(Stats.StatType.MAX_HP, (((baseStats.maxHp + ivStats.maxHp) * 2 * level) / 100) + level + 10)
-        stats.setStat(Stats.StatType.ATTACK, (((baseStats.attack + ivStats.attack) * 2 * level) / 100) + 5)
-        stats.setStat(Stats.StatType.DEFENCE, (((baseStats.defence + ivStats.defence) * 2 * level) / 100) + 5)
-        stats.setStat(Stats.StatType.SPEED, (((baseStats.speed + ivStats.speed) * 2 * level) / 100) + 5)
+        stats.setStat(Stats.StatType.MAX_HP, calculatedMaxHp)
+        stats.setStat(Stats.StatType.ATTACK, calculatedAttack)
+        stats.setStat(Stats.StatType.DEFENCE, calculatedDefence)
+        stats.setStat(Stats.StatType.SPEED, calculatedSpeed)
 
         val hpGain = stats.maxHp - oldMaxHp
         stats.heal(hpGain)
@@ -100,7 +110,7 @@ class Chimera (
     private fun learnMove(move: Move) {
         if (_moves.any { it.name == move.name }) return
 
-        if (moves.size < 4) {
+        if (_moves.size < 4) {
             _moves.add(move)
         }
         else {
@@ -143,7 +153,7 @@ class Chimera (
         val evolved = ChimeraFactory.createChimera(
             species = nextSpecies,
             level = level,
-            ivStats = ivStats
+            ivStats = ivStatsValue.copy()
         )
         if (name != ChimeraFactory.speciesName(species)) {
             evolved.rename(name)

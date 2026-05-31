@@ -11,6 +11,9 @@ class EnemyMoveSelector(
     /** Returns one available move from the enemy chimera. */
     fun selectMove(chimera: Chimera): Move {
         val moves = chimera.moves
+            .filter { move -> move.pp > 0 }
+            .ifEmpty { chimera.moves }
+
         return moves[randomProvider.nextInt(moves.indices)]
     }
 }

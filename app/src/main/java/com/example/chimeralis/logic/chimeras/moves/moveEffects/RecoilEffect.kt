@@ -12,7 +12,9 @@ class RecoilEffect(private val power: Int, private val recoilPercent: Int) : IMo
         val damageToTarget = DamageEffect.calculateDamageAmount(attacker, target, moveType, power)
         target.stats.takeDamage(damageToTarget)
 
-        val recoilDamage = (damageToTarget / 100 * recoilPercent)
-        attacker.stats.takeDamage(recoilDamage)
+        if (recoilPercent > 0) {
+            val recoilDamage = (damageToTarget * recoilPercent / 100).coerceAtLeast(1)
+            attacker.stats.takeDamage(recoilDamage)
+        }
     }
 }

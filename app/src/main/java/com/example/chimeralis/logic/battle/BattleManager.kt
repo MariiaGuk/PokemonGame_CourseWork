@@ -154,13 +154,18 @@ class BattleManager(
         val enemyMove = enemyMoveSelector.selectMove(enemyChimera)
         val beforeTargetStats = playerChimera.stats.toBattleStatsSnapshot()
         val beforeUserStats = enemyChimera.stats.toBattleStatsSnapshot()
-        enemyMove.execute(enemyChimera, playerChimera)
+        val executionResult = enemyMove.execute(
+            attacker = enemyChimera,
+            target = playerChimera,
+            accuracyRoll = nextAccuracyRoll()
+        )
         val animation = moveReporter.reportMove(
             log = log,
             side = BattleSide.Enemy,
             user = enemyChimera,
             target = playerChimera,
             move = enemyMove,
+            executionResult = executionResult,
             userBefore = beforeUserStats,
             targetBefore = beforeTargetStats
         )
@@ -176,13 +181,18 @@ class BattleManager(
         markPlayerParticipant(playerChimera)
         val beforeTargetStats = enemyChimera.stats.toBattleStatsSnapshot()
         val beforeUserStats = playerChimera.stats.toBattleStatsSnapshot()
-        playerMove.execute(playerChimera, enemyChimera)
+        val executionResult = playerMove.execute(
+            attacker = playerChimera,
+            target = enemyChimera,
+            accuracyRoll = nextAccuracyRoll()
+        )
         val animation = moveReporter.reportMove(
             log = log,
             side = BattleSide.Player,
             user = playerChimera,
             target = enemyChimera,
             move = playerMove,
+            executionResult = executionResult,
             userBefore = beforeUserStats,
             targetBefore = beforeTargetStats
         )
@@ -284,6 +294,11 @@ class BattleManager(
         if (chimera.stats.isAlive()) {
             playerBattleParticipants.add(chimera)
         }
+    }
+
+    /** Rolls the standard move-accuracy check for one attempted move. */
+    private fun nextAccuracyRoll(): Int {
+        return randomProvider.nextInt(Move.MinAccuracyRoll..Move.MaxAccuracyRoll)
     }
 
     /** Awards money after defeating an enemy trainer or wild chimera. */

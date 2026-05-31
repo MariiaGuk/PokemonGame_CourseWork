@@ -2,6 +2,7 @@ package com.example.chimeralis.logic.battle
 
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
+import com.example.chimeralis.logic.chimeras.moves.MoveExecutionResult
 import com.example.chimeralis.logic.items.Item
 
 /** Represents the battle move reporter. */
@@ -14,6 +15,7 @@ class BattleMoveReporter {
         user: Chimera,
         target: Chimera,
         move: Move,
+        executionResult: MoveExecutionResult,
         userBefore: BattleStatsSnapshot,
         targetBefore: BattleStatsSnapshot
     ): BattleMoveAnimation {
@@ -23,8 +25,9 @@ class BattleMoveReporter {
         val targetLabel = if (side == BattleSide.Player) "Enemy ${target.name}" else "Your ${target.name}"
 
         log.add("$userLabel used ${move.name}!")
-        appendBattleChanges(
+        appendMoveResult(
             log = log,
+            executionResult = executionResult,
             targetLabel = targetLabel,
             targetBefore = targetBefore,
             targetAfter = targetAfter,
@@ -86,9 +89,10 @@ class BattleMoveReporter {
         )
     }
 
-    /** Handles append battle changes behavior. */
-    private fun appendBattleChanges(
+    /** Adds the move outcome and any resulting battle stat changes to the log. */
+    private fun appendMoveResult(
         log: MutableList<String>,
+        executionResult: MoveExecutionResult,
         targetLabel: String,
         targetBefore: BattleStatsSnapshot,
         targetAfter: BattleStatsSnapshot,
@@ -96,6 +100,18 @@ class BattleMoveReporter {
         userBefore: BattleStatsSnapshot,
         userAfter: BattleStatsSnapshot
     ) {
+        when (executionResult) {
+            MoveExecutionResult.NoPowerPoints -> {
+                log.add("But there was no PP left!")
+                return
+            }
+            MoveExecutionResult.Missed -> {
+                log.add("But it missed!")
+                return
+            }
+            MoveExecutionResult.Hit -> Unit
+        }
+
         val oldSize = log.size
 
         appendHpChange(log, targetLabel, targetBefore, targetAfter)

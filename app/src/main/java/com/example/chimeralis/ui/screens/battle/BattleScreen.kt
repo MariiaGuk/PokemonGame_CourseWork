@@ -65,6 +65,22 @@ fun BattleScreen(
     val uiState = rememberBattleUiState(battleManager, openingMessage)
     val playerChimera = battleManager.playerChimera
     val wildChimera = battleManager.enemyChimera
+    val playerStatus = playerChimera.toPlayerStatusPresentation(
+        visibleStats = uiState.visualPlayerStats,
+        visibleLevel = uiState.visualPlayerLevel,
+        visibleExp = uiState.visualPlayerExp,
+        refreshKey = uiState.refreshKey
+    )
+    val wildStatus = wildChimera.toEnemyStatusPresentation(
+        visibleStats = uiState.visualWildStats,
+        refreshKey = uiState.refreshKey
+    )
+    val panelPresentation = player.toBattlePanelPresentation(
+        activeChimera = playerChimera,
+        selectedItem = uiState.selectedBattleItem,
+        pendingMoveLearning = battleManager.pendingMoveLearning,
+        canUseCaptureItems = !isTrainerBattle
+    )
 
     LaunchedEffect(battleManager) {
         delay(BattleIntroInputLockMillis)
@@ -184,9 +200,9 @@ fun BattleScreen(
         val playerFrameResources = playerAnimation?.animationFrames()
         val wildFrameResources = wildAnimation?.animationFrames()
         val playerImageRes = playerFrameResources?.getOrNull(uiState.activeMoveFrameIndex)?.imageRes
-            ?: playerChimera.species.battleImageRes()
+            ?: playerStatus.imageRes
         val wildImageRes = wildFrameResources?.getOrNull(uiState.activeMoveFrameIndex)?.imageRes
-            ?: wildChimera.species.battleImageRes()
+            ?: wildStatus.imageRes
         val spriteFrameWidth = spriteSize * BattleSpriteFrameAspectRatio
         val playerFeedback = uiState.activeBattleFeedbacks.firstOrNull { it.side == BattleSide.Player }
         val wildFeedback = uiState.activeBattleFeedbacks.firstOrNull { it.side == BattleSide.Enemy }
@@ -245,16 +261,16 @@ fun BattleScreen(
                 .background(Color.Black.copy(alpha = 0.08f))
         ) {
             StatusPlate(
-                name = playerChimera.name,
-                level = uiState.visualPlayerLevel,
-                currentHp = uiState.visualPlayerStats.currentHp,
-                maxHp = uiState.visualPlayerStats.maxHp,
-                currentExp = uiState.visualPlayerExp,
-                expToNextLevel = uiState.visualPlayerLevel.expToNextLevel(),
-                attackStage = uiState.visualPlayerStats.attackStage,
-                defenceStage = uiState.visualPlayerStats.defenceStage,
-                speedStage = uiState.visualPlayerStats.speedStage,
-                refreshKey = uiState.refreshKey,
+                name = playerStatus.name,
+                level = playerStatus.level,
+                currentHp = playerStatus.currentHp,
+                maxHp = playerStatus.maxHp,
+                currentExp = playerStatus.currentExp,
+                expToNextLevel = playerStatus.expToNextLevel,
+                attackStage = playerStatus.attackStage,
+                defenceStage = playerStatus.defenceStage,
+                speedStage = playerStatus.speedStage,
+                refreshKey = playerStatus.refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
                     .offset(
@@ -264,16 +280,16 @@ fun BattleScreen(
             )
 
             StatusPlate(
-                name = wildChimera.name,
-                level = wildChimera.level,
-                currentHp = uiState.visualWildStats.currentHp,
-                maxHp = uiState.visualWildStats.maxHp,
-                currentExp = null,
-                expToNextLevel = null,
-                attackStage = uiState.visualWildStats.attackStage,
-                defenceStage = uiState.visualWildStats.defenceStage,
-                speedStage = uiState.visualWildStats.speedStage,
-                refreshKey = uiState.refreshKey,
+                name = wildStatus.name,
+                level = wildStatus.level,
+                currentHp = wildStatus.currentHp,
+                maxHp = wildStatus.maxHp,
+                currentExp = wildStatus.currentExp,
+                expToNextLevel = wildStatus.expToNextLevel,
+                attackStage = wildStatus.attackStage,
+                defenceStage = wildStatus.defenceStage,
+                speedStage = wildStatus.speedStage,
+                refreshKey = wildStatus.refreshKey,
                 modifier = Modifier
                     .width(statusWidth)
                     .offset(
@@ -347,36 +363,30 @@ fun BattleScreen(
                 message = uiState.currentBattleMessage,
                 mode = uiState.panelMode,
                 isTeamSelectionForced = battleManager.isWaitingForPlayerSwitch,
-                moves = playerChimera.moves,
-                pendingMoveLearning = battleManager.pendingMoveLearning,
-                team = player.team,
-                activeChimera = playerChimera,
-                inventoryItems = player.inventory.items,
-                canUseCaptureItems = !isTrainerBattle,
+                presentation = panelPresentation,
                 onFight = { uiState.openPanel(BattlePanelMode.Moves) },
                 onBag = { uiState.openPanel(BattlePanelMode.Bag) },
                 onTeam = { uiState.openPanel(BattlePanelMode.Team) },
-                onMoveSelected = { move ->
-                    uiState.performBattleAction(BattleAction.UseMove(move))
+                onMoveSelected = { moveOption ->
+                    uiState.performBattleAction(BattleAction.UseMove(moveOption.move))
                 },
                 onMoveReplacementSelected = { index ->
                     uiState.resolvePendingMoveLearning(index)
                 },
-                onSwitchSelected = { chimera ->
-                    uiState.performBattleAction(BattleAction.SwitchChimera(chimera))
+                onSwitchSelected = { chimeraSlot ->
+                    uiState.performBattleAction(BattleAction.SwitchChimera(chimeraSlot.chimera))
                 },
-                onItemSelected = { item ->
-                    if (item.isCaptureItem && isTrainerBattle) {
+                onItemSelected = { itemOption ->
+                    if (itemOption.isCaptureItem && isTrainerBattle) {
                         uiState.showTrainerCaptureBlocked()
-                    } else if (item.isCaptureItem) {
-                        uiState.performBattleAction(BattleAction.UseItem(item))
+                    } else if (itemOption.isCaptureItem) {
+                        uiState.performBattleAction(BattleAction.UseItem(itemOption.item))
                     } else {
-                        uiState.selectBattleItem(item)
+                        uiState.selectBattleItem(itemOption.item)
                     }
                 },
-                selectedItem = uiState.selectedBattleItem,
-                onItemTargetSelected = { chimera ->
-                    uiState.useSelectedBattleItemOn(chimera)
+                onItemTargetSelected = { chimeraSlot ->
+                    uiState.useSelectedBattleItemOn(chimeraSlot.chimera)
                 },
                 onRun = {
                     uiState.performBattleAction(BattleAction.Run)

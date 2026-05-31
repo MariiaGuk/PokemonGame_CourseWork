@@ -11,10 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.chimeralis.logic.battle.MoveLearnRequest
-import com.example.chimeralis.logic.chimeras.Chimera
-import com.example.chimeralis.logic.chimeras.moves.Move
-import com.example.chimeralis.logic.items.Item
 
 /** Renders the battle panel UI. */
 @Composable
@@ -22,21 +18,15 @@ internal fun BattlePanel(
     message: String,
     mode: BattlePanelMode,
     isTeamSelectionForced: Boolean,
-    moves: List<Move>,
-    pendingMoveLearning: MoveLearnRequest?,
-    team: List<Chimera>,
-    activeChimera: Chimera,
-    inventoryItems: Map<Item, Int>,
-    canUseCaptureItems: Boolean = true,
+    presentation: BattlePanelPresentation,
     onFight: () -> Unit,
     onBag: () -> Unit,
     onTeam: () -> Unit,
-    onMoveSelected: (Move) -> Unit,
+    onMoveSelected: (BattleMoveOptionPresentation) -> Unit,
     onMoveReplacementSelected: (Int?) -> Unit,
-    onSwitchSelected: (Chimera) -> Unit,
-    onItemSelected: (Item) -> Unit,
-    selectedItem: Item?,
-    onItemTargetSelected: (Chimera) -> Unit,
+    onSwitchSelected: (BattleChimeraSlotPresentation) -> Unit,
+    onItemSelected: (BattleItemOptionPresentation) -> Unit,
+    onItemTargetSelected: (BattleChimeraSlotPresentation) -> Unit,
     onRun: () -> Unit,
     onBackToActions: () -> Unit,
     colors: ColorScheme,
@@ -72,9 +62,7 @@ internal fun BattlePanel(
         if (mode == BattlePanelMode.Log || mode == BattlePanelMode.MoveLearning) {
             BattleMessage(
                 text = if (mode == BattlePanelMode.MoveLearning) {
-                    pendingMoveLearning?.let { request ->
-                        "${request.chimera.name} wants to learn ${request.move.name}.\nForget which move? Back keeps old moves."
-                    } ?: message
+                    presentation.moveLearning?.message ?: message
                 } else {
                     message
                 },
@@ -121,27 +109,23 @@ internal fun BattlePanel(
                         onRun = onRun
                     )
                     BattlePanelMode.Moves -> MoveButtons(
-                        moves = moves,
+                        moves = presentation.moves,
                         onMoveSelected = onMoveSelected
                     )
                     BattlePanelMode.Bag -> BattleInventoryButtons(
-                        inventoryItems = inventoryItems,
-                        team = team,
-                        canUseCaptureItems = canUseCaptureItems,
+                        inventoryItems = presentation.inventoryItems,
                         onItemSelected = onItemSelected
                     )
                     BattlePanelMode.ItemTarget -> BattleItemTargetButtons(
-                        item = selectedItem,
-                        team = team,
+                        team = presentation.itemTargetSelection,
                         onItemTargetSelected = onItemTargetSelected
                     )
                     BattlePanelMode.Team -> BattleTeamButtons(
-                        team = team,
-                        activeChimera = activeChimera,
+                        team = presentation.teamSelection,
                         onSwitchSelected = onSwitchSelected
                     )
                     BattlePanelMode.MoveLearning -> MoveLearningButtons(
-                        request = pendingMoveLearning,
+                        request = presentation.moveLearning,
                         onReplacementSelected = onMoveReplacementSelected
                     )
                     BattlePanelMode.Log -> Unit

@@ -6,31 +6,26 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.example.chimeralis.logic.chimeras.Chimera
-import com.example.chimeralis.logic.items.Item
 
 /** Renders the battle team buttons UI. */
 @Composable
 internal fun BattleTeamButtons(
-    team: List<Chimera>,
-    activeChimera: Chimera,
-    onSwitchSelected: (Chimera) -> Unit
+    team: BattleTeamPresentation,
+    onSwitchSelected: (BattleChimeraSlotPresentation) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.End
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            val slots = List(MaxBattleTeamSize) { index -> team.getOrNull(index) }
-            slots.chunked(3).forEach { rowTeam ->
+            team.slots.chunked(3).forEach { rowTeam ->
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    rowTeam.forEach { chimera ->
-                        if (chimera == null) {
+                    rowTeam.forEach { slot ->
+                        if (slot == null) {
                             EmptyBattleTeamSlot()
                         } else {
                             BattleTeamSlot(
-                                chimera = chimera,
-                                isActive = chimera === activeChimera,
+                                slot = slot,
                                 onSwitchSelected = onSwitchSelected
                             )
                         }
@@ -44,24 +39,21 @@ internal fun BattleTeamButtons(
 /** Renders the battle item target buttons UI. */
 @Composable
 internal fun BattleItemTargetButtons(
-    item: Item?,
-    team: List<Chimera>,
-    onItemTargetSelected: (Chimera) -> Unit
+    team: BattleTeamPresentation,
+    onItemTargetSelected: (BattleChimeraSlotPresentation) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalAlignment = Alignment.End
     ) {
-        val slots = List(MaxBattleTeamSize) { index -> team.getOrNull(index) }
-        slots.chunked(3).forEach { rowTeam ->
+        team.slots.chunked(3).forEach { rowTeam ->
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                rowTeam.forEach { chimera ->
-                    if (chimera == null) {
+                rowTeam.forEach { slot ->
+                    if (slot == null) {
                         EmptyBattleTeamSlot()
                     } else {
                         BattleItemTargetSlot(
-                            chimera = chimera,
-                            canUseItem = item?.canUseOn(chimera) == true,
+                            slot = slot,
                             onItemTargetSelected = onItemTargetSelected
                         )
                     }

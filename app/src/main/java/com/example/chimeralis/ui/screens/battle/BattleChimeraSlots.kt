@@ -30,9 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.ui.theme.CinzelFamily
-import kotlin.math.roundToInt
 
 /** Renders the empty battle team slot UI. */
 @Composable
@@ -52,15 +50,11 @@ internal fun EmptyBattleTeamSlot() {
 /** Renders the battle team slot UI. */
 @Composable
 internal fun BattleTeamSlot(
-    chimera: Chimera,
-    isActive: Boolean,
-    onSwitchSelected: (Chimera) -> Unit
+    slot: BattleChimeraSlotPresentation,
+    onSwitchSelected: (BattleChimeraSlotPresentation) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val canSwitch = !isActive && chimera.stats.isAlive()
-    val hpRatio = (chimera.stats.currentHp.toFloat() / chimera.stats.maxHp.toFloat()).coerceIn(0f, 1f)
-    val hpPercent = (hpRatio * 100).roundToInt()
-    val alpha = if (canSwitch || isActive) 1f else 0.42f
+    val alpha = if (slot.enabled || slot.isActive) 1f else 0.42f
 
     Row(
         modifier = Modifier
@@ -68,19 +62,19 @@ internal fun BattleTeamSlot(
             .height(36.dp)
             .clip(RoundedCornerShape(3.dp))
             .background(
-                if (isActive) Color(0xFF5B5F55).copy(alpha = 0.92f)
+                if (slot.isActive) Color(0xFF5B5F55).copy(alpha = 0.92f)
                 else Color(0xFF3E443E).copy(alpha = 0.88f)
             )
             .border(
-                width = if (isActive) 2.dp else 1.dp,
-                color = colors.primary.copy(alpha = if (isActive) 0.88f else 0.44f),
+                width = if (slot.isActive) 2.dp else 1.dp,
+                color = colors.primary.copy(alpha = if (slot.isActive) 0.88f else 0.44f),
                 shape = RoundedCornerShape(3.dp)
             )
-            .pointerInput(canSwitch, chimera) {
+            .pointerInput(slot) {
                 detectTapGestures(
                     onTap = {
-                        if (canSwitch) {
-                            onSwitchSelected(chimera)
+                        if (slot.enabled) {
+                            onSwitchSelected(slot)
                         }
                     }
                 )
@@ -91,9 +85,7 @@ internal fun BattleTeamSlot(
         verticalAlignment = Alignment.CenterVertically
     ) {
         BattleSlotContent(
-            chimera = chimera,
-            hpRatio = hpRatio,
-            hpPercent = hpPercent
+            slot = slot
         )
     }
 }
@@ -101,13 +93,10 @@ internal fun BattleTeamSlot(
 /** Renders the battle item target slot UI. */
 @Composable
 internal fun BattleItemTargetSlot(
-    chimera: Chimera,
-    canUseItem: Boolean,
-    onItemTargetSelected: (Chimera) -> Unit
+    slot: BattleChimeraSlotPresentation,
+    onItemTargetSelected: (BattleChimeraSlotPresentation) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val hpRatio = (chimera.stats.currentHp.toFloat() / chimera.stats.maxHp.toFloat()).coerceIn(0f, 1f)
-    val hpPercent = (hpRatio * 100).roundToInt()
 
     Row(
         modifier = Modifier
@@ -116,28 +105,26 @@ internal fun BattleItemTargetSlot(
             .clip(RoundedCornerShape(3.dp))
             .background(Color(0xFF3E443E).copy(alpha = 0.88f))
             .border(
-                width = if (canUseItem) 2.dp else 1.dp,
-                color = colors.primary.copy(alpha = if (canUseItem) 0.78f else 0.22f),
+                width = if (slot.enabled) 2.dp else 1.dp,
+                color = colors.primary.copy(alpha = if (slot.enabled) 0.78f else 0.22f),
                 shape = RoundedCornerShape(3.dp)
             )
-            .pointerInput(canUseItem, chimera) {
+            .pointerInput(slot) {
                 detectTapGestures(
                     onTap = {
-                        if (canUseItem) {
-                            onItemTargetSelected(chimera)
+                        if (slot.enabled) {
+                            onItemTargetSelected(slot)
                         }
                     }
                 )
             }
             .padding(3.dp)
-            .graphicsLayer { alpha = if (canUseItem) 1f else 0.42f },
+            .graphicsLayer { alpha = if (slot.enabled) 1f else 0.42f },
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         BattleSlotContent(
-            chimera = chimera,
-            hpRatio = hpRatio,
-            hpPercent = hpPercent
+            slot = slot
         )
     }
 }
@@ -145,9 +132,7 @@ internal fun BattleItemTargetSlot(
 /** Renders the shared chimera summary inside battle selection slots. */
 @Composable
 private fun RowScope.BattleSlotContent(
-    chimera: Chimera,
-    hpRatio: Float,
-    hpPercent: Int
+    slot: BattleChimeraSlotPresentation
 ) {
     Box(
         modifier = Modifier
@@ -157,8 +142,8 @@ private fun RowScope.BattleSlotContent(
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = chimera.species.battleImageRes()),
-            contentDescription = chimera.name,
+            painter = painterResource(id = slot.imageRes),
+            contentDescription = slot.name,
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .size(24.dp)
@@ -176,7 +161,7 @@ private fun RowScope.BattleSlotContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = chimera.name,
+                text = slot.name,
                 color = Color(0xFFE8E8D8),
                 fontFamily = CinzelFamily,
                 fontWeight = FontWeight.Bold,
@@ -184,7 +169,7 @@ private fun RowScope.BattleSlotContent(
                 maxLines = 1
             )
             Text(
-                text = "Lv.${chimera.level}",
+                text = slot.levelLabel,
                 color = Color(0xFFE8E8D8),
                 fontFamily = CinzelFamily,
                 fontWeight = FontWeight.Bold,
@@ -202,12 +187,12 @@ private fun RowScope.BattleSlotContent(
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(hpRatio)
+                    .fillMaxWidth(slot.hpRatio)
                     .fillMaxHeight()
                     .background(
                         when {
-                            hpRatio > 0.5f -> Color(0xFF80D35D)
-                            hpRatio > 0.2f -> Color(0xFFE0B84B)
+                            slot.hpRatio > 0.5f -> Color(0xFF80D35D)
+                            slot.hpRatio > 0.2f -> Color(0xFFE0B84B)
                             else -> Color(0xFFD85A4A)
                         }
                     )
@@ -215,7 +200,7 @@ private fun RowScope.BattleSlotContent(
         }
 
         Text(
-            text = "HP: ${chimera.stats.currentHp}/${chimera.stats.maxHp} - $hpPercent%",
+            text = slot.hpText,
             color = Color(0xFFE8E8D8),
             fontFamily = CinzelFamily,
             fontSize = 6.sp,

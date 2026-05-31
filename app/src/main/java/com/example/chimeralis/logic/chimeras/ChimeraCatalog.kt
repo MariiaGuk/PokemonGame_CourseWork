@@ -1,5 +1,7 @@
 package com.example.chimeralis.logic.chimeras
 
+import com.example.chimeralis.logic.toSaveLookupKey
+
 /** Provides chimera species definitions to factories and UI adapters. */
 interface ChimeraCatalog {
     val definitions: List<ChimeraDefinition>
@@ -12,9 +14,9 @@ interface ChimeraCatalog {
 
     /** Finds a species by its display name. */
     fun speciesByName(name: String): ChimeraSpecies? {
-        val lookupKey = name.toLookupKey()
+        val lookupKey = name.toSaveLookupKey()
         return definitions.firstOrNull { definition ->
-            definition.saveLookupNames().any { candidate -> candidate.toLookupKey() == lookupKey }
+            definition.saveLookupNames().any { candidate -> candidate.toSaveLookupKey() == lookupKey }
         }?.species
     }
 }
@@ -22,9 +24,4 @@ interface ChimeraCatalog {
 /** Returns every supported saved-name candidate for one chimera definition. */
 internal fun ChimeraDefinition.saveLookupNames(): List<String> {
     return listOf(displayName, species.javaClass.simpleName) + saveAliases
-}
-
-/** Normalizes persisted identifiers so old formatting does not break loading. */
-internal fun String.toLookupKey(): String {
-    return filter(Char::isLetterOrDigit).lowercase()
 }

@@ -8,6 +8,7 @@ import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.chimeras.moves.Move
+import com.example.chimeralis.logic.toSaveLookupKey
 
 /** Represents the game save mapper. */
 class GameSaveMapper {
@@ -77,11 +78,9 @@ class GameSaveMapper {
 
     /** Converts data into item name. */
     fun toItemName(value: String): ItemName? {
-        val lookupKey = value.toLookupKey()
+        val lookupKey = value.toSaveLookupKey()
         return ItemName.values().firstOrNull { itemName ->
-            itemName.displayName.toLookupKey() == lookupKey ||
-                    itemName.name.toLookupKey() == lookupKey ||
-                    itemName.legacySaveNames.any { legacyName -> legacyName.toLookupKey() == lookupKey }
+            itemName.saveLookupNames().any { candidate -> candidate.toSaveLookupKey() == lookupKey }
         }
     }
 
@@ -96,10 +95,18 @@ class GameSaveMapper {
 
     /** Finds a saved PP row for a move using both enum and display-name formats. */
     private fun savedMovePp(move: Move, savedMoves: List<SavedMovePp>): SavedMovePp? {
+        val moveNameKey = move.name.toSaveLookupKey()
+        val moveIdKey = move.id.name.toSaveLookupKey()
+
         return savedMoves.firstOrNull { savedMove ->
-            savedMove.moveName.toLookupKey() == move.name.toLookupKey() ||
-                    savedMove.moveName.toLookupKey() == move.id.name.toLookupKey()
+            val savedMoveKey = savedMove.moveName.toSaveLookupKey()
+            savedMoveKey == moveNameKey || savedMoveKey == moveIdKey
         }
+    }
+
+    /** Returns every persisted-name candidate accepted for one item. */
+    private fun ItemName.saveLookupNames(): List<String> {
+        return listOf(displayName, name) + legacySaveNames
     }
 
     /** Lists legacy persisted item names accepted during loading. */
@@ -108,11 +115,6 @@ class GameSaveMapper {
             ItemName.BINDING_STONE -> listOf("Binding Stone", "Binding Stone", "BINDING_STONE")
             else -> emptyList()
         }
-
-    /** Normalizes persisted identifiers so old formatting does not break loading. */
-    private fun String.toLookupKey(): String {
-        return filter(Char::isLetterOrDigit).lowercase()
-    }
 
     /** Handles battle name behavior. */
     fun battleName(species: ChimeraSpecies): String = ChimeraFactory.speciesName(species)

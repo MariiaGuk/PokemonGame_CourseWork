@@ -1,5 +1,7 @@
 package com.example.chimeralis.logic.chimeras
 
+import com.example.chimeralis.logic.toSaveLookupKey
+
 /** Validates chimera catalog consistency and reports all detected issues at once. */
 internal object ChimeraCatalogValidator {
 
@@ -139,7 +141,7 @@ internal object ChimeraCatalogValidator {
                 }
             }
             definition.saveLookupNames().forEach { name ->
-                if (name.toLookupKey().isBlank()) {
+                if (name.toSaveLookupKey().isBlank()) {
                     errors.add("$label has lookup name '$name' that normalizes to an empty key.")
                 }
             }
@@ -149,7 +151,7 @@ internal object ChimeraCatalogValidator {
             .flatMapIndexed { index, definition ->
                 definition.saveLookupNames().map { name ->
                     CatalogLookupName(
-                        key = name.toLookupKey(),
+                        key = name.toSaveLookupKey(),
                         originalName = name,
                         definitionLabel = definition.catalogLabel(index)
                     )

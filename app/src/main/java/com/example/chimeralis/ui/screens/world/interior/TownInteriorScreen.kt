@@ -3,71 +3,30 @@ package com.example.chimeralis.ui.screens.world.interior
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.chimeras.Chimera
-import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
-import com.example.chimeralis.ui.components.GameSettingsPanel
-import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.overlays.WorldControlsOverlay
+import com.example.chimeralis.ui.screens.world.ChimeraStorageOverlay
 import com.example.chimeralis.ui.screens.world.ConfirmItemUseDialog
 import com.example.chimeralis.ui.screens.world.Direction
 import com.example.chimeralis.ui.screens.world.ExitAction
@@ -80,7 +39,6 @@ import com.example.chimeralis.ui.screens.world.InteriorStepDurationMs
 import com.example.chimeralis.ui.screens.world.InventoryItemDetailsPlate
 import com.example.chimeralis.ui.screens.world.ItemTargetSelectionOverlay
 import com.example.chimeralis.ui.screens.world.MovingFrameDelayMs
-import com.example.chimeralis.ui.screens.world.ChimeraStorageOverlay
 import com.example.chimeralis.ui.screens.world.ServiceNpcDialogOverlay
 import com.example.chimeralis.ui.screens.world.ServiceNpcIdleFrameDelayMs
 import com.example.chimeralis.ui.screens.world.ShopOverlay
@@ -90,12 +48,8 @@ import com.example.chimeralis.ui.screens.world.joystickDirection
 import com.example.chimeralis.ui.screens.world.nextInteriorTile
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.locations.data
-import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.abs
-import kotlin.math.hypot
-import kotlin.random.Random
-import kotlin.math.roundToInt
 
 /** Renders the town interior screen UI. */
 @Composable
@@ -145,36 +99,14 @@ fun TownInteriorScreen(
     var isMoving by remember(interior) { mutableStateOf(false) }
     var animationFrame by remember(interior) { mutableIntStateOf(0) }
     var serviceNpcIdleFrame by remember(interior) { mutableIntStateOf(0) }
-    var dialogStep by remember(interior) { mutableStateOf<Int?>(null) }
-    var isShopOpen by remember(interior) { mutableStateOf(false) }
-    var isStorageOpen by remember(interior) { mutableStateOf(false) }
-    var serviceMessage by remember(interior) { mutableStateOf<String?>(null) }
-    var isGameMenuOpen by remember(interior) { mutableStateOf(false) }
-    var isSettingsOpen by remember(interior) { mutableStateOf(false) }
-    var isInventoryOpen by remember(interior) { mutableStateOf(false) }
-    var selectedInventoryItem by remember(interior) { mutableStateOf<Item?>(null) }
-    var itemTargetSelection by remember(interior) { mutableStateOf<Item?>(null) }
-    var pendingItemUseConfirmation by remember(interior) { mutableStateOf<Pair<Item, Chimera>?>(null) }
-    var pendingExitAction by remember(interior) { mutableStateOf<ExitAction?>(null) }
-    var pendingExitRequiresSave by remember(interior) { mutableStateOf(false) }
-    var showSaveMessage by remember(interior) { mutableStateOf(false) }
-    var isHealingInProgress by remember(interior) { mutableStateOf(false) }
-    var isInteriorInputLocked by remember(interior) { mutableStateOf(false) }
-    var interiorJoystickResetKey by remember(interior) { mutableIntStateOf(0) }
+    val interactionState = rememberTownInteriorInteractionState(interior)
     val interiorData = interior.data
     val walkableTiles = interiorData.walkableTiles
     val canExit = playerRow == 14 && playerColumn in 7..8 && !isMoving
     val npcColumn = interiorData.npcColumn
     val npcRow = interiorData.npcRow
-    val isServiceUiOpen = dialogStep != null || isShopOpen
-    val isInteriorUiOpen = isServiceUiOpen ||
-            isStorageOpen ||
-            isHealingInProgress ||
-            isInteriorInputLocked ||
-            isGameMenuOpen ||
-            isInventoryOpen ||
-            itemTargetSelection != null ||
-            pendingItemUseConfirmation != null
+    val isServiceUiOpen = interactionState.isServiceUiOpen
+    val isInteriorUiOpen = interactionState.isInteriorUiOpen
     val canTalkToServiceNpc = !isMoving &&
             !isInteriorUiOpen &&
             (abs(playerColumn - npcColumn) + abs(playerRow - npcRow)) <= 3
@@ -184,6 +116,11 @@ fun TownInteriorScreen(
             interiorData.storageRow != null &&
             (abs(playerColumn - interiorData.storageColumn) +
                     abs(playerRow - interiorData.storageRow)) <= 1
+
+    fun stopMovement() {
+        requestedDirection = null
+        isMoving = false
+    }
 
     LaunchedEffect(isMoving) {
         while (true) {
@@ -199,39 +136,35 @@ fun TownInteriorScreen(
         }
     }
 
-    LaunchedEffect(showSaveMessage) {
-        if (showSaveMessage) {
+    LaunchedEffect(interactionState.showSaveMessage) {
+        if (interactionState.showSaveMessage) {
             delay(1600L)
-            showSaveMessage = false
+            interactionState.hideSaveConfirmation()
         }
     }
 
     LaunchedEffect(inputLockKey) {
         if (inputLockKey == 0) return@LaunchedEffect
 
-        requestedDirection = null
-        isMoving = false
-        isInteriorInputLocked = true
-        interiorJoystickResetKey++
+        stopMovement()
+        interactionState.beginInputLock()
         delay(WorldReturnInputLockMs)
-        isInteriorInputLocked = false
+        interactionState.endInputLock()
     }
 
-    LaunchedEffect(isHealingInProgress) {
-        if (!isHealingInProgress) return@LaunchedEffect
+    LaunchedEffect(interactionState.isHealingInProgress) {
+        if (!interactionState.isHealingInProgress) return@LaunchedEffect
 
         GameSoundPlayer.play(context, R.raw.healing_chimeras)
         delay(3400L)
         onHealTeam()
-        serviceMessage = "All your chimeras are healthy again."
-        dialogStep = 2
-        isHealingInProgress = false
+        interactionState.finishHealing("All your chimeras are healthy again.")
     }
 
     LaunchedEffect(Unit) {
         while (true) {
             val nextDirection = requestedDirection
-            if (nextDirection == null || isInteriorUiOpen) {
+            if (nextDirection == null || interactionState.isInteriorUiOpen) {
                 delay(16L)
                 continue
             }
@@ -312,7 +245,7 @@ fun TownInteriorScreen(
             team = team,
             teamStateKey = teamStateKey,
             joystickEnabled = !isInteriorUiOpen,
-            joystickResetKey = "$inputLockKey:$interiorJoystickResetKey",
+            joystickResetKey = "$inputLockKey:${interactionState.interiorJoystickResetKey}",
             actionLabel = interiorActionLabel,
             onDirectionChanged = { x, y ->
                 if (!isInteriorUiOpen) {
@@ -320,63 +253,44 @@ fun TownInteriorScreen(
                 }
             },
             onMenu = {
-                if (isServiceUiOpen) return@WorldControlsOverlay
-
-                requestedDirection = null
-                isMoving = false
-                isSettingsOpen = false
-                isInventoryOpen = false
-                isGameMenuOpen = true
+                if (interactionState.openGameMenu()) {
+                    stopMovement()
+                }
             },
             onBag = {
-                if (isServiceUiOpen) return@WorldControlsOverlay
-
-                requestedDirection = null
-                isMoving = false
-                isSettingsOpen = false
-                isGameMenuOpen = false
-                selectedInventoryItem = null
-                isInventoryOpen = true
+                if (interactionState.openInventory()) {
+                    stopMovement()
+                }
             },
             onAction = {
                 requestedDirection = null
                 if (canOpenStorage) {
-                    isStorageOpen = true
-                    isGameMenuOpen = false
-                    isInventoryOpen = false
-                    selectedInventoryItem = null
+                    interactionState.openStorage()
                 } else if (canTalkToServiceNpc) {
-                    serviceMessage = null
-                    dialogStep = 0
+                    interactionState.openServiceDialog()
                 } else if (canExit && !isServiceUiOpen) {
-                    isMoving = false
-                    isInteriorInputLocked = true
-                    interiorJoystickResetKey++
+                    stopMovement()
+                    interactionState.beginInputLock()
                     onExit()
                 }
             }
         )
 
-        if (isInventoryOpen && !isGameMenuOpen) {
+        if (interactionState.isInventoryOpen && !interactionState.isGameMenuOpen) {
             WorldInventoryPanel(
                 inventoryItems = inventoryItems,
-                selectedItem = selectedInventoryItem,
+                selectedItem = interactionState.selectedInventoryItem,
                 money = money,
-                onSelectedItemChanged = { item ->
-                    selectedInventoryItem = item
-                },
-                onClose = {
-                    selectedInventoryItem = null
-                    isInventoryOpen = false
-                },
+                onSelectedItemChanged = interactionState::selectInventoryItem,
+                onClose = interactionState::closeInventory,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 56.dp, end = 14.dp)
             )
         }
 
-        if (isInventoryOpen && !isGameMenuOpen) {
-            selectedInventoryItem?.let { item ->
+        if (interactionState.isInventoryOpen && !interactionState.isGameMenuOpen) {
+            interactionState.selectedInventoryItem?.let { item ->
                 val amount = inventoryItems[item]
                 if (amount != null) {
                     InventoryItemDetailsPlate(
@@ -384,15 +298,11 @@ fun TownInteriorScreen(
                         amount = amount,
                         canUse = !item.isCaptureItem,
                         onUse = {
-                            requestedDirection = null
-                            isMoving = false
-                            selectedInventoryItem = null
-                            isInventoryOpen = false
-                            itemTargetSelection = item
-                            pendingItemUseConfirmation = null
+                            stopMovement()
+                            interactionState.startItemTargetSelection(item)
                         },
                         onCancel = {
-                            selectedInventoryItem = null
+                            interactionState.selectInventoryItem(null)
                         },
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -400,54 +310,38 @@ fun TownInteriorScreen(
             }
         }
 
-        if (isGameMenuOpen) {
+        if (interactionState.isGameMenuOpen) {
             InGameMenuOverlay(
-                showSettings = isSettingsOpen,
-                pendingExitAction = pendingExitAction,
-                pendingExitRequiresSave = pendingExitRequiresSave,
-                showSaveMessage = showSaveMessage,
+                showSettings = interactionState.isSettingsOpen,
+                pendingExitAction = interactionState.pendingExitAction,
+                pendingExitRequiresSave = interactionState.pendingExitRequiresSave,
+                showSaveMessage = interactionState.showSaveMessage,
                 musicEnabled = musicEnabled,
                 musicVolume = musicVolume,
                 soundEnabled = soundEnabled,
                 soundVolume = soundVolume,
                 encounterChance = encounterChance,
-                onResume = {
-                    isSettingsOpen = false
-                    isInventoryOpen = false
-                    isGameMenuOpen = false
-                },
-                onSettings = {
-                    isSettingsOpen = true
-                    isInventoryOpen = false
-                },
+                onResume = interactionState::resumeGame,
+                onSettings = interactionState::openSettings,
                 onMusicEnabledChanged = onMusicEnabledChanged,
                 onMusicVolumeChanged = onMusicVolumeChanged,
                 onSoundEnabledChanged = onSoundEnabledChanged,
                 onSoundVolumeChanged = onSoundVolumeChanged,
                 onEncounterChanceChanged = onEncounterChanceChanged,
-                onBackFromSubmenu = {
-                    isSettingsOpen = false
-                },
+                onBackFromSubmenu = interactionState::closeSettings,
                 onSaveGame = {
                     onSaveGame(playerColumn, playerRow)
-                    showSaveMessage = true
+                    interactionState.showSaveConfirmation()
                 },
                 onMainMenu = {
-                    pendingExitAction = ExitAction.MainMenu
-                    pendingExitRequiresSave = hasUnsavedChanges
+                    interactionState.requestExit(ExitAction.MainMenu, hasUnsavedChanges)
                 },
                 onExitGame = {
-                    pendingExitAction = ExitAction.ExitGame
-                    pendingExitRequiresSave = hasUnsavedChanges
+                    interactionState.requestExit(ExitAction.ExitGame, hasUnsavedChanges)
                 },
-                onCancelExit = {
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
-                },
+                onCancelExit = interactionState::clearPendingExit,
                 onExitWithSave = {
-                    val exitAction = pendingExitAction
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
+                    val exitAction = interactionState.consumePendingExitAction()
                     onSaveGame(playerColumn, playerRow)
                     when (exitAction) {
                         ExitAction.MainMenu -> onBackToMainMenu()
@@ -456,9 +350,7 @@ fun TownInteriorScreen(
                     }
                 },
                 onExitWithoutSave = {
-                    val exitAction = pendingExitAction
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
+                    val exitAction = interactionState.consumePendingExitAction()
                     when (exitAction) {
                         ExitAction.MainMenu -> onBackToMainMenu()
                         ExitAction.ExitGame -> onExitGame()
@@ -468,83 +360,61 @@ fun TownInteriorScreen(
             )
         }
 
-        itemTargetSelection?.let { item ->
+        interactionState.itemTargetSelection?.let { item ->
             ItemTargetSelectionOverlay(
                 item = item,
                 team = team,
                 teamStateKey = teamStateKey,
                 onChimeraSelected = { chimera ->
-                    pendingItemUseConfirmation = item to chimera
+                    interactionState.requestItemUseConfirmation(item, chimera)
                 },
-                onCancel = {
-                    itemTargetSelection = null
-                    pendingItemUseConfirmation = null
-                }
+                onCancel = interactionState::cancelItemTargetSelection
             )
         }
 
-        pendingItemUseConfirmation?.let { (item, chimera) ->
+        interactionState.pendingItemUseConfirmation?.let { (item, chimera) ->
             ConfirmItemUseDialog(
                 item = item,
                 chimera = chimera,
                 onConfirm = {
                     onUseInventoryItem(item, chimera)
-                    itemTargetSelection = null
-                    pendingItemUseConfirmation = null
+                    interactionState.completeItemUse()
                 },
-                onCancel = {
-                    pendingItemUseConfirmation = null
-                }
+                onCancel = interactionState::cancelItemUseConfirmation
             )
         }
 
-        dialogStep?.let { step ->
+        interactionState.dialogStep?.let { step ->
             ServiceNpcDialogOverlay(
                 interior = interior,
                 step = step,
-                message = serviceMessage,
-                onNext = {
-                    serviceMessage = null
-                    dialogStep = (dialogStep ?: 0) + 1
-                },
-                onHeal = {
-                    dialogStep = null
-                    serviceMessage = null
-                    isHealingInProgress = true
-                },
-                onOpenShop = {
-                    dialogStep = null
-                    isShopOpen = true
-                    serviceMessage = null
-                },
-                onClose = {
-                    dialogStep = null
-                    serviceMessage = null
-                }
+                message = interactionState.serviceMessage,
+                onNext = interactionState::advanceServiceDialog,
+                onHeal = interactionState::startHealing,
+                onOpenShop = interactionState::openShop,
+                onClose = interactionState::closeServiceDialog
             )
         }
 
-        if (isShopOpen) {
+        if (interactionState.isShopOpen) {
             ShopOverlay(
                 money = money,
                 inventoryItems = inventoryItems,
-                message = serviceMessage,
+                message = interactionState.serviceMessage,
                 onBuyItem = { itemName, amount ->
                     val bought = onBuyItem(itemName, amount)
-                    serviceMessage = if (bought) {
+                    val message = if (bought) {
                         "Bought ${itemName.displayName} x$amount."
                     } else {
                         "Not enough coins."
                     }
+                    interactionState.showServiceMessage(message)
                 },
-                onClose = {
-                    isShopOpen = false
-                    serviceMessage = null
-                }
+                onClose = interactionState::closeShop
             )
         }
 
-        if (isStorageOpen) {
+        if (interactionState.isStorageOpen) {
             ChimeraStorageOverlay(
                 team = team,
                 storage = storage,
@@ -553,11 +423,11 @@ fun TownInteriorScreen(
                 onDepositTeamMember = onDepositTeamMember,
                 onWithdrawStoredChimera = onWithdrawStoredChimera,
                 onSwapTeamWithStorage = onSwapTeamWithStorage,
-                onClose = { isStorageOpen = false }
+                onClose = interactionState::closeStorage
             )
         }
 
-        if (isHealingInProgress) {
+        if (interactionState.isHealingInProgress) {
             HealingOverlay()
         }
     }

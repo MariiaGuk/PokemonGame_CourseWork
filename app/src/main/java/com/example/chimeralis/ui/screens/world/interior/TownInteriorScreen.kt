@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -90,48 +86,42 @@ fun TownInteriorScreen(
     onExit: () -> Unit
 ) {
     val context = LocalContext.current
-    var playerColumn by remember(interior) { mutableIntStateOf(initialPlayerColumn) }
-    var playerRow by remember(interior) { mutableIntStateOf(initialPlayerRow) }
-    var targetColumn by remember(interior) { mutableIntStateOf(initialPlayerColumn) }
-    var targetRow by remember(interior) { mutableIntStateOf(initialPlayerRow) }
-    var direction by remember(interior) { mutableStateOf(initialPlayerDirection) }
-    var requestedDirection by remember(interior) { mutableStateOf<Direction?>(null) }
-    var isMoving by remember(interior) { mutableStateOf(false) }
-    var animationFrame by remember(interior) { mutableIntStateOf(0) }
-    var serviceNpcIdleFrame by remember(interior) { mutableIntStateOf(0) }
+    val movementState = rememberTownInteriorMovementState(
+        interior = interior,
+        initialPlayerColumn = initialPlayerColumn,
+        initialPlayerRow = initialPlayerRow,
+        initialPlayerDirection = initialPlayerDirection
+    )
     val interactionState = rememberTownInteriorInteractionState(interior)
     val interiorData = interior.data
     val walkableTiles = interiorData.walkableTiles
-    val canExit = playerRow == 14 && playerColumn in 7..8 && !isMoving
+    val canExit = movementState.playerRow == 14 &&
+            movementState.playerColumn in 7..8 &&
+            !movementState.isMoving
     val npcColumn = interiorData.npcColumn
     val npcRow = interiorData.npcRow
     val isServiceUiOpen = interactionState.isServiceUiOpen
     val isInteriorUiOpen = interactionState.isInteriorUiOpen
-    val canTalkToServiceNpc = !isMoving &&
+    val canTalkToServiceNpc = !movementState.isMoving &&
             !isInteriorUiOpen &&
-            (abs(playerColumn - npcColumn) + abs(playerRow - npcRow)) <= 3
-    val canOpenStorage = !isMoving &&
+            (abs(movementState.playerColumn - npcColumn) + abs(movementState.playerRow - npcRow)) <= 3
+    val canOpenStorage = !movementState.isMoving &&
             !isInteriorUiOpen &&
             interiorData.storageColumn != null &&
             interiorData.storageRow != null &&
-            (abs(playerColumn - interiorData.storageColumn) +
-                    abs(playerRow - interiorData.storageRow)) <= 1
+            (abs(movementState.playerColumn - interiorData.storageColumn) +
+                    abs(movementState.playerRow - interiorData.storageRow)) <= 1
 
-    fun stopMovement() {
-        requestedDirection = null
-        isMoving = false
-    }
-
-    LaunchedEffect(isMoving) {
+    LaunchedEffect(movementState.isMoving) {
         while (true) {
-            animationFrame++
-            delay(if (isMoving) MovingFrameDelayMs else IdleFrameDelayMs)
+            movementState.advanceAnimationFrame()
+            delay(if (movementState.isMoving) MovingFrameDelayMs else IdleFrameDelayMs)
         }
     }
 
     LaunchedEffect(interior) {
         while (true) {
-            serviceNpcIdleFrame++
+            movementState.advanceServiceNpcIdleFrame()
             delay(ServiceNpcIdleFrameDelayMs)
         }
     }
@@ -146,7 +136,7 @@ fun TownInteriorScreen(
     LaunchedEffect(inputLockKey) {
         if (inputLockKey == 0) return@LaunchedEffect
 
-        stopMovement()
+        movementState.stopMovement()
         interactionState.beginInputLock()
         delay(WorldReturnInputLockMs)
         interactionState.endInputLock()
@@ -161,34 +151,32 @@ fun TownInteriorScreen(
         interactionState.finishHealing("All your chimeras are healthy again.")
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(interior) {
         while (true) {
-            val nextDirection = requestedDirection
+            val nextDirection = movementState.requestedDirection
             if (nextDirection == null || interactionState.isInteriorUiOpen) {
                 delay(16L)
                 continue
             }
 
-            val nextTile = nextInteriorTile(playerColumn, playerRow, nextDirection)
-            direction = nextDirection
+            val currentColumn = movementState.playerColumn
+            val currentRow = movementState.playerRow
+            val nextTile = nextInteriorTile(currentColumn, currentRow, nextDirection)
+            movementState.face(nextDirection)
             onPlayerDirectionChanged(nextDirection)
 
             if (nextTile !in walkableTiles ||
                 nextTile == npcColumn to npcRow ||
-                nextTile == playerColumn to playerRow
+                nextTile == currentColumn to currentRow
             ) {
                 delay(HeldStepDelayMs)
                 continue
             }
 
-            targetColumn = nextTile.first
-            targetRow = nextTile.second
-            isMoving = true
+            movementState.beginStepTo(nextTile.first, nextTile.second)
             delay(InteriorStepDurationMs.toLong())
-            playerColumn = nextTile.first
-            playerRow = nextTile.second
-            onPlayerPositionChanged(playerColumn, playerRow)
-            isMoving = false
+            movementState.finishStepAt(nextTile.first, nextTile.second)
+            onPlayerPositionChanged(movementState.playerColumn, movementState.playerRow)
             delay(1L)
         }
     }
@@ -207,12 +195,20 @@ fun TownInteriorScreen(
         val tileSize = imageSizePx / InteriorColumns
 
         val animatedColumn by animateFloatAsState(
-            targetValue = if (isMoving) targetColumn.toFloat() else playerColumn.toFloat(),
+            targetValue = if (movementState.isMoving) {
+                movementState.targetColumn.toFloat()
+            } else {
+                movementState.playerColumn.toFloat()
+            },
             animationSpec = tween(durationMillis = InteriorStepDurationMs, easing = LinearEasing),
             label = "interiorPlayerColumn"
         )
         val animatedRow by animateFloatAsState(
-            targetValue = if (isMoving) targetRow.toFloat() else playerRow.toFloat(),
+            targetValue = if (movementState.isMoving) {
+                movementState.targetRow.toFloat()
+            } else {
+                movementState.playerRow.toFloat()
+            },
             animationSpec = tween(durationMillis = InteriorStepDurationMs, easing = LinearEasing),
             label = "interiorPlayerRow"
         )
@@ -228,10 +224,10 @@ fun TownInteriorScreen(
             tileSize = tileSize,
             animatedColumn = animatedColumn,
             animatedRow = animatedRow,
-            direction = direction,
-            isMoving = isMoving,
-            animationFrame = animationFrame,
-            serviceNpcIdleFrame = serviceNpcIdleFrame
+            direction = movementState.direction,
+            isMoving = movementState.isMoving,
+            animationFrame = movementState.animationFrame,
+            serviceNpcIdleFrame = movementState.serviceNpcIdleFrame
         )
 
         val interiorActionLabel = when {
@@ -249,27 +245,27 @@ fun TownInteriorScreen(
             actionLabel = interiorActionLabel,
             onDirectionChanged = { x, y ->
                 if (!isInteriorUiOpen) {
-                    requestedDirection = joystickDirection(x, y)
+                    movementState.requestDirection(joystickDirection(x, y))
                 }
             },
             onMenu = {
                 if (interactionState.openGameMenu()) {
-                    stopMovement()
+                    movementState.stopMovement()
                 }
             },
             onBag = {
                 if (interactionState.openInventory()) {
-                    stopMovement()
+                    movementState.stopMovement()
                 }
             },
             onAction = {
-                requestedDirection = null
+                movementState.requestDirection(null)
                 if (canOpenStorage) {
                     interactionState.openStorage()
                 } else if (canTalkToServiceNpc) {
                     interactionState.openServiceDialog()
                 } else if (canExit && !isServiceUiOpen) {
-                    stopMovement()
+                    movementState.stopMovement()
                     interactionState.beginInputLock()
                     onExit()
                 }
@@ -298,7 +294,7 @@ fun TownInteriorScreen(
                         amount = amount,
                         canUse = !item.isCaptureItem,
                         onUse = {
-                            stopMovement()
+                            movementState.stopMovement()
                             interactionState.startItemTargetSelection(item)
                         },
                         onCancel = {
@@ -330,7 +326,7 @@ fun TownInteriorScreen(
                 onEncounterChanceChanged = onEncounterChanceChanged,
                 onBackFromSubmenu = interactionState::closeSettings,
                 onSaveGame = {
-                    onSaveGame(playerColumn, playerRow)
+                    onSaveGame(movementState.playerColumn, movementState.playerRow)
                     interactionState.showSaveConfirmation()
                 },
                 onMainMenu = {
@@ -342,7 +338,7 @@ fun TownInteriorScreen(
                 onCancelExit = interactionState::clearPendingExit,
                 onExitWithSave = {
                     val exitAction = interactionState.consumePendingExitAction()
-                    onSaveGame(playerColumn, playerRow)
+                    onSaveGame(movementState.playerColumn, movementState.playerRow)
                     when (exitAction) {
                         ExitAction.MainMenu -> onBackToMainMenu()
                         ExitAction.ExitGame -> onExitGame()

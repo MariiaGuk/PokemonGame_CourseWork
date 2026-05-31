@@ -5,13 +5,7 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
-import com.example.chimeralis.logic.trainers.PlayerCollectionLimits
-
-/** Describes a pending move-learning choice for one chimera. */
-data class MoveLearnRequest(
-    val chimera: Chimera,
-    val move: Move
-)
+import com.example.chimeralis.logic.trainers.PlayerChimeraPlacement
 
 /**
  * Coordinates battle turns, captures, switching, rewards, and move learning.
@@ -34,21 +28,14 @@ class BattleManager(
     var isWaitingForPlayerSwitch: Boolean = false
         private set
     val pendingMoveLearning: MoveLearnRequest?
-        get() = player.team
-            .firstOrNull { it.pendingMoveToLearn != null }
-            ?.let { chimera ->
-                MoveLearnRequest(
-                    chimera = chimera,
-                    move = chimera.pendingMoveToLearn!!
-                )
-            }
+        get() = moveLearningResolver.pendingRequest()
     val isWaitingForMoveLearning: Boolean
         get() = pendingMoveLearning != null
     private var escapeAttempts = 0
     private val playerBattleParticipants = linkedSetOf<Chimera>()
     private var pendingEnemySwitch: Chimera? = null
-    private val pendingEvolutionEvents = mutableListOf<ChimeraEvolutionEvent>()
-    private val queuedEvolutionSources = mutableSetOf<Chimera>()
+    private val moveLearningResolver = BattleMoveLearningResolver(player)
+    private val evolutionQueue = BattleEvolutionQueue()
 
     init {
         markPlayerParticipant(playerChimera)
@@ -58,7 +45,7 @@ class BattleManager(
     fun performTurnWithAnimations(playerAction: BattleAction): BattleTurnResult {
         val log = mutableListOf<String>()
         val animations = mutableListOf<BattleMoveAnimation>()
-        pendingEvolutionEvents.clear()
+        evolutionQueue.clearPendingEvents()
 
         if (!isBattleActive) {
             return BattleTurnResult(
@@ -129,35 +116,13 @@ class BattleManager(
         return BattleTurnResult(
             log = log,
             animations = animations,
-            evolutions = pendingEvolutionEvents.toList()
+            evolutions = evolutionQueue.events
         )
     }
 
     /** Applies the player's decision for a pending move-learning request. */
     fun resolvePendingMoveLearning(replaceIndex: Int?): List<String> {
-        val request = pendingMoveLearning ?: return emptyList()
-        val log = mutableListOf<String>()
-
-        if (replaceIndex == null) {
-            val skippedMove = request.chimera.skipPendingMove()
-            if (skippedMove != null) {
-                log.add("${request.chimera.name} did not learn ${skippedMove.name}.")
-            }
-        } else {
-            val learnedMoves = request.chimera.replaceMoveWithPending(replaceIndex)
-            if (learnedMoves != null) {
-                val (forgottenMove, learnedMove) = learnedMoves
-                log.add("${request.chimera.name} forgot ${forgottenMove.name}.")
-                log.add("${request.chimera.name} learned ${learnedMove.name}!")
-            }
-        }
-
-        pendingMoveLearning?.let { nextRequest ->
-            log.add("${nextRequest.chimera.name} wants to learn ${nextRequest.move.name}.")
-            log.add("Choose a move to forget, or keep the old moves.")
-        }
-
-        return log.ifEmpty { listOf("Nothing happened.") }
+        return moveLearningResolver.resolve(replaceIndex)
     }
 
     /** Sends out the next enemy chimera after the faint log has been shown. */
@@ -171,15 +136,7 @@ class BattleManager(
 
     /** Applies a queued evolution when the post-battle animation starts. */
     fun applyEvolution(event: ChimeraEvolutionEvent) {
-        val teamIndex = player.team.indexOf(event.oldChimera)
-        if (teamIndex == -1) return
-
-        player.team[teamIndex] = event.newChimera
-        if (player.activeChimera === event.oldChimera && event.newChimera.stats.isAlive()) {
-            player.switchChimera(event.newChimera)
-        }
-        playerBattleParticipants.remove(event.oldChimera)
-        playerBattleParticipants.add(event.newChimera)
+        evolutionQueue.apply(event, player, playerBattleParticipants)
     }
 
     /** Executes an enemy move and resolves resulting faint states. */
@@ -239,7 +196,7 @@ class BattleManager(
 
         val itemTarget = target ?: playerChimera
         val targetBefore = itemTarget.stats.toBattleStatsSnapshot()
-        if (itemTarget !in player.team || !player.inventory.useItem(item, itemTarget)) {
+        if (!player.useInventoryItem(item, itemTarget)) {
             log.add("${item.name} cannot be used on ${itemTarget.name}.")
             return false
         }
@@ -263,9 +220,7 @@ class BattleManager(
             return false
         }
 
-        val canStoreCaughtChimera = player.team.size < PlayerCollectionLimits.MaxTeamSize ||
-                player.storage.size < PlayerCollectionLimits.MaxStorageSize
-        if (!canStoreCaughtChimera) {
+        if (!player.canStoreChimera()) {
             log.add("Storage is full. You cannot catch more chimeras.")
             return false
         }
@@ -283,14 +238,10 @@ class BattleManager(
 
         if (captureResult.caught) {
             enemyChimera.stats.resetBattleStages()
-            if (player.team.size < PlayerCollectionLimits.MaxTeamSize) {
-                player.team.add(enemyChimera)
-            } else {
-                player.storage.add(enemyChimera)
-            }
+            val placement = player.addCaughtChimera(enemyChimera)
             isBattleActive = false
             log.add("Gotcha! ${enemyChimera.name} was caught!")
-            if (enemyChimera in player.storage) {
+            if (placement == PlayerChimeraPlacement.Storage) {
                 log.add("${enemyChimera.name} was sent to storage.")
             }
             awardExperience(log, enemyChimera)
@@ -333,7 +284,7 @@ class BattleManager(
             log.add("You won!")
             awardMoney(log, defeatedChimera)
         } else {
-            val nextChimera = enemy.team.firstOrNull { it.stats.isAlive() } ?: return
+            val nextChimera = enemy.firstLivingChimera() ?: return
             pendingEnemySwitch = nextChimera
             log.add("${enemy.name} sent out ${nextChimera.name}!")
         }
@@ -378,22 +329,7 @@ class BattleManager(
 
     /** Queues evolution events without changing battle sprites or team members yet. */
     private fun queueReadyEvolutions() {
-        playerBattleParticipants.forEach { chimera ->
-            if (!chimera.canEvolve() || chimera in queuedEvolutionSources) return@forEach
-
-            val evolvedChimera = chimera.evolution() ?: return@forEach
-            queuedEvolutionSources.add(chimera)
-            pendingEvolutionEvents.add(
-                ChimeraEvolutionEvent(
-                    oldChimera = chimera,
-                    newChimera = evolvedChimera,
-                    oldSpecies = chimera.species,
-                    newSpecies = evolvedChimera.species,
-                    oldName = chimera.name,
-                    newName = evolvedChimera.name
-                )
-            )
-        }
+        evolutionQueue.queueReadyEvolutions(playerBattleParticipants)
     }
 
     /** Records a living player chimera as eligible for experience. */

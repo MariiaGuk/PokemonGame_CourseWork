@@ -20,11 +20,11 @@ interface ChimeraCatalog {
 }
 
 /** Returns every supported saved-name candidate for one chimera definition. */
-private fun ChimeraDefinition.saveLookupNames(): List<String> {
+internal fun ChimeraDefinition.saveLookupNames(): List<String> {
     return listOf(displayName, species.javaClass.simpleName) + saveAliases
 }
 
 /** Normalizes persisted identifiers so old formatting does not break loading. */
-private fun String.toLookupKey(): String {
+internal fun String.toLookupKey(): String {
     return filter(Char::isLetterOrDigit).lowercase()
 }

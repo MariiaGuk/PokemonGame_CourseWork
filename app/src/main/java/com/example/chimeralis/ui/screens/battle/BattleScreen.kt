@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.chimeralis.R
-import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.battle.BattleAnimationKind
 import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleScenarioFactory
@@ -47,6 +46,12 @@ fun BattleScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
+    val battleSoundEvents = remember(context, onBattleResultSoundStarted) {
+        BattleSoundEventHandler(
+            context = context,
+            onBattleResultSoundStarted = onBattleResultSoundStarted
+        )
+    }
     val battleManager = remember(player, battleKey, wildSpecies, isTrainerBattle) {
         if (isTrainerBattle) {
             BattleScenarioFactory.createTrainerBattle(player = player)
@@ -93,11 +98,7 @@ fun BattleScreen(
         delay(BattleEndInputLockMillis)
         uiState.pendingEvolutionEvents.forEach { event ->
             uiState.showEvolution(event)
-            GameSoundPlayer.stopBattleResultSounds()
-            GameSoundPlayer.play(context, R.raw.chimera_evolution)
-            delay(EvolutionRevealMillis)
-            GameSoundPlayer.stop(R.raw.chimera_evolution)
-            GameSoundPlayer.play(context, R.raw.chimera_evolved)
+            battleSoundEvents.playEvolutionRevealSounds()
             delay(EvolutionRevealMillis)
             battleManager.applyEvolution(event)
             delay(EvolutionOverlayDurationMillis - EvolutionRevealMillis)
@@ -120,44 +121,20 @@ fun BattleScreen(
             return@LaunchedEffect
         }
 
-        uiState.playLogAnimation(animation) { soundRes ->
-            GameSoundPlayer.play(context, soundRes)
-        }
+        uiState.playLogAnimation(animation, battleSoundEvents::playAnimationSound)
     }
 
     LaunchedEffect(uiState.panelMode, uiState.battleLogIndex, uiState.currentBattleMessage) {
         if (uiState.panelMode != BattlePanelMode.Log) return@LaunchedEffect
 
-        when {
-            uiState.currentBattleMessage == "Got away safely!" -> {
-                GameSoundPlayer.play(context, R.raw.ran_away)
-            }
-            uiState.currentBattleMessage == "You won!" -> {
-                onBattleResultSoundStarted()
-                GameSoundPlayer.play(context, R.raw.battle_victory)
-            }
-            isTrainerBattle &&
-                    uiState.shouldRevealEnemyDefeatForCurrentMessage(isTrainerBattle) -> {
-                uiState.revealEnemyDefeatForCurrentMessage()
-            }
-            uiState.currentBattleMessage == "You lost!" -> {
-                onBattleResultSoundStarted()
-                GameSoundPlayer.play(context, R.raw.battle_loss)
-            }
-            uiState.currentBattleMessage.startsWith("Gotcha!") &&
-                    uiState.currentBattleMessage.endsWith("was caught!") -> {
-                onBattleResultSoundStarted()
-                GameSoundPlayer.play(context, R.raw.caught_a_chimera)
-            }
-            uiState.currentBattleMessage.contains(" gained ") &&
-                    uiState.currentBattleMessage.endsWith(" EXP.") -> {
-                uiState.syncPlayerProgressForCurrentMessage(playerChimera)
-            }
-            uiState.isCurrentMessageLevelUp() -> {
-                uiState.syncPlayerProgressForCurrentMessage(playerChimera)
-                GameSoundPlayer.play(context, R.raw.level_up)
-            }
+        if (uiState.shouldRevealEnemyDefeatForCurrentMessage(isTrainerBattle)) {
+            uiState.revealEnemyDefeatForCurrentMessage()
         }
+        uiState.syncPlayerProgressForCurrentMessage(playerChimera)
+        battleSoundEvents.playLogMessageSound(
+            message = uiState.currentBattleMessage,
+            isLevelUpMessage = uiState.isCurrentMessageLevelUp()
+        )
     }
 
     LaunchedEffect(playerChimera, playerChimera.stats.currentHp, wildChimera, wildChimera.stats.currentHp) {

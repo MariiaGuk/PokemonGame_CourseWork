@@ -29,6 +29,7 @@ import com.example.chimeralis.R
 import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.battle.BattleAnimationKind
 import com.example.chimeralis.logic.battle.BattleAction
+import com.example.chimeralis.logic.battle.BattleScenarioFactory
 import com.example.chimeralis.logic.battle.BattleSide
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
@@ -49,9 +50,9 @@ fun BattleScreen(
     val context = LocalContext.current
     val battleManager = remember(player, battleKey, wildSpecies, isTrainerBattle) {
         if (isTrainerBattle) {
-            createTrainerBattleManager(player = player)
+            BattleScenarioFactory.createTrainerBattle(player = player)
         } else {
-            createBattleManager(
+            BattleScenarioFactory.createWildBattle(
                 player = player,
                 wildSpecies = wildSpecies
             )

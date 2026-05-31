@@ -5,84 +5,45 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
-import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.logic.items.ItemFactory
-import com.example.chimeralis.logic.items.ItemName
-import com.example.chimeralis.ui.components.GameSettingsPanel
-import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.overlays.WorldControlsOverlay
 import com.example.chimeralis.ui.screens.world.locations.TownLocationBuildings
 import com.example.chimeralis.ui.screens.world.locations.TownLocationSigns
 import com.example.chimeralis.ui.screens.world.locations.TownLocationTiles
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
-import com.example.chimeralis.ui.screens.world.locations.TownSign
 import com.example.chimeralis.ui.screens.world.locations.WildFieldLocationTiles
 import com.example.chimeralis.ui.screens.world.locations.grassTiles
 import com.example.chimeralis.ui.screens.world.locations.grassTownBuildingTiles
 import com.example.chimeralis.ui.screens.world.locations.grassTownPathTiles
 import com.example.chimeralis.ui.screens.world.locations.grassTownSigns
-import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 import kotlin.math.abs
-import kotlin.math.hypot
-import kotlin.random.Random
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 /** Renders the world screen UI. */
 @Composable
@@ -125,31 +86,11 @@ fun WorldScreen(
     onExitGame: () -> Unit,
     onWildEncounter: (ChimeraSpecies) -> Unit
 ) {
-    val colors = MaterialTheme.colorScheme
-    var playerColumn by remember { mutableIntStateOf(initialPlayerColumn) }
-    var playerRow by remember { mutableIntStateOf(initialPlayerRow) }
-    var targetColumn by remember { mutableIntStateOf(initialPlayerColumn) }
-    var targetRow by remember { mutableIntStateOf(initialPlayerRow) }
-    var direction by remember { mutableStateOf(initialPlayerDirection) }
-    var requestedDirection by remember { mutableStateOf<Direction?>(null) }
-    var isMoving by remember { mutableStateOf(false) }
-    var animationFrame by remember { mutableIntStateOf(0) }
-    var isGameMenuOpen by remember { mutableStateOf(false) }
-    var isSettingsOpen by remember { mutableStateOf(false) }
-    var isInventoryOpen by remember { mutableStateOf(false) }
-    var selectedInventoryItem by remember { mutableStateOf<Item?>(null) }
-    var pendingExitAction by remember { mutableStateOf<ExitAction?>(null) }
-    var pendingExitRequiresSave by remember { mutableStateOf(false) }
-    var showSaveMessage by remember { mutableStateOf(false) }
-    var isWildEncounterStarting by remember { mutableStateOf(false) }
-    var isWorldInputLocked by remember { mutableStateOf(false) }
-    var itemTargetSelection by remember { mutableStateOf<Item?>(null) }
-    var pendingItemUseConfirmation by remember { mutableStateOf<Pair<Item, Chimera>?>(null) }
-    var shiftNpcIdleFrame by remember { mutableIntStateOf(0) }
-    var shiftNpcDialogStep by remember { mutableStateOf<Int?>(null) }
-    var trainerNpcIdleFrame by remember { mutableIntStateOf(0) }
-    var trainerNpcDialogStep by remember { mutableStateOf<Int?>(null) }
-    var activeTownSign by remember { mutableStateOf<TownSign?>(null) }
+    val screenState = rememberWorldScreenState(
+        initialPlayerColumn = initialPlayerColumn,
+        initialPlayerRow = initialPlayerRow,
+        initialPlayerDirection = initialPlayerDirection
+    )
     val groundTexture = ImageBitmap.imageResource(
         id = if (field == WorldField.Grass) R.drawable.grass_field_ground else R.drawable.lava_ground
     )
@@ -162,26 +103,30 @@ fun WorldScreen(
     } else {
         LavaShiftNpcColumn to LavaShiftNpcRow
     }
-    val isShiftNpcDialogOpen = shiftNpcDialogStep != null
-    val isTrainerNpcDialogOpen = trainerNpcDialogStep != null
+    val isShiftNpcDialogOpen = screenState.isShiftNpcDialogOpen
+    val isTrainerNpcDialogOpen = screenState.isTrainerNpcDialogOpen
     val trainerNpcTile = GrassTrainerNpcColumn to GrassTrainerNpcRow
     val canInteractWithShiftNpc = showShiftNpc &&
             !isShiftNpcDialogOpen &&
             !isTrainerNpcDialogOpen &&
-            abs(playerColumn - shiftNpcTile.first) + abs(playerRow - shiftNpcTile.second) == 1
+            abs(screenState.playerColumn - shiftNpcTile.first) + abs(screenState.playerRow - shiftNpcTile.second) == 1
     val canInteractWithTrainerNpc = field == WorldField.Grass &&
             !isShiftNpcDialogOpen &&
             !isTrainerNpcDialogOpen &&
-            abs(playerColumn - trainerNpcTile.first) + abs(playerRow - trainerNpcTile.second) == 1
+            abs(screenState.playerColumn - trainerNpcTile.first) + abs(screenState.playerRow - trainerNpcTile.second) == 1
     val townInteriorAtDoor = when {
-        field == WorldField.Grass && playerRow == 4 && playerColumn in 7..8 -> TownInterior.ChimeraCenter
-        field == WorldField.Grass && playerRow == 4 && playerColumn in 12..13 -> TownInterior.ChimeraStore
+        field == WorldField.Grass && screenState.playerRow == 4 && screenState.playerColumn in 7..8 -> {
+            TownInterior.ChimeraCenter
+        }
+        field == WorldField.Grass && screenState.playerRow == 4 && screenState.playerColumn in 12..13 -> {
+            TownInterior.ChimeraStore
+        }
         else -> null
     }
     val canEnterTownInterior = townInteriorAtDoor != null && !isShiftNpcDialogOpen && !isTrainerNpcDialogOpen
     val readableTownSign = if (field == WorldField.Grass && !isShiftNpcDialogOpen && !isTrainerNpcDialogOpen) {
         grassTownSigns.firstOrNull { sign ->
-            abs(playerColumn - sign.column) + abs(playerRow - sign.row) <= 1
+            abs(screenState.playerColumn - sign.column) + abs(screenState.playerRow - sign.row) <= 1
         }
     } else {
         null
@@ -193,45 +138,43 @@ fun WorldScreen(
     val currentOnWildEncounter by rememberUpdatedState(onWildEncounter)
 
     val animatedColumn by animateFloatAsState(
-        targetValue = targetColumn.toFloat(),
+        targetValue = screenState.targetColumn.toFloat(),
         animationSpec = tween(durationMillis = StepDurationMs, easing = LinearEasing),
         label = "playerColumn"
     )
     val animatedRow by animateFloatAsState(
-        targetValue = targetRow.toFloat(),
+        targetValue = screenState.targetRow.toFloat(),
         animationSpec = tween(durationMillis = StepDurationMs, easing = LinearEasing),
         label = "playerRow"
     )
 
-    LaunchedEffect(isMoving, direction) {
+    LaunchedEffect(screenState.isMoving, screenState.direction) {
         while (true) {
-            animationFrame++
-            delay(if (isMoving) MovingFrameDelayMs else IdleFrameDelayMs)
+            screenState.advanceAnimationFrame()
+            delay(if (screenState.isMoving) MovingFrameDelayMs else IdleFrameDelayMs)
         }
     }
 
-    LaunchedEffect(showSaveMessage) {
-        if (showSaveMessage) {
+    LaunchedEffect(screenState.showSaveMessage) {
+        if (screenState.showSaveMessage) {
             delay(1600L)
-            showSaveMessage = false
+            screenState.hideSaveConfirmation()
         }
     }
 
     LaunchedEffect(inputLockKey) {
         if (inputLockKey == 0) return@LaunchedEffect
 
-        requestedDirection = null
-        isMoving = false
-        isWorldInputLocked = true
+        screenState.beginWorldInputLock()
         delay(WorldReturnInputLockMs)
-        isWorldInputLocked = false
+        screenState.endWorldInputLock()
     }
 
     LaunchedEffect(showShiftNpc) {
         if (!showShiftNpc) return@LaunchedEffect
 
         while (true) {
-            shiftNpcIdleFrame++
+            screenState.advanceShiftNpcIdleFrame()
             delay(ShiftNpcIdleFrameDelayMs)
         }
     }
@@ -240,39 +183,29 @@ fun WorldScreen(
         if (field != WorldField.Grass) return@LaunchedEffect
 
         while (true) {
-            trainerNpcIdleFrame++
+            screenState.advanceTrainerNpcIdleFrame()
             delay(ShiftNpcIdleFrameDelayMs)
         }
     }
 
     LaunchedEffect(Unit) {
         while (true) {
-            if (isGameMenuOpen ||
-                isInventoryOpen ||
-                isWildEncounterStarting ||
-                isWorldInputLocked ||
-                shiftNpcDialogStep != null ||
-                trainerNpcDialogStep != null ||
-                activeTownSign != null ||
-                itemTargetSelection != null ||
-                pendingItemUseConfirmation != null
-            ) {
-                requestedDirection = null
-                isMoving = false
+            if (!screenState.areWorldControlsEnabled) {
+                screenState.stopMovement()
                 delay(16L)
                 continue
             }
 
-            val nextDirection = requestedDirection
+            val nextDirection = screenState.requestedDirection
             if (nextDirection == null) {
                 delay(16L)
                 continue
             }
 
-            val currentColumn = playerColumn
-            val currentRow = playerRow
+            val currentColumn = screenState.playerColumn
+            val currentRow = screenState.playerRow
             val nextTile = nextTile(currentColumn, currentRow, nextDirection)
-            direction = nextDirection
+            screenState.face(nextDirection)
             onPlayerDirectionChanged(nextDirection)
 
             if (nextTile.first == currentColumn && nextTile.second == currentRow) {
@@ -300,15 +233,11 @@ fun WorldScreen(
                 continue
             }
 
-            targetColumn = nextTile.first
-            targetRow = nextTile.second
-            isMoving = true
+            screenState.beginStepTo(nextTile.first, nextTile.second)
             delay(StepDurationMs.toLong())
 
-            playerColumn = nextTile.first
-            playerRow = nextTile.second
-            isMoving = false
-            onPlayerPositionChanged(playerColumn, playerRow)
+            screenState.finishStepAt(nextTile.first, nextTile.second)
+            onPlayerPositionChanged(screenState.playerColumn, screenState.playerRow)
 
             val chance = currentEncounterChance.coerceIn(0f, 1f)
             val isWildGrassTile = field != WorldField.Grass &&
@@ -321,9 +250,7 @@ fun WorldScreen(
                     (chance >= 1f || Random.nextFloat() < chance)
 
             if (shouldStartEncounter) {
-                requestedDirection = null
-                isMoving = false
-                isWildEncounterStarting = true
+                screenState.startWildEncounter()
                 currentOnWildEncounter(randomWildChimera(currentStarter))
             }
 
@@ -430,20 +357,26 @@ fun WorldScreen(
 
             if (shouldDrawShiftNpcBeforePlayer) {
                 ShiftNpcWorldSprite(
-                    frameIndex = shiftNpcIdleFrame,
+                    frameIndex = screenState.shiftNpcIdleFrame,
                     modifier = npcModifier
                 )
             }
 
             if (shouldDrawTrainerNpcBeforePlayer) {
                 TrainerNpcWorldSprite(
-                    frameIndex = trainerNpcIdleFrame,
+                    frameIndex = screenState.trainerNpcIdleFrame,
                     modifier = trainerNpcModifier
                 )
             }
 
             Image(
-                painter = painterResource(id = playerFrame(direction, isMoving, animationFrame)),
+                painter = painterResource(
+                    id = playerFrame(
+                        screenState.direction,
+                        screenState.isMoving,
+                        screenState.animationFrame
+                    )
+                ),
                 contentDescription = "Player",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
@@ -458,20 +391,20 @@ fun WorldScreen(
                         height = with(density) { spriteHeight.toDp() }
                     )
                     .graphicsLayer {
-                        scaleX = if (direction == Direction.Left) -1f else 1f
+                        scaleX = if (screenState.direction == Direction.Left) -1f else 1f
                     }
             )
 
             if (showShiftNpc && !shouldDrawShiftNpcBeforePlayer) {
                 ShiftNpcWorldSprite(
-                    frameIndex = shiftNpcIdleFrame,
+                    frameIndex = screenState.shiftNpcIdleFrame,
                     modifier = npcModifier
                 )
             }
 
             if (field == WorldField.Grass && !shouldDrawTrainerNpcBeforePlayer) {
                 TrainerNpcWorldSprite(
-                    frameIndex = trainerNpcIdleFrame,
+                    frameIndex = screenState.trainerNpcIdleFrame,
                     modifier = trainerNpcModifier
                 )
             }
@@ -488,16 +421,12 @@ fun WorldScreen(
             }
         }
 
-        val worldControlsEnabled = !isGameMenuOpen &&
-                !isInventoryOpen &&
-                !isWildEncounterStarting &&
-                !isWorldInputLocked &&
-                !isShiftNpcDialogOpen &&
-                !isTrainerNpcDialogOpen &&
-                activeTownSign == null &&
-                itemTargetSelection == null &&
-                pendingItemUseConfirmation == null
-        val worldActionLabel = if (!isGameMenuOpen && !isInventoryOpen && activeTownSign == null) {
+        val worldControlsEnabled = screenState.areWorldControlsEnabled
+        val worldActionLabel = if (
+            !screenState.isGameMenuOpen &&
+            !screenState.isInventoryOpen &&
+            screenState.activeTownSign == null
+        ) {
             when {
                 canEnterTownInterior -> "Enter"
                 canInteractWithShiftNpc -> "Talk"
@@ -513,67 +442,48 @@ fun WorldScreen(
             team = team,
             teamStateKey = teamStateKey,
             joystickEnabled = worldControlsEnabled,
-            joystickResetKey = "$inputLockKey:${activeTownSign?.title.orEmpty()}",
+            joystickResetKey = "$inputLockKey:${screenState.activeTownSign?.title.orEmpty()}",
             actionLabel = worldActionLabel,
             onDirectionChanged = { x, y ->
                 if (worldControlsEnabled) {
-                    requestedDirection = joystickDirection(x, y)
+                    screenState.requestDirection(joystickDirection(x, y))
                 }
             },
             onMenu = {
-                if (isWorldInputLocked || isShiftNpcDialogOpen || isTrainerNpcDialogOpen || activeTownSign != null) return@WorldControlsOverlay
-
-                requestedDirection = null
-                isMoving = false
-                isSettingsOpen = false
-                isInventoryOpen = false
-                isGameMenuOpen = true
+                screenState.openGameMenu()
             },
             onBag = {
-                if (isWorldInputLocked || isShiftNpcDialogOpen || isTrainerNpcDialogOpen || activeTownSign != null) return@WorldControlsOverlay
-
-                requestedDirection = null
-                isMoving = false
-                isSettingsOpen = false
-                isGameMenuOpen = false
-                selectedInventoryItem = null
-                isInventoryOpen = true
+                screenState.openInventory()
             },
             onAction = {
-                requestedDirection = null
-                isMoving = false
+                screenState.stopMovement()
                 if (canEnterTownInterior) {
                     townInteriorAtDoor?.let(onEnterTownInterior)
                 } else if (canInteractWithShiftNpc) {
-                    shiftNpcDialogStep = 0
+                    screenState.openShiftNpcDialog()
                 } else if (canInteractWithTrainerNpc) {
-                    trainerNpcDialogStep = 0
+                    screenState.openTrainerNpcDialog()
                 } else {
-                    activeTownSign = readableTownSign
+                    screenState.openTownSign(readableTownSign)
                 }
             }
         )
 
-        if (isInventoryOpen && !isGameMenuOpen) {
+        if (screenState.isInventoryOpen && !screenState.isGameMenuOpen) {
             WorldInventoryPanel(
                 inventoryItems = inventoryItems,
-                selectedItem = selectedInventoryItem,
+                selectedItem = screenState.selectedInventoryItem,
                 money = money,
-                onSelectedItemChanged = { item ->
-                    selectedInventoryItem = item
-                },
-                onClose = {
-                    selectedInventoryItem = null
-                    isInventoryOpen = false
-                },
+                onSelectedItemChanged = screenState::selectInventoryItem,
+                onClose = screenState::closeInventory,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 56.dp, end = 14.dp)
             )
         }
 
-        if (isInventoryOpen && !isGameMenuOpen) {
-            selectedInventoryItem?.let { item ->
+        if (screenState.isInventoryOpen && !screenState.isGameMenuOpen) {
+            screenState.selectedInventoryItem?.let { item ->
                 val amount = inventoryItems[item]
                 if (amount != null) {
                     InventoryItemDetailsPlate(
@@ -581,15 +491,10 @@ fun WorldScreen(
                         amount = amount,
                         canUse = !item.isCaptureItem,
                         onUse = {
-                            requestedDirection = null
-                            isMoving = false
-                            selectedInventoryItem = null
-                            isInventoryOpen = false
-                            itemTargetSelection = item
-                            pendingItemUseConfirmation = null
+                            screenState.startItemTargetSelection(item)
                         },
                         onCancel = {
-                            selectedInventoryItem = null
+                            screenState.selectInventoryItem(null)
                         },
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -597,57 +502,39 @@ fun WorldScreen(
             }
         }
 
-        if (isGameMenuOpen) {
+        if (screenState.isGameMenuOpen) {
             InGameMenuOverlay(
-                showSettings = isSettingsOpen,
-                pendingExitAction = pendingExitAction,
-                pendingExitRequiresSave = pendingExitRequiresSave,
-                showSaveMessage = showSaveMessage,
+                showSettings = screenState.isSettingsOpen,
+                pendingExitAction = screenState.pendingExitAction,
+                pendingExitRequiresSave = screenState.pendingExitRequiresSave,
+                showSaveMessage = screenState.showSaveMessage,
                 musicEnabled = musicEnabled,
                 musicVolume = musicVolume,
                 soundEnabled = soundEnabled,
                 soundVolume = soundVolume,
                 encounterChance = encounterChance,
-                onResume = {
-                    isSettingsOpen = false
-                    isInventoryOpen = false
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
-                    isGameMenuOpen = false
-                },
-                onSettings = {
-                    isSettingsOpen = true
-                    isInventoryOpen = false
-                },
+                onResume = screenState::resumeGame,
+                onSettings = screenState::openSettings,
                 onMusicEnabledChanged = onMusicEnabledChanged,
                 onMusicVolumeChanged = onMusicVolumeChanged,
                 onSoundEnabledChanged = onSoundEnabledChanged,
                 onSoundVolumeChanged = onSoundVolumeChanged,
                 onEncounterChanceChanged = onEncounterChanceChanged,
-                onBackFromSubmenu = {
-                    isSettingsOpen = false
-                },
+                onBackFromSubmenu = screenState::closeSettings,
                 onSaveGame = {
-                    onSaveGame(playerColumn, playerRow)
-                    showSaveMessage = true
+                    onSaveGame(screenState.playerColumn, screenState.playerRow)
+                    screenState.showSaveConfirmation()
                 },
                 onMainMenu = {
-                    pendingExitAction = ExitAction.MainMenu
-                    pendingExitRequiresSave = hasUnsavedChanges
+                    screenState.requestExit(ExitAction.MainMenu, hasUnsavedChanges)
                 },
                 onExitGame = {
-                    pendingExitAction = ExitAction.ExitGame
-                    pendingExitRequiresSave = hasUnsavedChanges
+                    screenState.requestExit(ExitAction.ExitGame, hasUnsavedChanges)
                 },
-                onCancelExit = {
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
-                },
+                onCancelExit = screenState::clearPendingExit,
                 onExitWithSave = {
-                    val exitAction = pendingExitAction
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
-                    onSaveGame(playerColumn, playerRow)
+                    val exitAction = screenState.consumePendingExitAction()
+                    onSaveGame(screenState.playerColumn, screenState.playerRow)
                     when (exitAction) {
                         ExitAction.MainMenu -> onBackToMainMenu()
                         ExitAction.ExitGame -> onExitGame()
@@ -655,9 +542,7 @@ fun WorldScreen(
                     }
                 },
                 onExitWithoutSave = {
-                    val exitAction = pendingExitAction
-                    pendingExitAction = null
-                    pendingExitRequiresSave = false
+                    val exitAction = screenState.consumePendingExitAction()
                     when (exitAction) {
                         ExitAction.MainMenu -> onBackToMainMenu()
                         ExitAction.ExitGame -> onExitGame()
@@ -667,46 +552,38 @@ fun WorldScreen(
             )
         }
 
-        itemTargetSelection?.let { item ->
+        screenState.itemTargetSelection?.let { item ->
             ItemTargetSelectionOverlay(
                 item = item,
                 team = team,
                 teamStateKey = teamStateKey,
                 onChimeraSelected = { chimera ->
-                    pendingItemUseConfirmation = item to chimera
+                    screenState.requestItemUseConfirmation(item, chimera)
                 },
-                onCancel = {
-                    itemTargetSelection = null
-                    pendingItemUseConfirmation = null
-                }
+                onCancel = screenState::cancelItemTargetSelection
             )
         }
 
-        pendingItemUseConfirmation?.let { (item, chimera) ->
+        screenState.pendingItemUseConfirmation?.let { (item, chimera) ->
             ConfirmItemUseDialog(
                 item = item,
                 chimera = chimera,
                 onConfirm = {
                     onUseInventoryItem(item, chimera)
-                    itemTargetSelection = null
-                    pendingItemUseConfirmation = null
+                    screenState.completeItemUse()
                 },
-                onCancel = {
-                    pendingItemUseConfirmation = null
-                }
+                onCancel = screenState::cancelItemUseConfirmation
             )
         }
 
-        activeTownSign?.let { sign ->
+        screenState.activeTownSign?.let { sign ->
             TownSignDialogOverlay(
                 sign = sign,
-                onClose = {
-                    activeTownSign = null
-                }
+                onClose = screenState::closeTownSign
             )
         }
 
-        shiftNpcDialogStep?.let { step ->
+        screenState.shiftNpcDialogStep?.let { step ->
             val isReturnDialog = field == WorldField.Grass
             val isShortTravelDialog = field == WorldField.Lava && shiftNpcIntroSeen
 
@@ -715,19 +592,16 @@ fun WorldScreen(
                 isReturnDialog = isReturnDialog,
                 isShortTravelDialog = isShortTravelDialog,
                 onNext = {
-                    val nextStep = ((shiftNpcDialogStep ?: step) + 1).coerceAtMost(3)
-                    shiftNpcDialogStep = nextStep
+                    screenState.advanceShiftNpcDialog(maxStep = 3)
                 },
                 onStay = {
                     if (field == WorldField.Lava && !shiftNpcIntroSeen && step >= 3) {
                         onShiftNpcIntroSeen()
                     }
-                    shiftNpcDialogStep = null
+                    screenState.closeShiftNpcDialog()
                 },
                 onTravel = {
-                    shiftNpcDialogStep = null
-                    requestedDirection = null
-                    isMoving = false
+                    screenState.prepareShiftNpcTravel()
                     if (field == WorldField.Grass) {
                         onReturnToLavaField()
                     } else {
@@ -740,19 +614,15 @@ fun WorldScreen(
             )
         }
 
-        trainerNpcDialogStep?.let { step ->
+        screenState.trainerNpcDialogStep?.let { step ->
             TrainerNpcChallengeOverlay(
                 step = step,
                 onNext = {
-                    trainerNpcDialogStep = ((trainerNpcDialogStep ?: step) + 1).coerceAtMost(1)
+                    screenState.advanceTrainerNpcDialog(maxStep = 1)
                 },
-                onDecline = {
-                    trainerNpcDialogStep = null
-                },
+                onDecline = screenState::closeTrainerNpcDialog,
                 onChallenge = {
-                    trainerNpcDialogStep = null
-                    requestedDirection = null
-                    isMoving = false
+                    screenState.prepareTrainerChallenge()
                     onTrainerChallenge()
                 }
             )

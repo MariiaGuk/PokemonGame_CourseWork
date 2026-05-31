@@ -17,14 +17,15 @@ class BattleMoveLearningResolver(
 
     /** Returns the first chimera currently waiting for a move replacement decision. */
     fun pendingRequest(): MoveLearnRequest? {
-        return player.team
-            .firstOrNull { chimera -> chimera.pendingMoveToLearn != null }
-            ?.let { chimera ->
-                MoveLearnRequest(
-                    chimera = chimera,
-                    move = chimera.pendingMoveToLearn!!
-                )
-            }
+        val chimera = player.team.firstOrNull { candidate ->
+            candidate.pendingMoveToLearn != null
+        } ?: return null
+        val pendingMove = chimera.pendingMoveToLearn ?: return null
+
+        return MoveLearnRequest(
+            chimera = chimera,
+            move = pendingMove
+        )
     }
 
     /** Applies the player's decision for the current pending move-learning request. */

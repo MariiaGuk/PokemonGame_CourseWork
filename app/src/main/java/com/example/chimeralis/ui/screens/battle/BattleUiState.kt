@@ -13,6 +13,7 @@ import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
 import com.example.chimeralis.logic.battle.BattleManager
 import com.example.chimeralis.logic.battle.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.BattleSide
+import com.example.chimeralis.logic.battle.toBattleStatsSnapshot
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
 import kotlin.math.roundToInt

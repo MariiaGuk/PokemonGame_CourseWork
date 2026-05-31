@@ -11,12 +11,14 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.chimeralis.ui.navigation.AppNavigation
+import com.example.chimeralis.ui.screens.chimera.validateChimeraVisualResourceMappings
 import com.example.chimeralis.ui.theme.ChimeralisTheme
 
 /** Represents the main activity. */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        validateChimeraVisualResourceMappings()
         enableEdgeToEdge()
 
         WindowCompat.getInsetsController(window, window.decorView).apply {

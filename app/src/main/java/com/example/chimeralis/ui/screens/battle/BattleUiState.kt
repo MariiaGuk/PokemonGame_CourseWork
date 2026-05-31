@@ -13,7 +13,9 @@ import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
 import com.example.chimeralis.logic.battle.BattleManager
 import com.example.chimeralis.logic.battle.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.BattleSide
+import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
+import kotlin.math.roundToInt
 
 /** Represents the battle ui state. */
 internal class BattleUiState(
@@ -51,6 +53,13 @@ internal class BattleUiState(
     val isMoveAnimationPlaying: Boolean get() = activeMoveAnimation != null
     val isBattleFeedbackPlaying: Boolean get() = activeBattleFeedbacks.isNotEmpty()
     val isBattleInputLocked: Boolean get() = isBattleIntroLocked || isBattleExitPending
+    val activeLogAnimation: BattleMoveAnimation?
+        get() = battleLogAnimations[battleLogIndex].takeIf { panelMode == BattlePanelMode.Log }
+
+    /** Unlocks player input after the opening battle intro delay. */
+    fun unlockBattleIntro() {
+        isBattleIntroLocked = false
+    }
 
     /** Handles show battle log behavior. */
     fun showBattleLog(
@@ -69,6 +78,50 @@ internal class BattleUiState(
         isCaptureResultRevealed = false
         selectedBattleItem = null
         panelMode = BattlePanelMode.Log
+    }
+
+    /** Changes the active command panel. */
+    fun openPanel(mode: BattlePanelMode) {
+        panelMode = mode
+    }
+
+    /** Selects a regular item and asks the player for a target chimera. */
+    fun selectBattleItem(item: Item) {
+        selectedBattleItem = item
+        panelMode = BattlePanelMode.ItemTarget
+    }
+
+    /** Uses the currently selected item on a chosen chimera. */
+    fun useSelectedBattleItemOn(chimera: Chimera) {
+        selectedBattleItem?.let { item ->
+            performBattleAction(BattleAction.UseItem(item, chimera))
+        }
+    }
+
+    /** Returns from nested battle panels to the correct parent panel. */
+    fun backToActionSelection() {
+        if (panelMode == BattlePanelMode.ItemTarget) {
+            selectedBattleItem = null
+            panelMode = BattlePanelMode.Bag
+        } else {
+            panelMode = BattlePanelMode.Actions
+        }
+    }
+
+    /** Shows the trainer-battle capture rejection message. */
+    fun showTrainerCaptureBlocked() {
+        showBattleResult(
+            log = listOf("You cannot catch another trainer's chimera."),
+            animations = emptyList()
+        )
+    }
+
+    /** Resolves a move-learning decision and shows its resulting messages. */
+    fun resolvePendingMoveLearning(replaceIndex: Int?) {
+        showBattleResult(
+            log = battleManager.resolvePendingMoveLearning(replaceIndex),
+            animations = emptyList()
+        )
     }
 
     /** Handles advance battle log behavior. */
@@ -124,6 +177,32 @@ internal class BattleUiState(
         uiVersion++
     }
 
+    /** Starts displaying one active battle animation. */
+    fun beginActiveAnimation(animation: BattleMoveAnimation) {
+        activeMoveAnimation = animation
+        activeMoveFrameIndex = 0
+        activeCaptureProgress = 0f
+    }
+
+    /** Clears the current animation frame state. */
+    fun clearActiveAnimation() {
+        activeMoveAnimation = null
+        activeMoveFrameIndex = 0
+        activeCaptureProgress = 0f
+    }
+
+    /** Clears transient feedback state. */
+    fun clearBattleFeedback() {
+        activeBattleFeedbacks = emptyList()
+        battleFeedbackFrameIndex = 0
+    }
+
+    /** Clears animation and feedback state after playback finishes. */
+    fun finishAnimationPlayback() {
+        clearActiveAnimation()
+        clearBattleFeedback()
+    }
+
     /** Handles apply animation visual state behavior. */
     fun applyAnimationVisualState(animation: BattleMoveAnimation) {
         val userAfter = animation.userAfter
@@ -141,6 +220,62 @@ internal class BattleUiState(
                 BattleSide.Player -> visualWildStats = targetAfter
                 BattleSide.Enemy -> visualPlayerStats = targetAfter
             }
+        }
+    }
+
+    /** Starts capture animation state. */
+    fun beginCaptureAnimation(animation: BattleMoveAnimation) {
+        beginActiveAnimation(animation)
+        captureResultAnimation = animation
+        isCaptureResultRevealed = false
+        if (!animation.captureSucceeded) {
+            isEnemyCapturedHidden = false
+        }
+    }
+
+    /** Updates progress-dependent capture animation state. */
+    fun updateCaptureProgress(progress: Float) {
+        activeCaptureProgress = progress.coerceIn(0f, 1f)
+        activeMoveFrameIndex = (activeCaptureProgress * 100f).roundToInt()
+        if (activeMoveAnimation?.captureSucceeded == true &&
+            activeCaptureProgress >= CaptureAbsorbEndProgress
+        ) {
+            isEnemyCapturedHidden = true
+        }
+    }
+
+    /** Finishes capture animation state. */
+    fun finishCaptureAnimation() {
+        if (activeMoveAnimation?.captureSucceeded == true) {
+            isEnemyCapturedHidden = true
+        }
+        finishAnimationPlayback()
+    }
+
+    /** Shows one animation frame without feedback. */
+    fun showAnimationFrame(frameIndex: Int) {
+        activeMoveFrameIndex = frameIndex
+    }
+
+    /** Shows feedback for one animation frame. */
+    fun showFrameFeedback(frameIndex: Int, feedbacks: List<BattleFeedback>) {
+        activeMoveFrameIndex = frameIndex
+        activeBattleFeedbacks = feedbacks
+    }
+
+    /** Updates the active feedback frame index. */
+    fun updateFeedbackFrame(frameIndex: Int) {
+        battleFeedbackFrameIndex = frameIndex
+    }
+
+    /** Hides fighters that fainted during the active frame. */
+    fun hideFaintedFeedbackSides(feedbacks: List<BattleFeedback>) {
+        val faintedSides = feedbacks
+            .filter { feedback -> feedback.type == BattleFeedbackType.Faint }
+            .map { feedback -> feedback.side }
+            .toSet()
+        if (faintedSides.isNotEmpty()) {
+            hiddenFaintedSides = hiddenFaintedSides + faintedSides
         }
     }
 
@@ -182,6 +317,31 @@ internal class BattleUiState(
         uiVersion++
     }
 
+    /** Updates the visible player EXP state when the current log message reports progress. */
+    fun syncPlayerProgressForCurrentMessage(chimera: Chimera) {
+        val message = currentBattleMessage
+        val shouldSyncProgress =
+            (message.contains(" gained ") && message.endsWith(" EXP.")) ||
+                    " grew to Lv." in message
+
+        if (shouldSyncProgress && message.startsWith("${chimera.name} ")) {
+            setVisualPlayerProgress(chimera.level, chimera.exp)
+        }
+    }
+
+    /** Returns true when the current log message is a level-up message. */
+    fun isCurrentMessageLevelUp(): Boolean {
+        return " grew to Lv." in currentBattleMessage
+    }
+
+    /** Returns true when the current log message should reveal one defeated trainer chimera. */
+    fun shouldRevealEnemyDefeatForCurrentMessage(isTrainerBattle: Boolean): Boolean {
+        return isTrainerBattle &&
+                currentBattleMessage.startsWith("Enemy ") &&
+                " has 0/" in currentBattleMessage &&
+                currentBattleMessage.endsWith(" HP.")
+    }
+
     /** Handles reveal enemy defeat for current message behavior. */
     fun revealEnemyDefeatForCurrentMessage() {
         val key = "$battleLogIndex:$currentBattleMessage"
@@ -189,6 +349,24 @@ internal class BattleUiState(
 
         lastEnemyDefeatRevealKey = key
         revealedEnemyDefeatCount = (revealedEnemyDefeatCount + 1).coerceAtMost(6)
+    }
+
+    /** Removes hidden-faint flags when fighters are visible again after switches or healing. */
+    fun showRecoveredFighters(playerChimera: Chimera, enemyChimera: Chimera) {
+        hiddenFaintedSides = hiddenFaintedSides
+            .let { sides -> if (playerChimera.stats.currentHp > 0) sides - BattleSide.Player else sides }
+            .let { sides -> if (enemyChimera.stats.currentHp > 0) sides - BattleSide.Enemy else sides }
+    }
+
+    /** Shows one pending evolution event. */
+    fun showEvolution(event: ChimeraEvolutionEvent) {
+        activeEvolutionEvent = event
+    }
+
+    /** Clears post-battle evolution overlay state. */
+    fun clearEvolutionState() {
+        activeEvolutionEvent = null
+        pendingEvolutionEvents = emptyList()
     }
 }
 

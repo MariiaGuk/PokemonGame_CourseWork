@@ -34,7 +34,6 @@ import com.example.chimeralis.logic.battle.BattleSide
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
 
 /** Renders the battle screen UI. */
 @Composable
@@ -69,7 +68,7 @@ fun BattleScreen(
 
     LaunchedEffect(battleManager) {
         delay(BattleIntroInputLockMillis)
-        uiState.isBattleIntroLocked = false
+        uiState.unlockBattleIntro()
     }
 
     LaunchedEffect(uiState.isBattleExitPending) {
@@ -77,18 +76,17 @@ fun BattleScreen(
 
         delay(BattleEndInputLockMillis)
         uiState.pendingEvolutionEvents.forEach { event ->
-            uiState.activeEvolutionEvent = event
+            uiState.showEvolution(event)
             GameSoundPlayer.stopBattleResultSounds()
             GameSoundPlayer.play(context, R.raw.chimera_evolution)
             delay(EvolutionRevealMillis)
             GameSoundPlayer.stop(R.raw.chimera_evolution)
             GameSoundPlayer.play(context, R.raw.chimera_evolved)
-            delay(EvolutionRevealMillis  )
+            delay(EvolutionRevealMillis)
             battleManager.applyEvolution(event)
             delay(EvolutionOverlayDurationMillis - EvolutionRevealMillis)
         }
-        uiState.activeEvolutionEvent = null
-        uiState.pendingEvolutionEvents = emptyList()
+        uiState.clearEvolutionState()
         player.team.forEach { chimera ->
             chimera.stats.resetBattleStages()
         }
@@ -99,118 +97,16 @@ fun BattleScreen(
     }
 
     LaunchedEffect(uiState.panelMode, uiState.battleLogIndex, uiState.battleLogAnimations) {
-        val animation = if (uiState.panelMode == BattlePanelMode.Log) {
-            uiState.battleLogAnimations[uiState.battleLogIndex]
-        } else {
-            null
-        }
+        val animation = uiState.activeLogAnimation
 
         if (animation == null) {
-            uiState.activeMoveAnimation = null
-            uiState.activeMoveFrameIndex = 0
-            uiState.activeCaptureProgress = 0f
+            uiState.clearActiveAnimation()
             return@LaunchedEffect
         }
 
-        uiState.activeMoveAnimation = animation
-        when (animation.kind) {
-            BattleAnimationKind.Move -> {
-                uiState.applyAnimationVisualState(animation)
-                GameSoundPlayer.play(context, R.raw.attack_sound)
-            }
-            BattleAnimationKind.Item -> {
-                uiState.applyAnimationVisualState(animation)
-                delay(220L)
-                uiState.activeMoveAnimation = null
-                uiState.activeMoveFrameIndex = 0
-                return@LaunchedEffect
-            }
-            BattleAnimationKind.Capture -> Unit
+        uiState.playLogAnimation(animation) { soundRes ->
+            GameSoundPlayer.play(context, soundRes)
         }
-
-        if (animation.kind == BattleAnimationKind.Capture) {
-            uiState.activeCaptureProgress = 0f
-            uiState.captureResultAnimation = animation
-            uiState.isCaptureResultRevealed = false
-            if (!animation.captureSucceeded) {
-                uiState.isEnemyCapturedHidden = false
-            }
-
-            val durationMillis = if (animation.captureSucceeded) {
-                CaptureSuccessDurationMillis
-            } else {
-                CaptureFailDurationMillis
-            }
-            val tickCount = (durationMillis / CaptureAnimationTickMillis).toInt().coerceAtLeast(1)
-
-            repeat(tickCount + 1) { tick ->
-                val progress = (tick / tickCount.toFloat()).coerceIn(0f, 1f)
-                uiState.activeCaptureProgress = progress
-                uiState.activeMoveFrameIndex = (progress * 100f).roundToInt()
-                if (animation.captureSucceeded && progress >= CaptureAbsorbEndProgress) {
-                    uiState.isEnemyCapturedHidden = true
-                }
-                delay(CaptureAnimationTickMillis)
-            }
-
-            if (animation.captureSucceeded) {
-                uiState.isEnemyCapturedHidden = true
-            }
-
-            delay(90L)
-
-            uiState.activeMoveAnimation = null
-            uiState.activeMoveFrameIndex = 0
-            uiState.activeCaptureProgress = 0f
-            uiState.activeBattleFeedbacks = emptyList()
-            uiState.battleFeedbackFrameIndex = 0
-            return@LaunchedEffect
-        }
-
-        val frames = animation.animationFrames()
-        var playedFaintSound = false
-        frames.forEachIndexed { frameIndex, frame ->
-            uiState.activeMoveFrameIndex = frameIndex
-                val feedbacks = frame.feedbacks.toBattleFeedbacks()
-
-            if (feedbacks.isEmpty()) {
-                delay(frame.durationMillis)
-            } else {
-                if (!playedFaintSound && feedbacks.any { it.type == BattleFeedbackType.Faint }) {
-                    GameSoundPlayer.play(context, R.raw.chimera_faint)
-                    playedFaintSound = true
-                }
-                uiState.activeBattleFeedbacks = feedbacks
-                val feedbackTicks = (frame.durationMillis / BattleFeedbackFrameMillis)
-                    .toInt()
-                    .coerceAtLeast(1)
-                repeat(feedbackTicks) { feedbackFrameIndex ->
-                    uiState.battleFeedbackFrameIndex = feedbackFrameIndex
-                    delay(BattleFeedbackFrameMillis)
-                }
-                val remainingDelay = frame.durationMillis - feedbackTicks * BattleFeedbackFrameMillis
-                if (remainingDelay > 0L) {
-                    delay(remainingDelay)
-                }
-                val faintedSides = feedbacks
-                    .filter { it.type == BattleFeedbackType.Faint }
-                    .map { it.side }
-                    .toSet()
-                if (faintedSides.isNotEmpty()) {
-                    uiState.hiddenFaintedSides = uiState.hiddenFaintedSides + faintedSides
-                }
-                uiState.activeBattleFeedbacks = emptyList()
-                uiState.battleFeedbackFrameIndex = 0
-            }
-        }
-
-        delay(90L)
-
-        uiState.activeMoveAnimation = null
-        uiState.activeMoveFrameIndex = 0
-        uiState.activeCaptureProgress = 0f
-        uiState.activeBattleFeedbacks = emptyList()
-        uiState.battleFeedbackFrameIndex = 0
     }
 
     LaunchedEffect(uiState.panelMode, uiState.battleLogIndex, uiState.currentBattleMessage) {
@@ -225,9 +121,7 @@ fun BattleScreen(
                 GameSoundPlayer.play(context, R.raw.battle_victory)
             }
             isTrainerBattle &&
-                    uiState.currentBattleMessage.startsWith("Enemy ") &&
-                    " has 0/" in uiState.currentBattleMessage &&
-                    uiState.currentBattleMessage.endsWith(" HP.") -> {
+                    uiState.shouldRevealEnemyDefeatForCurrentMessage(isTrainerBattle) -> {
                 uiState.revealEnemyDefeatForCurrentMessage()
             }
             uiState.currentBattleMessage == "You lost!" -> {
@@ -241,23 +135,17 @@ fun BattleScreen(
             }
             uiState.currentBattleMessage.contains(" gained ") &&
                     uiState.currentBattleMessage.endsWith(" EXP.") -> {
-                if (uiState.currentBattleMessage.startsWith("${playerChimera.name} gained ")) {
-                    uiState.setVisualPlayerProgress(playerChimera.level, playerChimera.exp)
-                }
+                uiState.syncPlayerProgressForCurrentMessage(playerChimera)
             }
-            " grew to Lv." in uiState.currentBattleMessage -> {
-                if (uiState.currentBattleMessage.startsWith("${playerChimera.name} grew to Lv.")) {
-                    uiState.setVisualPlayerProgress(playerChimera.level, playerChimera.exp)
-                }
+            uiState.isCurrentMessageLevelUp() -> {
+                uiState.syncPlayerProgressForCurrentMessage(playerChimera)
                 GameSoundPlayer.play(context, R.raw.level_up)
             }
         }
     }
 
     LaunchedEffect(playerChimera, playerChimera.stats.currentHp, wildChimera, wildChimera.stats.currentHp) {
-        uiState.hiddenFaintedSides = uiState.hiddenFaintedSides
-            .let { sides -> if (playerChimera.stats.currentHp > 0) sides - BattleSide.Player else sides }
-            .let { sides -> if (wildChimera.stats.currentHp > 0) sides - BattleSide.Enemy else sides }
+        uiState.showRecoveredFighters(playerChimera, wildChimera)
     }
 
     BoxWithConstraints(
@@ -465,50 +353,36 @@ fun BattleScreen(
                 activeChimera = playerChimera,
                 inventoryItems = player.inventory.items,
                 canUseCaptureItems = !isTrainerBattle,
-                onFight = { uiState.panelMode = BattlePanelMode.Moves },
-                onBag = { uiState.panelMode = BattlePanelMode.Bag },
-                onTeam = { uiState.panelMode = BattlePanelMode.Team },
+                onFight = { uiState.openPanel(BattlePanelMode.Moves) },
+                onBag = { uiState.openPanel(BattlePanelMode.Bag) },
+                onTeam = { uiState.openPanel(BattlePanelMode.Team) },
                 onMoveSelected = { move ->
                     uiState.performBattleAction(BattleAction.UseMove(move))
                 },
                 onMoveReplacementSelected = { index ->
-                    uiState.showBattleResult(
-                        log = battleManager.resolvePendingMoveLearning(index),
-                        animations = emptyList()
-                    )
+                    uiState.resolvePendingMoveLearning(index)
                 },
                 onSwitchSelected = { chimera ->
                     uiState.performBattleAction(BattleAction.SwitchChimera(chimera))
                 },
                 onItemSelected = { item ->
                     if (item.isCaptureItem && isTrainerBattle) {
-                        uiState.showBattleResult(
-                            log = listOf("You cannot catch another trainer's chimera."),
-                            animations = emptyList()
-                        )
+                        uiState.showTrainerCaptureBlocked()
                     } else if (item.isCaptureItem) {
                         uiState.performBattleAction(BattleAction.UseItem(item))
                     } else {
-                        uiState.selectedBattleItem = item
-                        uiState.panelMode = BattlePanelMode.ItemTarget
+                        uiState.selectBattleItem(item)
                     }
                 },
                 selectedItem = uiState.selectedBattleItem,
                 onItemTargetSelected = { chimera ->
-                    uiState.selectedBattleItem?.let { item ->
-                        uiState.performBattleAction(BattleAction.UseItem(item, chimera))
-                    }
+                    uiState.useSelectedBattleItemOn(chimera)
                 },
                 onRun = {
                     uiState.performBattleAction(BattleAction.Run)
                 },
                 onBackToActions = {
-                    if (uiState.panelMode == BattlePanelMode.ItemTarget) {
-                        uiState.selectedBattleItem = null
-                        uiState.panelMode = BattlePanelMode.Bag
-                    } else {
-                        uiState.panelMode = BattlePanelMode.Actions
-                    }
+                    uiState.backToActionSelection()
                 },
                 colors = colors,
                 modifier = Modifier

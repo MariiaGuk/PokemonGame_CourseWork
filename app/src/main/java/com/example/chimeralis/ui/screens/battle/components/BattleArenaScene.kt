@@ -81,7 +81,7 @@ internal fun BattleArenaScene(
         val wildPlatformX = maxWidth * 0.65f
         val captureTargetX = wildPlatformX - 10.dp
         val captureTargetY = platformY - 8.dp
-        val spriteSize = minOf(maxWidth * 0.25f, maxHeight * 0.45f)
+        val spriteSize = minOf(maxWidth * 0.29f, maxHeight * 0.52f)
         val activeCaptureAnimation = uiState.activeMoveAnimation?.takeIf { it.kind == BattleAnimationKind.Capture }
         val playerAnimation = uiState.activeMoveAnimation?.takeIf {
             it.kind == BattleAnimationKind.Move && it.side == BattleSide.Player
@@ -211,7 +211,7 @@ internal fun BattleArenaScene(
                 alpha = playerAlpha,
                 modifier = Modifier.offset(
                     x = playerPlatformX - spriteFrameWidth / 2f,
-                    y = platformY - spriteSize * 0.75f
+                    y = platformY - spriteSize * 0.7f
                 )
             )
 
@@ -226,7 +226,7 @@ internal fun BattleArenaScene(
                 alpha = wildAlpha,
                 modifier = Modifier.offset(
                     x = wildPlatformX - spriteFrameWidth / 2f,
-                    y = platformY - spriteSize * 0.75f
+                    y = platformY - spriteSize * 0.7f
                 )
             )
 

@@ -24,6 +24,13 @@ abstract class Trainer(
         activeChimera = teamMembers.first()
     }
 
+    /** Selects the first living team member before battle starts. */
+    fun selectFirstLivingChimera(): Boolean {
+        val livingChimera = firstLivingChimera() ?: return false
+        activeChimera = livingChimera
+        return true
+    }
+
     /** Switches to a living chimera that belongs to this trainer. */
     fun switchChimera(chimera: Chimera) {
         require(hasTeamMember(chimera)) { "Chimera is not in team" }

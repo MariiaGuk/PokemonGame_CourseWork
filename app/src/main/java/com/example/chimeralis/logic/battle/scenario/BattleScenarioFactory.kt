@@ -17,7 +17,9 @@ object BattleScenarioFactory {
         wildSpecies: ChimeraSpecies,
         randomProvider: RandomProvider = DefaultRandomProvider
     ): BattleManager {
-        player.resetActiveChimeraToTeamLead()
+        require(player.selectFirstLivingChimera()) {
+            "Player must have at least one living chimera to start battle"
+        }
 
         val wildChimera = ChimeraFactory.createChimera(
             species = wildSpecies,
@@ -36,7 +38,9 @@ object BattleScenarioFactory {
         player: Player,
         randomProvider: RandomProvider = DefaultRandomProvider
     ): BattleManager {
-        player.resetActiveChimeraToTeamLead()
+        require(player.selectFirstLivingChimera()) {
+            "Player must have at least one living chimera to start battle"
+        }
 
         val playerTeam = player.team.ifEmpty {
             listOf(

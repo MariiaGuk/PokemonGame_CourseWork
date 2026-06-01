@@ -1,7 +1,5 @@
 package com.example.chimeralis.logic.trainers
 
-import com.example.chimeralis.ui.screens.world.MaxTeamSize
-
 /** Stores collection limits shared by battle, storage, and team management. */
 object PlayerCollectionLimits {
     const val MaxTeamSize = 6

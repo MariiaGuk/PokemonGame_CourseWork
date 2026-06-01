@@ -2,10 +2,13 @@ package com.example.chimeralis.logic.battle.progression
 
 import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
 import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraEvolutionService
 import com.example.chimeralis.logic.trainers.Player
 
 /** Queues and applies post-battle chimera evolutions. */
-class BattleEvolutionQueue {
+class BattleEvolutionQueue(
+    private val evolutionService: ChimeraEvolutionService = ChimeraEvolutionService()
+) {
     private val pendingEvents = mutableListOf<ChimeraEvolutionEvent>()
     private val queuedSources = mutableSetOf<Chimera>()
 
@@ -21,9 +24,9 @@ class BattleEvolutionQueue {
     /** Queues all participant evolutions that became available after battle rewards. */
     fun queueReadyEvolutions(participants: Collection<Chimera>) {
         participants.forEach { chimera ->
-            if (!chimera.canEvolve() || chimera in queuedSources) return@forEach
+            if (!evolutionService.canEvolve(chimera) || chimera in queuedSources) return@forEach
 
-            val evolvedChimera = chimera.evolution() ?: return@forEach
+            val evolvedChimera = evolutionService.evolve(chimera) ?: return@forEach
             queuedSources.add(chimera)
             pendingEvents.add(
                 ChimeraEvolutionEvent(

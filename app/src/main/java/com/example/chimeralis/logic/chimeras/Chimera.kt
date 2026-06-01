@@ -140,27 +140,4 @@ class Chimera (
         return pendingMove
     }
 
-    /** Returns true when this chimera has reached its evolution requirement. */
-    fun canEvolve(): Boolean {
-        val evolution = ChimeraFactory.speciesEvolution(species) ?: return false
-        return level >= evolution.level
-    }
-
-    /** Creates the evolved chimera form when the current species supports it. */
-    fun evolution(): Chimera? {
-        if (!canEvolve()) return null
-        val nextSpecies = ChimeraFactory.speciesEvolution(species)?.evolvesInto ?: return null
-        val evolved = ChimeraFactory.createChimera(
-            species = nextSpecies,
-            level = level,
-            ivStats = ivStatsValue.copy()
-        )
-        if (name != ChimeraFactory.speciesName(species)) {
-            evolved.rename(name)
-        }
-        val hpAfterEvolution = stats.currentHp + (evolved.stats.maxHp - stats.maxHp)
-        evolved.stats.restoreHp(hpAfterEvolution)
-        evolved.gainExp(exp)
-        return evolved
-    }
 }

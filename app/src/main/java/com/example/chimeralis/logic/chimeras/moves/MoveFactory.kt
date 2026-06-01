@@ -1,73 +1,31 @@
 package com.example.chimeralis.logic.chimeras.moves
 
-import com.example.chimeralis.logic.chimeras.ChimeraType
-import com.example.chimeralis.logic.chimeras.moves.moveEffects.DamageEffect
-import com.example.chimeralis.logic.chimeras.moves.moveEffects.HealEffect
-import com.example.chimeralis.logic.chimeras.moves.moveEffects.StatChangeEffect
-import com.example.chimeralis.logic.chimeras.Stats
-
 /** Creates move instances from move identifiers. */
 object MoveFactory {
+    var catalog: MoveCatalog = DefaultMoveCatalog
+        private set
+
+    init {
+        validateCatalog(catalog)
+    }
+
+    /** Replaces the catalog source for alternative move data. */
+    fun configureCatalog(newCatalog: MoveCatalog) {
+        validateCatalog(newCatalog)
+        catalog = newCatalog
+    }
 
     /** Builds one move with type, PP, accuracy, and effects. */
     fun createMove(move: MoveName): Move {
-        return when (move) {
-            MoveName.TACKLE -> Move(
-                id = MoveName.TACKLE,
-                name = "Tackle",
-                type = ChimeraType.NORMAL,
-                maxPp = 35,
-                accuracy = 100,
-                effects = listOf(DamageEffect(power = 40))
-            )
+        return catalog.definitionFor(move).createMove()
+    }
 
-            MoveName.EMBER -> Move(
-                id = MoveName.EMBER,
-                name = "Ember",
-                type = ChimeraType.FIRE,
-                maxPp = 25,
-                accuracy = 100,
-                effects = listOf(DamageEffect(power = 40))
-            )
+    /** Validates that the catalog covers every move id exactly once. */
+    private fun validateCatalog(catalog: MoveCatalog) {
+        val moveIds = catalog.definitions.map { definition -> definition.id }
+        require(moveIds.toSet().size == moveIds.size) { "Move catalog contains duplicate move ids" }
 
-            MoveName.GROWL -> Move(
-                id = MoveName.GROWL,
-                name = "Growl",
-                type = ChimeraType.NORMAL,
-                maxPp = 40,
-                accuracy = 100,
-                effects = listOf(
-                    StatChangeEffect(
-                        statType = Stats.StatType.ATTACK,
-                        amount = -1,
-                        true
-                    )
-                )
-            )
-
-            MoveName.TAILWHIP -> Move(
-                id = MoveName.TAILWHIP,
-                name = "Tail Whip",
-                type = ChimeraType.NORMAL,
-                maxPp = 30,
-                accuracy = 100,
-                effects = listOf(
-                    StatChangeEffect(
-                        statType = Stats.StatType.DEFENCE,
-                        amount = -1,
-                        true
-                    )
-                )
-            )
-
-            MoveName.RECOVER -> Move(
-                id = MoveName.RECOVER,
-                name = "Recover",
-                type = ChimeraType.NORMAL,
-                maxPp = 5,
-                accuracy = 100,
-                effects = listOf(HealEffect(healAmount = 50))
-            )
-        }
+        val missingMoves = MoveName.values().filterNot { moveName -> moveName in moveIds }
+        require(missingMoves.isEmpty()) { "Move catalog is missing definitions for: $missingMoves" }
     }
 }

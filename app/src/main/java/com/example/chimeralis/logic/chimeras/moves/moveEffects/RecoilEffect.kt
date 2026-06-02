@@ -6,7 +6,14 @@ import com.example.chimeralis.logic.chimeras.ChimeraType
 /** Damages the target and then applies recoil to the attacker. */
 class RecoilEffect(private val power: Int, private val recoilPercent: Int) : IMoveEffect
 {
-    /** Applies target damage and recoil damage in one effect. */
+    /**
+     * Applies target damage and recoil damage in one effect.
+     *
+     * @param attacker The attacker value used by this operation.
+     * @param target The target value used by this operation.
+     * @param moveType The move type value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     override fun apply(attacker: Chimera, target: Chimera, moveType: ChimeraType)
     {
         val damageToTarget = DamageEffect.calculateDamageAmount(attacker, target, moveType, power)

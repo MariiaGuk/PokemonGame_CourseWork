@@ -24,7 +24,15 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 import com.example.chimeralis.ui.screens.world.model.Direction
 
-/** Renders the joystick UI. */
+/**
+ * Renders the joystick UI.
+ *
+ * @param modifier Compose modifier applied to the rendered component.
+ * @param enabled Flag that controls or describes enabled.
+ * @param resetKey The reset key value used by this operation.
+ * @param onDirectionChanged Callback invoked when direction changed occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun Joystick(
     modifier: Modifier = Modifier,
@@ -93,7 +101,13 @@ internal fun Joystick(
     }
 }
 
-/** Handles joystick direction behavior. */
+/**
+ * Handles joystick direction behavior.
+ *
+ * @param x The x value used by this operation.
+ * @param y The y value used by this operation.
+ * @return The resolved direction value, or null when it is unavailable.
+ */
 internal fun joystickDirection(x: Float, y: Float): Direction? {
     if (abs(x) < JoystickDeadZone && abs(y) < JoystickDeadZone) return null
     return if (abs(x) > abs(y)) {
@@ -103,7 +117,14 @@ internal fun joystickDirection(x: Float, y: Float): Direction? {
     }
 }
 
-/** Handles next tile behavior. */
+/**
+ * Handles next tile behavior.
+ *
+ * @param column Numeric value used by this operation: column.
+ * @param row Numeric value used by this operation: row.
+ * @param direction The direction value used by this operation.
+ * @return The pair of values produced by this operation.
+ */
 internal fun nextTile(column: Int, row: Int, direction: Direction): Pair<Int, Int> = when (direction) {
     Direction.Down -> column to (row + 1).coerceAtMost(MapRows - 1)
     Direction.Up -> column to (row - 1).coerceAtLeast(0)
@@ -111,7 +132,14 @@ internal fun nextTile(column: Int, row: Int, direction: Direction): Pair<Int, In
     Direction.Right -> (column + 1).coerceAtMost(MapColumns - 1) to row
 }
 
-/** Handles next interior tile behavior. */
+/**
+ * Handles next interior tile behavior.
+ *
+ * @param column Numeric value used by this operation: column.
+ * @param row Numeric value used by this operation: row.
+ * @param direction The direction value used by this operation.
+ * @return The pair of values produced by this operation.
+ */
 internal fun nextInteriorTile(column: Int, row: Int, direction: Direction): Pair<Int, Int> = when (direction) {
     Direction.Down -> column to (row + 1).coerceAtMost(InteriorRows - 1)
     Direction.Up -> column to (row - 1).coerceAtLeast(0)

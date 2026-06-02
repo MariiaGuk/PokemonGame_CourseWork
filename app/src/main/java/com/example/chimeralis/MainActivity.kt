@@ -16,6 +16,12 @@ import com.example.chimeralis.ui.theme.ChimeralisTheme
 
 /** Represents the main activity. */
 class MainActivity : ComponentActivity() {
+    /**
+     * Executes the on create operation.
+     *
+     * @param savedInstanceState The saved instance state value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         validateChimeraVisualResourceMappings()

@@ -49,7 +49,45 @@ import com.example.chimeralis.ui.screens.world.WorldReturnInputLockMs
 import kotlin.math.abs
 import kotlinx.coroutines.delay
 
-/** Renders the town interior screen UI. */
+/**
+ * Renders the town interior screen UI.
+ *
+ * @param interior The interior value used by this operation.
+ * @param team The team value used by this operation.
+ * @param storage The storage value used by this operation.
+ * @param inventoryItems The inventory items value used by this operation.
+ * @param teamStateKey The team state key value used by this operation.
+ * @param money The money value used by this operation.
+ * @param musicEnabled The music enabled value used by this operation.
+ * @param musicVolume The music volume value used by this operation.
+ * @param soundEnabled The sound enabled value used by this operation.
+ * @param soundVolume The sound volume value used by this operation.
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param hasUnsavedChanges Flag that controls or describes has unsaved changes.
+ * @param onMusicEnabledChanged Callback invoked when music enabled changed occurs.
+ * @param onMusicVolumeChanged Callback invoked when music volume changed occurs.
+ * @param onSoundEnabledChanged Callback invoked when sound enabled changed occurs.
+ * @param onSoundVolumeChanged Callback invoked when sound volume changed occurs.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @param initialPlayerColumn The initial player column value used by this operation.
+ * @param initialPlayerRow The initial player row value used by this operation.
+ * @param initialPlayerDirection The initial player direction value used by this operation.
+ * @param inputLockKey The input lock key value used by this operation.
+ * @param onHealTeam Callback invoked when heal team occurs.
+ * @param onBuyItem Callback invoked when buy item occurs.
+ * @param onUseInventoryItem Callback invoked when use inventory item occurs.
+ * @param onPlayerPositionChanged Callback invoked when player position changed occurs.
+ * @param onPlayerDirectionChanged Callback invoked when player direction changed occurs.
+ * @param onSwapTeamMembers Callback invoked when swap team members occurs.
+ * @param onDepositTeamMember Callback invoked when deposit team member occurs.
+ * @param onWithdrawStoredChimera Callback invoked when withdraw stored chimera occurs.
+ * @param onSwapTeamWithStorage Callback invoked when swap team with storage occurs.
+ * @param onSaveGame Callback invoked when save game occurs.
+ * @param onBackToMainMenu Callback invoked when back to main menu occurs.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @param onExit Callback invoked when exit occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun TownInteriorScreen(
     interior: TownInterior,

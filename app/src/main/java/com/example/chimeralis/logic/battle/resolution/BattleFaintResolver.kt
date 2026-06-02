@@ -7,14 +7,25 @@ import com.example.chimeralis.logic.trainers.Player
 /** Resolves faint and forced-switch outcomes without applying them to the battle manager. */
 class BattleFaintResolver {
 
-    /** Resolves the outcome after the player's active chimera may have fainted. */
+    /**
+     * Resolves the outcome after the player's active chimera may have fainted.
+     *
+     * @param player Domain object used by this operation: player.
+     * @return The resolved player faint resolution value, or null when it is unavailable.
+     */
     fun resolvePlayerFaint(player: Player): PlayerFaintResolution? {
         if (player.activeChimera.stats.isAlive()) return null
 
         return promptForcedSwitch(player)
     }
 
-    /** Resolves the outcome after an enemy chimera may have fainted. */
+    /**
+     * Resolves the outcome after an enemy chimera may have fainted.
+     *
+     * @param enemy Domain object used by this operation: enemy.
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @return The resolved enemy faint resolution value, or null when it is unavailable.
+     */
     fun resolveEnemyFaint(enemy: NPC, defeatedChimera: Chimera): EnemyFaintResolution? {
         if (defeatedChimera.stats.isAlive()) return null
 
@@ -36,7 +47,12 @@ class BattleFaintResolver {
         }
     }
 
-    /** Resolves a forced switch prompt or defeat state. */
+    /**
+     * Resolves a forced switch prompt or defeat state.
+     *
+     * @param player Domain object used by this operation: player.
+     * @return The resulting PlayerFaintResolution value.
+     */
     fun promptForcedSwitch(player: Player): PlayerFaintResolution {
         val shouldSwitch = !player.isDefeated()
         return if (shouldSwitch) {

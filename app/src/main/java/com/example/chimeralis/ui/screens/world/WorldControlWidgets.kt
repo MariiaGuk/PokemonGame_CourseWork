@@ -40,7 +40,17 @@ import com.example.chimeralis.ui.screens.world.sprites.teamImageRes
 import com.example.chimeralis.ui.screens.world.sprites.trainerNpcIdleFrame
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the team slots UI. */
+/**
+ * Renders the team slots UI.
+ *
+ * @param team The team value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @param selectionMode The selection mode value used by this operation.
+ * @param stateKey The state key value used by this operation.
+ * @param targetItem The target item value used by this operation.
+ * @param onChimeraSelected Callback invoked when chimera selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TeamSlots(
     team: List<Chimera>,
@@ -69,7 +79,17 @@ internal fun TeamSlots(
     }
 }
 
-/** Renders the team slot UI. */
+/**
+ * Renders the team slot UI.
+ *
+ * @param chimera Domain object used by this operation: chimera.
+ * @param isActive Flag that controls or describes is active.
+ * @param selectionMode The selection mode value used by this operation.
+ * @param stateKey The state key value used by this operation.
+ * @param isSelectable Flag that controls or describes is selectable.
+ * @param onChimeraSelected Callback invoked when chimera selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TeamSlot(
     chimera: Chimera?,
@@ -157,7 +177,13 @@ internal fun TeamSlot(
     }
 }
 
-/** Renders the shift npc world sprite UI. */
+/**
+ * Renders the shift npc world sprite UI.
+ *
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ShiftNpcWorldSprite(
     frameIndex: Int,
@@ -171,7 +197,13 @@ internal fun ShiftNpcWorldSprite(
     )
 }
 
-/** Renders the trainer npc world sprite UI. */
+/**
+ * Renders the trainer npc world sprite UI.
+ *
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TrainerNpcWorldSprite(
     frameIndex: Int,
@@ -185,7 +217,14 @@ internal fun TrainerNpcWorldSprite(
     )
 }
 
-/** Renders the small world menu button UI. */
+/**
+ * Renders the small world menu button UI.
+ *
+ * @param text The text value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param onClick Callback invoked when click occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun SmallWorldMenuButton(
     text: String,

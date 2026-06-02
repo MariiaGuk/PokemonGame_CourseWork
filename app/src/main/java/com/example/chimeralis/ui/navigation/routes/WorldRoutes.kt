@@ -14,7 +14,17 @@ import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.model.WorldField
 import com.example.chimeralis.ui.screens.world.WorldScreen
 
-/** Renders the world route UI. */
+/**
+ * Renders the world route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param screen The screen value used by this operation.
+ * @param field The field value used by this operation.
+ * @param transition The transition value used by this operation.
+ * @param context Android context used to access application resources and services.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.WorldRoute(
     screen: GameScreen,

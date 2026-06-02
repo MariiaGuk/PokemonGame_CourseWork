@@ -16,7 +16,16 @@ import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelPr
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleTeamPresentation
 import kotlin.math.roundToInt
 
-/** Maps battle domain objects into UI presentation models. */
+/**
+ * Maps battle domain objects into UI presentation models.
+ *
+ * @receiver The player receiver used by this operation.
+ * @param activeChimera The active chimera value used by this operation.
+ * @param selectedItem The selected item value used by this operation.
+ * @param pendingMoveLearning The pending move learning value used by this operation.
+ * @param canUseCaptureItems Flag that controls or describes can use capture items.
+ * @return The resulting BattlePanelPresentation value.
+ */
 internal fun Player.toBattlePanelPresentation(
     activeChimera: Chimera,
     selectedItem: Item?,
@@ -56,7 +65,16 @@ internal fun Player.toBattlePanelPresentation(
     )
 }
 
-/** Maps player status data into a UI presentation model. */
+/**
+ * Maps player status data into a UI presentation model.
+ *
+ * @receiver The chimera receiver used by this operation.
+ * @param visibleStats The visible stats value used by this operation.
+ * @param visibleLevel The visible level value used by this operation.
+ * @param visibleExp The visible exp value used by this operation.
+ * @param refreshKey The refresh key value used by this operation.
+ * @return The resulting BattleFighterStatusPresentation value.
+ */
 internal fun Chimera.toPlayerStatusPresentation(
     visibleStats: BattleStatsSnapshot,
     visibleLevel: Int,
@@ -72,7 +90,14 @@ internal fun Chimera.toPlayerStatusPresentation(
     )
 }
 
-/** Maps enemy status data into a UI presentation model. */
+/**
+ * Maps enemy status data into a UI presentation model.
+ *
+ * @receiver The chimera receiver used by this operation.
+ * @param visibleStats The visible stats value used by this operation.
+ * @param refreshKey The refresh key value used by this operation.
+ * @return The resulting BattleFighterStatusPresentation value.
+ */
 internal fun Chimera.toEnemyStatusPresentation(
     visibleStats: BattleStatsSnapshot,
     refreshKey: Int
@@ -86,7 +111,12 @@ internal fun Chimera.toEnemyStatusPresentation(
     )
 }
 
-/** Maps a move-learning request into a UI presentation model. */
+/**
+ * Maps a move-learning request into a UI presentation model.
+ *
+ * @receiver The move learn request receiver used by this operation.
+ * @return The resulting BattleMoveLearningPresentation value.
+ */
 private fun MoveLearnRequest.toBattleMoveLearningPresentation(): BattleMoveLearningPresentation {
     return BattleMoveLearningPresentation(
         message = "${chimera.name} wants to learn ${move.name}.\nForget which move? Back keeps old moves.",
@@ -101,7 +131,14 @@ private fun MoveLearnRequest.toBattleMoveLearningPresentation(): BattleMoveLearn
     )
 }
 
-/** Maps a team into a fixed battle selection grid. */
+/**
+ * Maps a team into a fixed battle selection grid.
+ *
+ * @receiver The list<chimera> receiver used by this operation.
+ * @param activeChimera The active chimera value used by this operation.
+ * @param selectedItem The selected item value used by this operation.
+ * @return The resulting BattleTeamPresentation value.
+ */
 private fun List<Chimera>.toBattleTeamPresentation(
     activeChimera: Chimera,
     selectedItem: Item?
@@ -121,7 +158,14 @@ private fun List<Chimera>.toBattleTeamPresentation(
     )
 }
 
-/** Maps one chimera into a reusable battle selection slot. */
+/**
+ * Maps one chimera into a reusable battle selection slot.
+ *
+ * @receiver The chimera receiver used by this operation.
+ * @param isActive Flag that controls or describes is active.
+ * @param enabled Flag that controls or describes enabled.
+ * @return The resulting BattleChimeraSlotPresentation value.
+ */
 private fun Chimera.toBattleChimeraSlotPresentation(
     isActive: Boolean,
     enabled: Boolean
@@ -141,7 +185,17 @@ private fun Chimera.toBattleChimeraSlotPresentation(
     )
 }
 
-/** Maps one fighter status into a reusable status plate model. */
+/**
+ * Maps one fighter status into a reusable status plate model.
+ *
+ * @receiver The chimera receiver used by this operation.
+ * @param visibleStats The visible stats value used by this operation.
+ * @param visibleLevel The visible level value used by this operation.
+ * @param currentExp The current exp value used by this operation.
+ * @param expToNextLevel The exp to next level value used by this operation.
+ * @param refreshKey The refresh key value used by this operation.
+ * @return The resulting BattleFighterStatusPresentation value.
+ */
 private fun Chimera.toBattleStatusPresentation(
     visibleStats: BattleStatsSnapshot,
     visibleLevel: Int,
@@ -164,7 +218,14 @@ private fun Chimera.toBattleStatusPresentation(
     )
 }
 
-/** Returns whether one item should be enabled in the current battle inventory. */
+/**
+ * Returns whether one item should be enabled in the current battle inventory.
+ *
+ * @receiver The item receiver used by this operation.
+ * @param team The team value used by this operation.
+ * @param canUseCaptureItems Flag that controls or describes can use capture items.
+ * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+ */
 private fun Item.canUseInBattle(
     team: List<Chimera>,
     canUseCaptureItems: Boolean

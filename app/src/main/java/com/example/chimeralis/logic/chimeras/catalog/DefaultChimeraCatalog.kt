@@ -186,7 +186,12 @@ object DefaultChimeraCatalog : ChimeraCatalog {
         )
     )
 
-    /** Converts level-to-move pairs into learnset rows. */
+    /**
+     * Converts level-to-move pairs into learnset rows.
+     *
+     * @param moves The moves value used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun learnset(vararg moves: Pair<Int, MoveName>): List<LearnableMove> {
         return moves.map { (level, moveName) -> LearnableMove(level, moveName) }
     }

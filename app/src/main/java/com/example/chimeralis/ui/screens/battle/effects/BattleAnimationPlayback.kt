@@ -14,7 +14,14 @@ import com.example.chimeralis.ui.screens.battle.presentation.toBattleFeedbacks
 import com.example.chimeralis.ui.screens.battle.state.BattleUiState
 import kotlinx.coroutines.delay
 
-/** Plays the currently active log animation and updates UI state around its frames. */
+/**
+ * Plays the currently active log animation and updates UI state around its frames.
+ *
+ * @receiver The battle ui state receiver used by this operation.
+ * @param animation The animation value used by this operation.
+ * @param playSound The play sound value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 internal suspend fun BattleUiState.playLogAnimation(
     animation: BattleMoveAnimation,
     playSound: (Int) -> Unit
@@ -38,7 +45,13 @@ internal suspend fun BattleUiState.playLogAnimation(
     }
 }
 
-/** Plays capture progress and target visibility state. */
+/**
+ * Plays capture progress and target visibility state.
+ *
+ * @receiver The battle ui state receiver used by this operation.
+ * @param animation The animation value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 private suspend fun BattleUiState.playCaptureAnimation(animation: BattleMoveAnimation) {
     beginCaptureAnimation(animation)
 
@@ -58,7 +71,14 @@ private suspend fun BattleUiState.playCaptureAnimation(animation: BattleMoveAnim
     finishCaptureAnimation()
 }
 
-/** Plays move animation frames and feedback flashes. */
+/**
+ * Plays move animation frames and feedback flashes.
+ *
+ * @receiver The battle ui state receiver used by this operation.
+ * @param animation The animation value used by this operation.
+ * @param playSound The play sound value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 private suspend fun BattleUiState.playMoveAnimationFrames(
     animation: BattleMoveAnimation,
     playSound: (Int) -> Unit
@@ -84,7 +104,15 @@ private suspend fun BattleUiState.playMoveAnimationFrames(
     finishAnimationPlayback()
 }
 
-/** Plays one frame's feedback ticks and applies resulting hidden-faint state. */
+/**
+ * Plays one frame's feedback ticks and applies resulting hidden-faint state.
+ *
+ * @receiver The battle ui state receiver used by this operation.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @param durationMillis The duration millis value used by this operation.
+ * @param feedbacks The feedbacks value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 private suspend fun BattleUiState.playFeedbackFrame(
     frameIndex: Int,
     durationMillis: Long,

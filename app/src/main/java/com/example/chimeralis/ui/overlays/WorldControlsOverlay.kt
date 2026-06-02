@@ -14,7 +14,23 @@ import com.example.chimeralis.ui.screens.world.Joystick
 import com.example.chimeralis.ui.screens.world.SmallWorldMenuButton
 import com.example.chimeralis.ui.screens.world.TeamSlots
 
-/** Renders the world controls overlay UI. */
+/**
+ * Renders the world controls overlay UI.
+ *
+ * @receiver The box scope receiver used by this operation.
+ * @param team The team value used by this operation.
+ * @param teamStateKey The team state key value used by this operation.
+ * @param joystickEnabled The joystick enabled value used by this operation.
+ * @param joystickResetKey The joystick reset key value used by this operation.
+ * @param actionLabel The action label value used by this operation.
+ * @param showMenuButton Flag that controls or describes show menu button.
+ * @param showBagButton Flag that controls or describes show bag button.
+ * @param onDirectionChanged Callback invoked when direction changed occurs.
+ * @param onMenu Callback invoked when menu occurs.
+ * @param onBag Callback invoked when bag occurs.
+ * @param onAction Callback invoked when action occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun BoxScope.WorldControlsOverlay(
     team: List<Chimera>,

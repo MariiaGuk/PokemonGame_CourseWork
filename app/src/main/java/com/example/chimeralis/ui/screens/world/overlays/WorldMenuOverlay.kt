@@ -45,7 +45,35 @@ import com.example.chimeralis.ui.screens.world.WorldInventoryColumns
 import com.example.chimeralis.ui.screens.world.WorldInventorySlotCount
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the in game menu overlay UI. */
+/**
+ * Renders the in game menu overlay UI.
+ *
+ * @param showSaveAndExit Flag that controls or describes show save and exit.
+ * @param showSettings Flag that controls or describes show settings.
+ * @param pendingExitAction The pending exit action value used by this operation.
+ * @param pendingExitRequiresSave The pending exit requires save value used by this operation.
+ * @param showSaveMessage Flag that controls or describes show save message.
+ * @param musicEnabled The music enabled value used by this operation.
+ * @param musicVolume The music volume value used by this operation.
+ * @param soundEnabled The sound enabled value used by this operation.
+ * @param soundVolume The sound volume value used by this operation.
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param onResume Callback invoked when resume occurs.
+ * @param onSettings Callback invoked when settings occurs.
+ * @param onMusicEnabledChanged Callback invoked when music enabled changed occurs.
+ * @param onMusicVolumeChanged Callback invoked when music volume changed occurs.
+ * @param onSoundEnabledChanged Callback invoked when sound enabled changed occurs.
+ * @param onSoundVolumeChanged Callback invoked when sound volume changed occurs.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @param onBackFromSubmenu Callback invoked when back from submenu occurs.
+ * @param onSaveGame Callback invoked when save game occurs.
+ * @param onMainMenu Callback invoked when main menu occurs.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @param onCancelExit Callback invoked when cancel exit occurs.
+ * @param onExitWithSave Callback invoked when exit with save occurs.
+ * @param onExitWithoutSave Callback invoked when exit without save occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun InGameMenuOverlay(
     showSaveAndExit: Boolean = true,
@@ -162,7 +190,17 @@ internal fun InGameMenuOverlay(
     }
 }
 
-/** Renders the world inventory panel UI. */
+/**
+ * Renders the world inventory panel UI.
+ *
+ * @param inventoryItems The inventory items value used by this operation.
+ * @param selectedItem The selected item value used by this operation.
+ * @param money The money value used by this operation.
+ * @param onSelectedItemChanged Callback invoked when selected item changed occurs.
+ * @param onClose Callback invoked when close occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun WorldInventoryPanel(
     inventoryItems: Map<Item, Int>,
@@ -247,7 +285,17 @@ internal fun WorldInventoryPanel(
     }
 }
 
-/** Renders the inventory item details plate UI. */
+/**
+ * Renders the inventory item details plate UI.
+ *
+ * @param item Domain object used by this operation: item.
+ * @param amount Numeric value used by this operation: amount.
+ * @param canUse Flag that controls or describes can use.
+ * @param onUse Callback invoked when use occurs.
+ * @param onCancel Callback invoked when cancel occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun InventoryItemDetailsPlate(
     item: Item,
@@ -307,7 +355,14 @@ internal fun InventoryItemDetailsPlate(
     }
 }
 
-/** Renders the world inventory slot UI. */
+/**
+ * Renders the world inventory slot UI.
+ *
+ * @param slot The slot value used by this operation.
+ * @param isSelected Flag that controls or describes is selected.
+ * @param onSelected Callback invoked when selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun WorldInventorySlot(
     slot: Pair<Item, Int>?,
@@ -362,7 +417,12 @@ internal fun WorldInventorySlot(
     }
 }
 
-/** Renders the item icon UI. */
+/**
+ * Renders the item icon UI.
+ *
+ * @param item Domain object used by this operation: item.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ItemIcon(item: Item) {
     val imageRes = when (item.itemName) {
@@ -380,7 +440,12 @@ internal fun ItemIcon(item: Item) {
     )
 }
 
-/** Handles description behavior. */
+/**
+ * Handles description behavior.
+ *
+ * @receiver The item receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 internal fun Item.description(): String {
     return when (itemName) {
         ItemName.POTION -> "Restores 20 HP to one chimera."
@@ -390,7 +455,12 @@ internal fun Item.description(): String {
     }
 }
 
-/** Handles item icon res behavior. */
+/**
+ * Handles item icon res behavior.
+ *
+ * @param item Domain object used by this operation: item.
+ * @return The calculated numeric value.
+ */
 internal fun itemIconRes(item: Item): Int {
     return when (item.itemName) {
         ItemName.POTION -> R.drawable.potion
@@ -400,7 +470,12 @@ internal fun itemIconRes(item: Item): Int {
     }
 }
 
-/** Renders the save message plate UI. */
+/**
+ * Renders the save message plate UI.
+ *
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun SaveMessagePlate(modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme

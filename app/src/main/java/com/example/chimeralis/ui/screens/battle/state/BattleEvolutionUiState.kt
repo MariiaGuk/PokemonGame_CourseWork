@@ -12,17 +12,31 @@ internal class BattleEvolutionUiState {
     var pendingEvolutionEvents by mutableStateOf<List<ChimeraEvolutionEvent>>(emptyList())
         private set
 
-    /** Adds evolution events that should be presented after the battle ends. */
+    /**
+     * Adds evolution events that should be presented after the battle ends.
+     *
+     * @param events The events value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun addPending(events: List<ChimeraEvolutionEvent>) {
         pendingEvolutionEvents = pendingEvolutionEvents + events
     }
 
-    /** Shows one pending evolution event. */
+    /**
+     * Shows one pending evolution event.
+     *
+     * @param event The event value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun showEvolution(event: ChimeraEvolutionEvent) {
         activeEvolutionEvent = event
     }
 
-    /** Clears post-battle evolution overlay state. */
+    /**
+     * Clears post-battle evolution overlay state.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun clearEvolutionState() {
         activeEvolutionEvent = null
         pendingEvolutionEvents = emptyList()

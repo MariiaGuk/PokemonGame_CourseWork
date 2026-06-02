@@ -10,13 +10,23 @@ class ChimeraEvolutionService(
     private val chimeraCreator: ChimeraCreator = ChimeraFactoryChimeraCreator
 ) {
 
-    /** Returns true when the chimera has reached the configured evolution requirement. */
+    /**
+     * Returns true when the chimera has reached the configured evolution requirement.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun canEvolve(chimera: Chimera): Boolean {
         val evolution = catalog.definitionFor(chimera.species).evolution ?: return false
         return chimera.level >= evolution.level
     }
 
-    /** Creates the evolved chimera form while preserving nickname, IV stats, HP, and experience. */
+    /**
+     * Creates the evolved chimera form while preserving nickname, IV stats, HP, and experience.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @return The resolved chimera value, or null when it is unavailable.
+     */
     fun evolve(chimera: Chimera): Chimera? {
         if (!canEvolve(chimera)) return null
 

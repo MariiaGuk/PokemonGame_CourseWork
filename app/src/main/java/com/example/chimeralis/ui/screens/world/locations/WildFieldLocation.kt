@@ -24,7 +24,17 @@ internal val grassTiles = setOf(
     2 to 8, 3 to 8, 18 to 8, 19 to 8
 )
 
-/** Renders the wild field location tiles UI. */
+/**
+ * Renders the wild field location tiles UI.
+ *
+ * @param mapLeft The map left value used by this operation.
+ * @param mapTop The map top value used by this operation.
+ * @param tileWidth The tile width value used by this operation.
+ * @param tileHeight The tile height value used by this operation.
+ * @param groundTexture The ground texture value used by this operation.
+ * @param grassTexture The grass texture value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun WildFieldLocationTiles(
     mapLeft: Float,

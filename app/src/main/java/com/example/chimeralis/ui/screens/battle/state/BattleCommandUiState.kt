@@ -15,23 +15,41 @@ internal class BattleCommandUiState {
 
     val isBattleInputLocked: Boolean get() = isBattleIntroLocked || isBattleExitPending
 
-    /** Unlocks player input after the opening battle intro delay. */
+    /**
+     * Unlocks player input after the opening battle intro delay.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun unlockBattleIntro() {
         isBattleIntroLocked = false
     }
 
-    /** Changes the active command panel. */
+    /**
+     * Changes the active command panel.
+     *
+     * @param mode The mode value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun openPanel(mode: BattlePanelMode) {
         panelMode = mode
     }
 
-    /** Selects a regular item and asks the player for a target chimera. */
+    /**
+     * Selects a regular item and asks the player for a target chimera.
+     *
+     * @param item Domain object used by this operation: item.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun selectBattleItem(item: Item) {
         selectedBattleItem = item
         panelMode = BattlePanelMode.ItemTarget
     }
 
-    /** Returns from nested battle panels to the correct parent panel. */
+    /**
+     * Returns from nested battle panels to the correct parent panel.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun backToActionSelection() {
         if (panelMode == BattlePanelMode.ItemTarget) {
             selectedBattleItem = null
@@ -41,13 +59,21 @@ internal class BattleCommandUiState {
         }
     }
 
-    /** Resets command state while showing a battle log sequence. */
+    /**
+     * Resets command state while showing a battle log sequence.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun showLog() {
         selectedBattleItem = null
         panelMode = BattlePanelMode.Log
     }
 
-    /** Marks the battle as ready to leave after its closing delay. */
+    /**
+     * Marks the battle as ready to leave after its closing delay.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun requestBattleExit() {
         isBattleExitPending = true
     }

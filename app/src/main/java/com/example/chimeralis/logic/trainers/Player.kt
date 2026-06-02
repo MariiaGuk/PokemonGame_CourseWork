@@ -22,25 +22,45 @@ class Player(
             field = value.coerceAtLeast(0)
         }
 
-    /** Adds money to the player's wallet. */
+    /**
+     * Adds money to the player's wallet.
+     *
+     * @param amount Numeric value used by this operation: amount.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun earnMoney(amount: Int) {
         money += amount
     }
 
-    /** Spends money when the player has enough funds. */
+    /**
+     * Spends money when the player has enough funds.
+     *
+     * @param amount Numeric value used by this operation: amount.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun spendMoney(amount: Int): Boolean {
         if (amount < 0 || money < amount) return false
         money -= amount
         return true
     }
 
-    /** Uses an inventory item on a chimera from the active team. */
+    /**
+     * Uses an inventory item on a chimera from the active team.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param chimera Domain object used by this operation: chimera.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun useInventoryItem(item: Item, chimera: Chimera): Boolean {
         if (!hasTeamMember(chimera)) return false
         return inventory.useItem(item, chimera)
     }
 
-    /** Restores HP and PP for every active team member. */
+    /**
+     * Restores HP and PP for every active team member.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun healTeam() {
         team.forEach { chimera ->
             chimera.stats.restoreHp(chimera.stats.maxHp)
@@ -48,12 +68,23 @@ class Player(
         }
     }
 
-    /** Reorders two members inside the active team. */
+    /**
+     * Reorders two members inside the active team.
+     *
+     * @param fromIndex The from index value used by this operation.
+     * @param toIndex The to index value used by this operation.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun swapTeamMembers(fromIndex: Int, toIndex: Int): Boolean {
         return moveTeamMember(fromIndex, toIndex)
     }
 
-    /** Moves a team member into storage while keeping at least one active chimera. */
+    /**
+     * Moves a team member into storage while keeping at least one active chimera.
+     *
+     * @param teamIndex The team index value used by this operation.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun depositTeamMember(teamIndex: Int): Boolean {
         if (storedChimeras.size >= PlayerCollectionLimits.MaxStorageSize) return false
 
@@ -63,7 +94,12 @@ class Player(
         return true
     }
 
-    /** Moves a stored chimera into the active team when a free slot exists. */
+    /**
+     * Moves a stored chimera into the active team when a free slot exists.
+     *
+     * @param storageIndex The storage index value used by this operation.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun withdrawStoredChimera(storageIndex: Int): Boolean {
         if (storageIndex !in storedChimeras.indices || team.size >= PlayerCollectionLimits.MaxTeamSize) {
             return false
@@ -74,7 +110,13 @@ class Player(
         return true
     }
 
-    /** Swaps one active team member with one stored chimera. */
+    /**
+     * Swaps one active team member with one stored chimera.
+     *
+     * @param teamIndex The team index value used by this operation.
+     * @param storageIndex The storage index value used by this operation.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun swapTeamWithStorage(teamIndex: Int, storageIndex: Int): Boolean {
         if (storageIndex !in storedChimeras.indices) return false
 
@@ -85,13 +127,22 @@ class Player(
         return true
     }
 
-    /** Returns true when a newly caught chimera can be stored by this player. */
+    /**
+     * Returns true when a newly caught chimera can be stored by this player.
+     *
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun canStoreChimera(): Boolean {
         return team.size < PlayerCollectionLimits.MaxTeamSize ||
                 storedChimeras.size < PlayerCollectionLimits.MaxStorageSize
     }
 
-    /** Adds a newly caught chimera to the team or storage. */
+    /**
+     * Adds a newly caught chimera to the team or storage.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @return The resolved player chimera placement value, or null when it is unavailable.
+     */
     fun addCaughtChimera(chimera: Chimera): PlayerChimeraPlacement? {
         return when {
             team.size < PlayerCollectionLimits.MaxTeamSize -> {

@@ -9,7 +9,12 @@ class BattleCaptureResolver(
     private val randomProvider: RandomProvider = DefaultRandomProvider
 ) {
 
-    /** Resolves a capture attempt for one target chimera. */
+    /**
+     * Resolves a capture attempt for one target chimera.
+     *
+     * @param target The target value used by this operation.
+     * @return The resulting BattleCaptureResult value.
+     */
     fun resolve(target: Chimera): BattleCaptureResult {
         val chance = catchChance(target)
         return BattleCaptureResult(
@@ -18,7 +23,12 @@ class BattleCaptureResolver(
         )
     }
 
-    /** Computes catch chance from target HP. */
+    /**
+     * Computes catch chance from target HP.
+     *
+     * @param target The target value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun catchChance(target: Chimera): Float {
         val hpRatio = target.stats.currentHp.toFloat() / target.stats.maxHp.toFloat()
         return (BaseChance + (1f - hpRatio) * MissingHpBonus).coerceIn(MinChance, MaxChance)

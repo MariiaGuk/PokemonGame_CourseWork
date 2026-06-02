@@ -9,19 +9,33 @@ class GameSaveStore(context: Context) {
     private val prefs = context.getSharedPreferences(PrefsName, Context.MODE_PRIVATE)
     private val mapper = GameSaveMapper()
 
-    /** Checks whether a trainer already has a saved game. */
+    /**
+     * Checks whether a trainer already has a saved game.
+     *
+     * @param trainerName The trainer name value used by this operation.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun hasSaveForTrainer(trainerName: String): Boolean {
         return trainerId(trainerName) in trainerIds()
     }
 
-    /** Loads all valid saves sorted from newest to oldest. */
+    /**
+     * Loads all valid saves sorted from newest to oldest.
+     *
+     * @return The collection produced by this operation.
+     */
     fun loadAll(): List<GameSave> {
         return trainerIds()
             .mapNotNull { id -> runCatching { load(id) }.getOrNull() }
             .sortedByDescending { it.updatedAt }
     }
 
-    /** Persists a complete game save snapshot. */
+    /**
+     * Persists a complete game save snapshot.
+     *
+     * @param gameSave The game save value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun save(gameSave: GameSave) {
         val id = trainerId(gameSave.trainerName)
         val ids = trainerIds() + id
@@ -50,7 +64,12 @@ class GameSaveStore(context: Context) {
         }
     }
 
-    /** Deletes one trainer save and its top-level metadata. */
+    /**
+     * Deletes one trainer save and its top-level metadata.
+     *
+     * @param trainerName The trainer name value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun delete(trainerName: String) {
         val id = trainerId(trainerName)
         val ids = trainerIds() - id
@@ -69,7 +88,12 @@ class GameSaveStore(context: Context) {
             .apply()
     }
 
-    /** Loads one save by its normalized trainer id. */
+    /**
+     * Loads one save by its normalized trainer id.
+     *
+     * @param id The id value used by this operation.
+     * @return The resolved game save value, or null when it is unavailable.
+     */
     private fun load(id: String): GameSave? {
         val trainerName = stringPref("$id.$TrainerNameKey") ?: return null
         val team = loadTeam(id).ifEmpty { return null }
@@ -98,7 +122,16 @@ class GameSaveStore(context: Context) {
         )
     }
 
-    /** Builds and persists a save snapshot from the current player state. */
+    /**
+     * Builds and persists a save snapshot from the current player state.
+     *
+     * @param trainerName The trainer name value used by this operation.
+     * @param player Domain object used by this operation: player.
+     * @param playerColumn The player column value used by this operation.
+     * @param playerRow The player row value used by this operation.
+     * @param location The location value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun saveFromPlayer(
         trainerName: String,
         player: Player,
@@ -123,7 +156,12 @@ class GameSaveStore(context: Context) {
         )
     }
 
-    /** Recreates a runtime player model from a persisted save snapshot. */
+    /**
+     * Recreates a runtime player model from a persisted save snapshot.
+     *
+     * @param gameSave The game save value used by this operation.
+     * @return The resulting Player value.
+     */
     fun createPlayer(gameSave: GameSave): Player {
         val team = gameSave.team.mapNotNull { savedChimera ->
             runCatching { mapper.toChimera(savedChimera) }.getOrNull()
@@ -141,19 +179,39 @@ class GameSaveStore(context: Context) {
         )
     }
 
-    /** Saves one active team chimera. */
+    /**
+     * Saves one active team chimera.
+     *
+     * @param id The id value used by this operation.
+     * @param index Numeric value used by this operation: index.
+     * @param chimera Domain object used by this operation: chimera.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun saveChimera(id: String, index: Int, chimera: SavedChimera) {
         val prefix = "$id.$TeamKey.$index"
         saveChimera(prefix, chimera)
     }
 
-    /** Saves one stored chimera. */
+    /**
+     * Saves one stored chimera.
+     *
+     * @param id The id value used by this operation.
+     * @param index Numeric value used by this operation: index.
+     * @param chimera Domain object used by this operation: chimera.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun saveStorageChimera(id: String, index: Int, chimera: SavedChimera) {
         val prefix = "$id.$StorageKey.$index"
         saveChimera(prefix, chimera)
     }
 
-    /** Writes one chimera snapshot using the provided preference prefix. */
+    /**
+     * Writes one chimera snapshot using the provided preference prefix.
+     *
+     * @param prefix The prefix value used by this operation.
+     * @param chimera Domain object used by this operation: chimera.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun saveChimera(prefix: String, chimera: SavedChimera) {
         prefs.edit()
             .putString("$prefix.$SpeciesKey", mapper.speciesSaveName(chimera.species))
@@ -173,7 +231,14 @@ class GameSaveStore(context: Context) {
         }
     }
 
-    /** Saves one inventory item entry. */
+    /**
+     * Saves one inventory item entry.
+     *
+     * @param id The id value used by this operation.
+     * @param index Numeric value used by this operation: index.
+     * @param item Domain object used by this operation: item.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun saveItem(id: String, index: Int, item: SavedItem) {
         val prefix = "$id.$InventoryKey.$index"
 
@@ -183,7 +248,12 @@ class GameSaveStore(context: Context) {
             .apply()
     }
 
-    /** Loads the active team from the current save format. */
+    /**
+     * Loads the active team from the current save format.
+     *
+     * @param id The id value used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun loadTeam(id: String): List<SavedChimera> {
         val teamSize = intPref("$id.$TeamSizeKey", 0).coerceAtLeast(0)
         if (teamSize > 0) {
@@ -195,7 +265,12 @@ class GameSaveStore(context: Context) {
         return emptyList()
     }
 
-    /** Loads the stored chimeras from the current save format. */
+    /**
+     * Loads the stored chimeras from the current save format.
+     *
+     * @param id The id value used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun loadStorage(id: String): List<SavedChimera> {
         val storageSize = intPref("$id.$StorageSizeKey", 0).coerceAtLeast(0)
         return (0 until storageSize).mapNotNull { index ->
@@ -203,13 +278,23 @@ class GameSaveStore(context: Context) {
         }
     }
 
-    /** Loads every valid inventory entry for one save. */
+    /**
+     * Loads every valid inventory entry for one save.
+     *
+     * @param id The id value used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun loadInventoryItems(id: String): List<SavedItem> {
         val inventorySize = intPref("$id.$InventorySizeKey", 0).coerceAtLeast(0)
         return (0 until inventorySize).mapNotNull { loadItem(id, it) }
     }
 
-    /** Loads one chimera snapshot from a preference prefix. */
+    /**
+     * Loads one chimera snapshot from a preference prefix.
+     *
+     * @param prefix The prefix value used by this operation.
+     * @return The resolved saved chimera value, or null when it is unavailable.
+     */
     private fun loadChimera(prefix: String): SavedChimera? {
         val species = stringPref("$prefix.$SpeciesKey")?.let(mapper::toChimeraSpecies) ?: return null
         val nickname = stringPref("$prefix.$NicknameKey") ?: mapper.battleName(species)
@@ -230,7 +315,14 @@ class GameSaveStore(context: Context) {
         )
     }
 
-    /** Saves the remaining PP values for one move. */
+    /**
+     * Saves the remaining PP values for one move.
+     *
+     * @param chimeraPrefix The chimera prefix value used by this operation.
+     * @param index Numeric value used by this operation: index.
+     * @param move Domain object used by this operation: move.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun saveMovePp(chimeraPrefix: String, index: Int, move: SavedMovePp) {
         val prefix = "$chimeraPrefix.$MovePpKey.$index"
 
@@ -240,7 +332,12 @@ class GameSaveStore(context: Context) {
             .apply()
     }
 
-    /** Loads all saved move PP values for one chimera. */
+    /**
+     * Loads all saved move PP values for one chimera.
+     *
+     * @param chimeraPrefix The chimera prefix value used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun loadMovePps(chimeraPrefix: String): List<SavedMovePp> {
         val movePpSize = intPref("$chimeraPrefix.$MovePpSizeKey", 0).coerceAtLeast(0)
         return (0 until movePpSize).mapNotNull { index ->
@@ -254,7 +351,13 @@ class GameSaveStore(context: Context) {
         }
     }
 
-    /** Loads one inventory item entry. */
+    /**
+     * Loads one inventory item entry.
+     *
+     * @param id The id value used by this operation.
+     * @param index Numeric value used by this operation: index.
+     * @return The resolved saved item value, or null when it is unavailable.
+     */
     private fun loadItem(id: String, index: Int): SavedItem? {
         val prefix = "$id.$InventoryKey.$index"
         val itemName = stringPref("$prefix.$ItemNameKey")?.let(mapper::toItemName) ?: return null
@@ -265,27 +368,53 @@ class GameSaveStore(context: Context) {
         return SavedItem(itemName, amount)
     }
 
-    /** Returns all trainer ids currently known to the save store. */
+    /**
+     * Returns all trainer ids currently known to the save store.
+     *
+     * @return The collection produced by this operation.
+     */
     private fun trainerIds(): Set<String> {
         return runCatching { prefs.getStringSet(TrainerIdsKey, emptySet()).orEmpty() }.getOrDefault(emptySet())
     }
 
-    /** Normalizes a trainer name into the preference id format. */
+    /**
+     * Normalizes a trainer name into the preference id format.
+     *
+     * @param trainerName The trainer name value used by this operation.
+     * @return The text value produced by this operation.
+     */
     private fun trainerId(trainerName: String): String {
         return trainerName.trim().lowercase()
     }
 
-    /** Safely reads a string preference and ignores values with an unexpected type. */
+    /**
+     * Safely reads a string preference and ignores values with an unexpected type.
+     *
+     * @param key The key value used by this operation.
+     * @return The resolved string value, or null when it is unavailable.
+     */
     private fun stringPref(key: String): String? {
         return runCatching { prefs.getString(key, null) }.getOrNull()
     }
 
-    /** Safely reads an integer preference and ignores values with an unexpected type. */
+    /**
+     * Safely reads an integer preference and ignores values with an unexpected type.
+     *
+     * @param key The key value used by this operation.
+     * @param defaultValue The default value value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun intPref(key: String, defaultValue: Int): Int {
         return runCatching { prefs.getInt(key, defaultValue) }.getOrDefault(defaultValue)
     }
 
-    /** Safely reads a long preference and ignores values with an unexpected type. */
+    /**
+     * Safely reads a long preference and ignores values with an unexpected type.
+     *
+     * @param key The key value used by this operation.
+     * @param defaultValue The default value value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun longPref(key: String, defaultValue: Long): Long {
         return runCatching { prefs.getLong(key, defaultValue) }.getOrDefault(defaultValue)
     }

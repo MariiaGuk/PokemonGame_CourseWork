@@ -13,17 +13,32 @@ internal class BattleSoundEventHandler(
     private val onBattleResultSoundStarted: () -> Unit
 ) {
 
-    /** Plays the raw sound emitted by animation playback. */
+    /**
+     * Plays the raw sound emitted by animation playback.
+     *
+     * @param soundResId The sound res id value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun playAnimationSound(@RawRes soundResId: Int) {
         GameSoundPlayer.play(context, soundResId)
     }
 
-    /** Plays the sound associated with one battle log message, if any. */
+    /**
+     * Plays the sound associated with one battle log message, if any.
+     *
+     * @param message The message value used by this operation.
+     * @param isLevelUpMessage Flag that controls or describes is level up message.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun playLogMessageSound(message: String, isLevelUpMessage: Boolean) {
         battleSoundEventFor(message, isLevelUpMessage)?.let(::playEvent)
     }
 
-    /** Plays the evolution reveal sound sequence without changing evolution state. */
+    /**
+     * Plays the evolution reveal sound sequence without changing evolution state.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     suspend fun playEvolutionRevealSounds() {
         GameSoundPlayer.stopBattleResultSounds()
         GameSoundPlayer.play(context, R.raw.chimera_evolution)
@@ -32,7 +47,12 @@ internal class BattleSoundEventHandler(
         GameSoundPlayer.play(context, R.raw.chimera_evolved)
     }
 
-    /** Plays one mapped battle sound event. */
+    /**
+     * Plays one mapped battle sound event.
+     *
+     * @param event The event value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun playEvent(event: BattleSoundEvent) {
         if (event.startsBattleResult) {
             onBattleResultSoundStarted()
@@ -41,7 +61,13 @@ internal class BattleSoundEventHandler(
     }
 }
 
-/** Returns the sound event mapped to a battle log message. */
+/**
+ * Returns the sound event mapped to a battle log message.
+ *
+ * @param message The message value used by this operation.
+ * @param isLevelUpMessage Flag that controls or describes is level up message.
+ * @return The resolved battle sound event value, or null when it is unavailable.
+ */
 private fun battleSoundEventFor(
     message: String,
     isLevelUpMessage: Boolean

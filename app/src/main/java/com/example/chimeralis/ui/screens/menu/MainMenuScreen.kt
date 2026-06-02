@@ -38,7 +38,24 @@ import com.example.chimeralis.ui.components.GameSettingsPanel
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the main menu screen UI. */
+/**
+ * Renders the main menu screen UI.
+ *
+ * @param musicEnabled The music enabled value used by this operation.
+ * @param musicVolume The music volume value used by this operation.
+ * @param soundEnabled The sound enabled value used by this operation.
+ * @param soundVolume The sound volume value used by this operation.
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param onMusicEnabledChanged Callback invoked when music enabled changed occurs.
+ * @param onMusicVolumeChanged Callback invoked when music volume changed occurs.
+ * @param onSoundEnabledChanged Callback invoked when sound enabled changed occurs.
+ * @param onSoundVolumeChanged Callback invoked when sound volume changed occurs.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @param onNewGame Callback invoked when new game occurs.
+ * @param onContinue Callback invoked when continue occurs.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun MainMenuScreen(
     musicEnabled: Boolean = true,
@@ -116,7 +133,13 @@ fun MainMenuScreen(
     }
 }
 
-/** Renders the main menu information button. */
+/**
+ * Renders the main menu information button.
+ *
+ * @param modifier Compose modifier applied to the rendered component.
+ * @param onClick Callback invoked when click occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun MainMenuInfoButton(
     modifier: Modifier = Modifier,
@@ -163,7 +186,22 @@ private fun MainMenuInfoButton(
     }
 }
 
-/** Renders the main menu settings overlay UI. */
+/**
+ * Renders the main menu settings overlay UI.
+ *
+ * @param musicEnabled The music enabled value used by this operation.
+ * @param musicVolume The music volume value used by this operation.
+ * @param soundEnabled The sound enabled value used by this operation.
+ * @param soundVolume The sound volume value used by this operation.
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param onMusicEnabledChanged Callback invoked when music enabled changed occurs.
+ * @param onMusicVolumeChanged Callback invoked when music volume changed occurs.
+ * @param onSoundEnabledChanged Callback invoked when sound enabled changed occurs.
+ * @param onSoundVolumeChanged Callback invoked when sound volume changed occurs.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @param onBack Callback invoked when back occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun MainMenuSettingsOverlay(
     musicEnabled: Boolean,
@@ -225,7 +263,12 @@ private fun MainMenuSettingsOverlay(
     }
 }
 
-/** Renders the application and author information overlay. */
+/**
+ * Renders the application and author information overlay.
+ *
+ * @param onBack Callback invoked when back occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun MainMenuAboutOverlay(
     onBack: () -> Unit
@@ -280,7 +323,13 @@ private fun MainMenuAboutOverlay(
     }
 }
 
-/** Renders the main menu exit confirmation UI. */
+/**
+ * Renders the main menu exit confirmation UI.
+ *
+ * @param onConfirm Callback invoked when confirm occurs.
+ * @param onCancel Callback invoked when cancel occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun MainMenuExitConfirmation(
     onConfirm: () -> Unit,

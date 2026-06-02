@@ -9,7 +9,13 @@ import androidx.compose.ui.unit.dp
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleChimeraSlotPresentation
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleTeamPresentation
 
-/** Renders the battle team buttons UI. */
+/**
+ * Renders the battle team buttons UI.
+ *
+ * @param team The team value used by this operation.
+ * @param onSwitchSelected Callback invoked when switch selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleTeamButtons(
     team: BattleTeamPresentation,
@@ -38,7 +44,13 @@ internal fun BattleTeamButtons(
     }
 }
 
-/** Renders the battle item target buttons UI. */
+/**
+ * Renders the battle item target buttons UI.
+ *
+ * @param team The team value used by this operation.
+ * @param onItemTargetSelected Callback invoked when item target selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleItemTargetButtons(
     team: BattleTeamPresentation,

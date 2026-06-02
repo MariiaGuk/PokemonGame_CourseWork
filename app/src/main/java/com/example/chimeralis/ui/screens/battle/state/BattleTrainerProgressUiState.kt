@@ -10,7 +10,13 @@ internal class BattleTrainerProgressUiState {
         private set
     private var lastEnemyDefeatRevealKey: String? = null
 
-    /** Returns true when the current log message should reveal one defeated trainer chimera. */
+    /**
+     * Returns true when the current log message should reveal one defeated trainer chimera.
+     *
+     * @param isTrainerBattle Flag that controls or describes is trainer battle.
+     * @param message The message value used by this operation.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun shouldRevealEnemyDefeat(
         isTrainerBattle: Boolean,
         message: String
@@ -21,7 +27,13 @@ internal class BattleTrainerProgressUiState {
                 message.endsWith(" HP.")
     }
 
-    /** Handles reveal enemy defeat for current message behavior. */
+    /**
+     * Handles reveal enemy defeat for current message behavior.
+     *
+     * @param messageIndex The message index value used by this operation.
+     * @param message The message value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun revealEnemyDefeat(
         messageIndex: Int,
         message: String

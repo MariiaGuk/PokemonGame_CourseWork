@@ -11,7 +11,14 @@ class StatChangeEffect(
     private val onTarget: Boolean = true
 ): IMoveEffect {
 
-    /** Applies the stat-stage change to the configured subject. */
+    /**
+     * Applies the stat-stage change to the configured subject.
+     *
+     * @param attacker The attacker value used by this operation.
+     * @param target The target value used by this operation.
+     * @param moveType The move type value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     override fun apply(attacker: Chimera, target: Chimera, moveType: ChimeraType)
     {
         val subject = if (onTarget) target else attacker

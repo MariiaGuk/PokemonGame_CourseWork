@@ -11,7 +11,14 @@ import com.example.chimeralis.logic.trainers.Player
 /** Creates configured battle scenarios for wild and trainer encounters. */
 object BattleScenarioFactory {
 
-    /** Creates a battle against one wild chimera. */
+    /**
+     * Creates a battle against one wild chimera.
+     *
+     * @param player Domain object used by this operation: player.
+     * @param wildSpecies The wild species value used by this operation.
+     * @param randomProvider The random provider value used by this operation.
+     * @return The resulting BattleManager value.
+     */
     fun createWildBattle(
         player: Player,
         wildSpecies: ChimeraSpecies,
@@ -33,7 +40,13 @@ object BattleScenarioFactory {
         return BattleManager(player = player, enemy = enemy, randomProvider = randomProvider)
     }
 
-    /** Creates a battle against a rival trainer team. */
+    /**
+     * Creates a battle against a rival trainer team.
+     *
+     * @param player Domain object used by this operation: player.
+     * @param randomProvider The random provider value used by this operation.
+     * @return The resulting BattleManager value.
+     */
     fun createTrainerBattle(
         player: Player,
         randomProvider: RandomProvider = DefaultRandomProvider
@@ -69,7 +82,13 @@ object BattleScenarioFactory {
         )
     }
 
-    /** Selects a wild chimera level close to the player's current team strength. */
+    /**
+     * Selects a wild chimera level close to the player's current team strength.
+     *
+     * @param player Domain object used by this operation: player.
+     * @param randomProvider The random provider value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun scaledWildChimeraLevel(
         player: Player,
         randomProvider: RandomProvider
@@ -85,7 +104,12 @@ object BattleScenarioFactory {
         return minLevel + randomProvider.nextInt(0 until levelRange)
     }
 
-    /** Selects one species from the configured trainer battle pool. */
+    /**
+     * Selects one species from the configured trainer battle pool.
+     *
+     * @param randomProvider The random provider value used by this operation.
+     * @return The resulting ChimeraSpecies value.
+     */
     private fun trainerBattleSpecies(randomProvider: RandomProvider): ChimeraSpecies {
         val pool = ChimeraFactory.trainerBattleSpecies()
         return pool[randomProvider.nextInt(pool.indices)]

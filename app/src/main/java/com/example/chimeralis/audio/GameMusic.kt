@@ -15,7 +15,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.navigation.GameScreen
 
-/** Plays the looping music for the active screen. */
+/**
+ * Plays the looping music for the active screen.
+ *
+ * @param currentScreen The current screen value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param volume The volume value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun GameMusic(
     currentScreen: GameScreen,
@@ -76,7 +83,12 @@ fun GameMusic(
     }
 }
 
-/** Selects the music resource for a screen. */
+/**
+ * Selects the music resource for a screen.
+ *
+ * @receiver The game screen receiver used by this operation.
+ * @return The calculated numeric value.
+ */
 private fun GameScreen.musicResId(): Int {
     return when (this) {
         GameScreen.LavaField -> R.raw.lava_field_theme

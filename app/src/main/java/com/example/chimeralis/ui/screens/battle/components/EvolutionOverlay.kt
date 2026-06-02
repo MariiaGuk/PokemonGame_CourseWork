@@ -29,7 +29,13 @@ internal const val EvolutionRevealMillis = 7000L
 private const val EvolutionBlinkIntervalMillis = 500L
 private const val EvolutionFrameMillis = 150L
 
-/** Renders the post-battle evolution animation. */
+/**
+ * Renders the post-battle evolution animation.
+ *
+ * @param event The event value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun EvolutionOverlay(
     event: ChimeraEvolutionEvent,

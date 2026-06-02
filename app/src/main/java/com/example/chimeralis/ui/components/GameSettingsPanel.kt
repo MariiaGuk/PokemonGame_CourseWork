@@ -28,7 +28,22 @@ import com.example.chimeralis.R
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlin.math.roundToInt
 
-/** Renders the game settings panel UI. */
+/**
+ * Renders the game settings panel UI.
+ *
+ * @param musicEnabled The music enabled value used by this operation.
+ * @param musicVolume The music volume value used by this operation.
+ * @param soundEnabled The sound enabled value used by this operation.
+ * @param soundVolume The sound volume value used by this operation.
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param onMusicEnabledChanged Callback invoked when music enabled changed occurs.
+ * @param onMusicVolumeChanged Callback invoked when music volume changed occurs.
+ * @param onSoundEnabledChanged Callback invoked when sound enabled changed occurs.
+ * @param onSoundVolumeChanged Callback invoked when sound volume changed occurs.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun GameSettingsPanel(
     musicEnabled: Boolean,
@@ -70,7 +85,16 @@ fun GameSettingsPanel(
     }
 }
 
-/** Renders the settings toggle slider UI. */
+/**
+ * Renders the settings toggle slider UI.
+ *
+ * @param title The title value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param value The value value used by this operation.
+ * @param onEnabledChanged Callback invoked when enabled changed occurs.
+ * @param onValueChanged Callback invoked when value changed occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun SettingsToggleSlider(
     title: String,
@@ -91,7 +115,13 @@ private fun SettingsToggleSlider(
     }
 }
 
-/** Renders the compact gameplay settings UI. */
+/**
+ * Renders the compact gameplay settings UI.
+ *
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun CompactGameplaySettings(
     encounterChance: Float,
@@ -108,7 +138,12 @@ private fun CompactGameplaySettings(
     }
 }
 
-/** Renders the setting card UI. */
+/**
+ * Renders the setting card UI.
+ *
+ * @param content Composable content rendered inside this component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun SettingCard(content: @Composable ColumnScope.() -> Unit) {
     val colors = MaterialTheme.colorScheme
@@ -125,7 +160,17 @@ private fun SettingCard(content: @Composable ColumnScope.() -> Unit) {
     )
 }
 
-/** Renders the settings control row UI. */
+/**
+ * Renders the settings control row UI.
+ *
+ * @param title The title value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param showSwitch Flag that controls or describes show switch.
+ * @param value The value value used by this operation.
+ * @param onEnabledChanged Callback invoked when enabled changed occurs.
+ * @param onValueChanged Callback invoked when value changed occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun SettingsControlRow(
     title: String,

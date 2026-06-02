@@ -53,7 +53,12 @@ class Chimera (
             }
     }
 
-    /** Renames the chimera after validating the nickname length and content. */
+    /**
+     * Renames the chimera after validating the nickname length and content.
+     *
+     * @param newName The new name value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun rename(newName: String) {
         val trimmedName = newName.trim()
         if (trimmedName.isNotBlank() && trimmedName.length <= 12) {
@@ -64,7 +69,12 @@ class Chimera (
         }
     }
 
-    /** Adds experience and triggers all resulting level-ups. */
+    /**
+     * Adds experience and triggers all resulting level-ups.
+     *
+     * @param amount Numeric value used by this operation: amount.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun gainExp(amount: Int) {
         exp += amount
         var expNeeded = level * level * level
@@ -75,7 +85,11 @@ class Chimera (
         }
     }
 
-    /** Recalculates battle stats from base stats, IV stats, and current level. */
+    /**
+     * Recalculates battle stats from base stats, IV stats, and current level.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun recalculateStats() {
         val oldMaxHp = stats.maxHp
         val calculatedMaxHp = (((baseStatsValue.maxHp + ivStatsValue.maxHp) * 2 * level) / 100) + level + 10
@@ -92,7 +106,11 @@ class Chimera (
         stats.heal(hpGain)
     }
 
-    /** Increases the level and resolves stat growth and new moves. */
+    /**
+     * Increases the level and resolves stat growth and new moves.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun levelUp() {
         level++
         recalculateStats()
@@ -106,7 +124,12 @@ class Chimera (
             }
     }
 
-    /** Learns a new move or stores it as pending when the move list is full. */
+    /**
+     * Learns a new move or stores it as pending when the move list is full.
+     *
+     * @param move Domain object used by this operation: move.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun learnMove(move: Move) {
         if (_moves.any { it.name == move.name }) return
 
@@ -122,7 +145,12 @@ class Chimera (
         }
     }
 
-    /** Replaces an existing move with the pending move-learning request. */
+    /**
+     * Replaces an existing move with the pending move-learning request.
+     *
+     * @param index Numeric value used by this operation: index.
+     * @return The resolved pair<move, move> value, or null when it is unavailable.
+     */
     fun replaceMoveWithPending(index: Int): Pair<Move, Move>? {
         val pendingMove = pendingMoveToLearn ?: return null
         if (index !in _moves.indices) return null
@@ -133,7 +161,11 @@ class Chimera (
         return forgottenMove to pendingMove
     }
 
-    /** Cancels the pending move-learning request and returns the skipped move. */
+    /**
+     * Cancels the pending move-learning request and returns the skipped move.
+     *
+     * @return The resolved move value, or null when it is unavailable.
+     */
     fun skipPendingMove(): Move? {
         val pendingMove = pendingMoveToLearn ?: return null
         pendingMoveToLearn = null

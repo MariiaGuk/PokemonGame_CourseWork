@@ -23,7 +23,12 @@ import com.example.chimeralis.ui.screens.onboarding.SplashScreen
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.model.WorldField
 
-/** Renders the app navigation UI. */
+/**
+ * Renders the app navigation UI.
+ *
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun AppNavigation(onExitGame: () -> Unit) {
     val context = LocalContext.current

@@ -16,12 +16,24 @@ class Move (
     var pp: Int = maxPp
         private set
 
-    /** Restores PP to a constrained value within this move's maximum. */
+    /**
+     * Restores PP to a constrained value within this move's maximum.
+     *
+     * @param value The value value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun restorePp(value: Int) {
         pp = value.coerceIn(0, maxPp)
     }
 
-    /** Executes the move against a target if PP and accuracy allow it. */
+    /**
+     * Executes the move against a target if PP and accuracy allow it.
+     *
+     * @param attacker The attacker value used by this operation.
+     * @param target The target value used by this operation.
+     * @param hits The hits value used by this operation.
+     * @return The resulting MoveExecutionResult value.
+     */
     fun execute(
         attacker: Chimera,
         target: Chimera,

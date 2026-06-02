@@ -33,7 +33,11 @@ import androidx.compose.ui.unit.sp
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleChimeraSlotPresentation
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the empty battle team slot UI. */
+/**
+ * Renders the empty battle team slot UI.
+ *
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun EmptyBattleTeamSlot() {
     val colors = MaterialTheme.colorScheme
@@ -48,7 +52,13 @@ internal fun EmptyBattleTeamSlot() {
     )
 }
 
-/** Renders the battle team slot UI. */
+/**
+ * Renders the battle team slot UI.
+ *
+ * @param slot The slot value used by this operation.
+ * @param onSwitchSelected Callback invoked when switch selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleTeamSlot(
     slot: BattleChimeraSlotPresentation,
@@ -91,7 +101,13 @@ internal fun BattleTeamSlot(
     }
 }
 
-/** Renders the battle item target slot UI. */
+/**
+ * Renders the battle item target slot UI.
+ *
+ * @param slot The slot value used by this operation.
+ * @param onItemTargetSelected Callback invoked when item target selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleItemTargetSlot(
     slot: BattleChimeraSlotPresentation,
@@ -130,7 +146,13 @@ internal fun BattleItemTargetSlot(
     }
 }
 
-/** Renders the shared chimera summary inside battle selection slots. */
+/**
+ * Renders the shared chimera summary inside battle selection slots.
+ *
+ * @receiver The row scope receiver used by this operation.
+ * @param slot The slot value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun RowScope.BattleSlotContent(
     slot: BattleChimeraSlotPresentation

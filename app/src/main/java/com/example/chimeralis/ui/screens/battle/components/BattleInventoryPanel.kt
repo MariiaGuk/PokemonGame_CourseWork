@@ -13,7 +13,13 @@ import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleItemOptionPresentation
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the battle inventory buttons UI. */
+/**
+ * Renders the battle inventory buttons UI.
+ *
+ * @param inventoryItems The inventory items value used by this operation.
+ * @param onItemSelected Callback invoked when item selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleInventoryButtons(
     inventoryItems: List<BattleItemOptionPresentation>,

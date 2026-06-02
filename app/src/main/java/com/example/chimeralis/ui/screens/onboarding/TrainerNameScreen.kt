@@ -36,7 +36,15 @@ import androidx.compose.ui.unit.sp
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the trainer name screen UI. */
+/**
+ * Renders the trainer name screen UI.
+ *
+ * @param onNameConfirmed Callback invoked when name confirmed occurs.
+ * @param onBack Callback invoked when back occurs.
+ * @param errorMessage The error message value used by this operation.
+ * @param onNameEdited Callback invoked when name edited occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun TrainerNameScreen(
     onNameConfirmed: (String) -> Unit,

@@ -22,7 +22,13 @@ import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.battle.BattleBackButtonSize
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the battle back arrow button UI. */
+/**
+ * Renders the battle back arrow button UI.
+ *
+ * @param onClick Callback invoked when click occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleBackArrowButton(
     onClick: () -> Unit,
@@ -57,7 +63,13 @@ internal fun BattleBackArrowButton(
     }
 }
 
-/** Renders the battle message UI. */
+/**
+ * Renders the battle message UI.
+ *
+ * @param text The text value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleMessage(
     text: String,

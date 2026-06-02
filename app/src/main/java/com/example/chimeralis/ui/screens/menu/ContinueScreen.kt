@@ -41,7 +41,15 @@ import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the continue screen UI. */
+/**
+ * Renders the continue screen UI.
+ *
+ * @param saves The saves value used by this operation.
+ * @param onLoad Callback invoked when load occurs.
+ * @param onDelete Callback invoked when delete occurs.
+ * @param onBack Callback invoked when back occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun ContinueScreen(
     saves: List<GameSave>,
@@ -136,7 +144,14 @@ fun ContinueScreen(
     }
 }
 
-/** Renders the delete save confirmation UI. */
+/**
+ * Renders the delete save confirmation UI.
+ *
+ * @param save The save value used by this operation.
+ * @param onConfirm Callback invoked when confirm occurs.
+ * @param onCancel Callback invoked when cancel occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun DeleteSaveConfirmation(
     save: GameSave,
@@ -179,7 +194,15 @@ private fun DeleteSaveConfirmation(
     }
 }
 
-/** Renders the save list UI. */
+/**
+ * Renders the save list UI.
+ *
+ * @param saves The saves value used by this operation.
+ * @param onLoad Callback invoked when load occurs.
+ * @param onDelete Callback invoked when delete occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun SaveList(
     saves: List<GameSave>,
@@ -238,7 +261,14 @@ private fun SaveList(
     }
 }
 
-/** Renders the save row UI. */
+/**
+ * Renders the save row UI.
+ *
+ * @param save The save value used by this operation.
+ * @param onLoad Callback invoked when load occurs.
+ * @param onDelete Callback invoked when delete occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun SaveRow(
     save: GameSave,
@@ -281,7 +311,13 @@ private fun SaveRow(
     }
 }
 
-/** Renders the save action button UI. */
+/**
+ * Renders the save action button UI.
+ *
+ * @param text The text value used by this operation.
+ * @param onClick Callback invoked when click occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun SaveActionButton(
     text: String,
@@ -312,5 +348,10 @@ private fun SaveActionButton(
 
 private val ContinueVisibleSaveRowsHeight = 250.dp
 
-/** Handles display name behavior. */
+/**
+ * Handles display name behavior.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraSpecies.displayName(): String = ChimeraFactory.speciesName(this)

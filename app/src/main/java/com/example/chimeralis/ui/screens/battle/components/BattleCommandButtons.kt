@@ -14,7 +14,15 @@ import com.example.chimeralis.ui.screens.battle.BattleMenuButtonWidth
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveLearningPresentation
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveOptionPresentation
 
-/** Renders the battle action buttons UI. */
+/**
+ * Renders the battle action buttons UI.
+ *
+ * @param onFight Callback invoked when fight occurs.
+ * @param onBag Callback invoked when bag occurs.
+ * @param onTeam Callback invoked when team occurs.
+ * @param onRun Callback invoked when run occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleActionButtons(
     onFight: () -> Unit,
@@ -37,7 +45,13 @@ internal fun BattleActionButtons(
     }
 }
 
-/** Renders the move learning buttons UI. */
+/**
+ * Renders the move learning buttons UI.
+ *
+ * @param request The request value used by this operation.
+ * @param onReplacementSelected Callback invoked when replacement selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun MoveLearningButtons(
     request: BattleMoveLearningPresentation?,
@@ -69,7 +83,13 @@ internal fun MoveLearningButtons(
     }
 }
 
-/** Renders the move buttons UI. */
+/**
+ * Renders the move buttons UI.
+ *
+ * @param moves The moves value used by this operation.
+ * @param onMoveSelected Callback invoked when move selected occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun MoveButtons(
     moves: List<BattleMoveOptionPresentation>,

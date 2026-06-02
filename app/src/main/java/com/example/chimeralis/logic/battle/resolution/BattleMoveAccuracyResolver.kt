@@ -9,7 +9,12 @@ class BattleMoveAccuracyResolver(
     private val randomProvider: RandomProvider = DefaultRandomProvider
 ) {
 
-    /** Returns true when the move hits according to its configured accuracy. */
+    /**
+     * Returns true when the move hits according to its configured accuracy.
+     *
+     * @param move Domain object used by this operation: move.
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun moveHits(move: Move): Boolean {
         val accuracy = move.accuracy.coerceIn(0, Move.MaxAccuracyRoll)
         val roll = randomProvider.nextInt(Move.MinAccuracyRoll..Move.MaxAccuracyRoll)

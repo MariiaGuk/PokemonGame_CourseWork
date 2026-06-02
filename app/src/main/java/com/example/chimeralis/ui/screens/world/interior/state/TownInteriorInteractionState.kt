@@ -59,18 +59,30 @@ internal class TownInteriorInteractionState {
                 itemTargetSelection != null ||
                 pendingItemUseConfirmation != null
 
-    /** Locks interior input and resets the joystick. */
+    /**
+     * Locks interior input and resets the joystick.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun beginInputLock() {
         isInteriorInputLocked = true
         interiorJoystickResetKey++
     }
 
-    /** Unlocks interior input after a temporary lock. */
+    /**
+     * Unlocks interior input after a temporary lock.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun endInputLock() {
         isInteriorInputLocked = false
     }
 
-    /** Opens the in-game menu when the service UI is not active. */
+    /**
+     * Opens the in-game menu when the service UI is not active.
+     *
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun openGameMenu(): Boolean {
         if (isServiceUiOpen) return false
 
@@ -80,7 +92,11 @@ internal class TownInteriorInteractionState {
         return true
     }
 
-    /** Opens the inventory panel when the service UI is not active. */
+    /**
+     * Opens the inventory panel when the service UI is not active.
+     *
+     * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+     */
     fun openInventory(): Boolean {
         if (isServiceUiOpen) return false
 
@@ -91,7 +107,11 @@ internal class TownInteriorInteractionState {
         return true
     }
 
-    /** Opens the storage overlay and clears conflicting panels. */
+    /**
+     * Opens the storage overlay and clears conflicting panels.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun openStorage() {
         isStorageOpen = true
         isGameMenuOpen = false
@@ -99,23 +119,41 @@ internal class TownInteriorInteractionState {
         selectedInventoryItem = null
     }
 
-    /** Closes the storage overlay. */
+    /**
+     * Closes the storage overlay.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun closeStorage() {
         isStorageOpen = false
     }
 
-    /** Closes the inventory panel and clears the selected item. */
+    /**
+     * Closes the inventory panel and clears the selected item.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun closeInventory() {
         selectedInventoryItem = null
         isInventoryOpen = false
     }
 
-    /** Selects an item inside the inventory panel. */
+    /**
+     * Selects an item inside the inventory panel.
+     *
+     * @param item Domain object used by this operation: item.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun selectInventoryItem(item: Item?) {
         selectedInventoryItem = item
     }
 
-    /** Starts selecting a team target for an inventory item. */
+    /**
+     * Starts selecting a team target for an inventory item.
+     *
+     * @param item Domain object used by this operation: item.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun startItemTargetSelection(item: Item) {
         selectedInventoryItem = null
         isInventoryOpen = false
@@ -123,29 +161,51 @@ internal class TownInteriorInteractionState {
         pendingItemUseConfirmation = null
     }
 
-    /** Opens confirmation for using an item on a selected chimera. */
+    /**
+     * Opens confirmation for using an item on a selected chimera.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param chimera Domain object used by this operation: chimera.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun requestItemUseConfirmation(item: Item, chimera: Chimera) {
         pendingItemUseConfirmation = item to chimera
     }
 
-    /** Cancels item target selection and any pending confirmation. */
+    /**
+     * Cancels item target selection and any pending confirmation.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun cancelItemTargetSelection() {
         itemTargetSelection = null
         pendingItemUseConfirmation = null
     }
 
-    /** Clears item usage state after the selected item is applied. */
+    /**
+     * Clears item usage state after the selected item is applied.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun completeItemUse() {
         itemTargetSelection = null
         pendingItemUseConfirmation = null
     }
 
-    /** Closes only the item use confirmation dialog. */
+    /**
+     * Closes only the item use confirmation dialog.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun cancelItemUseConfirmation() {
         pendingItemUseConfirmation = null
     }
 
-    /** Returns from the in-game menu to the interior. */
+    /**
+     * Returns from the in-game menu to the interior.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun resumeGame() {
         isSettingsOpen = false
         isInventoryOpen = false
@@ -153,98 +213,167 @@ internal class TownInteriorInteractionState {
         isGameMenuOpen = false
     }
 
-    /** Opens the settings submenu inside the in-game menu. */
+    /**
+     * Opens the settings submenu inside the in-game menu.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun openSettings() {
         isSettingsOpen = true
         isInventoryOpen = false
     }
 
-    /** Closes the settings submenu inside the in-game menu. */
+    /**
+     * Closes the settings submenu inside the in-game menu.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun closeSettings() {
         isSettingsOpen = false
     }
 
-    /** Stores the selected exit action before asking about saving. */
+    /**
+     * Stores the selected exit action before asking about saving.
+     *
+     * @param action The action value used by this operation.
+     * @param requiresSave The requires save value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun requestExit(action: ExitAction, requiresSave: Boolean) {
         pendingExitAction = action
         pendingExitRequiresSave = requiresSave
     }
 
-    /** Clears the pending exit action. */
+    /**
+     * Clears the pending exit action.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun clearPendingExit() {
         pendingExitAction = null
         pendingExitRequiresSave = false
     }
 
-    /** Returns and clears the pending exit action. */
+    /**
+     * Returns and clears the pending exit action.
+     *
+     * @return The resolved exit action value, or null when it is unavailable.
+     */
     fun consumePendingExitAction(): ExitAction? {
         val action = pendingExitAction
         clearPendingExit()
         return action
     }
 
-    /** Shows the temporary save confirmation message. */
+    /**
+     * Shows the temporary save confirmation message.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun showSaveConfirmation() {
         showSaveMessage = true
     }
 
-    /** Hides the temporary save confirmation message. */
+    /**
+     * Hides the temporary save confirmation message.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun hideSaveConfirmation() {
         showSaveMessage = false
     }
 
-    /** Starts the service NPC dialog. */
+    /**
+     * Starts the service NPC dialog.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun openServiceDialog() {
         serviceMessage = null
         dialogStep = 0
     }
 
-    /** Moves the service NPC dialog to its next step. */
+    /**
+     * Moves the service NPC dialog to its next step.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun advanceServiceDialog() {
         serviceMessage = null
         dialogStep = (dialogStep ?: 0) + 1
     }
 
-    /** Starts the healing flow after service dialog confirmation. */
+    /**
+     * Starts the healing flow after service dialog confirmation.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun startHealing() {
         dialogStep = null
         serviceMessage = null
         isHealingInProgress = true
     }
 
-    /** Finishes the healing flow and shows the service result message. */
+    /**
+     * Finishes the healing flow and shows the service result message.
+     *
+     * @param message The message value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun finishHealing(message: String) {
         serviceMessage = message
         dialogStep = 2
         isHealingInProgress = false
     }
 
-    /** Opens the shop overlay from the service dialog. */
+    /**
+     * Opens the shop overlay from the service dialog.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun openShop() {
         dialogStep = null
         isShopOpen = true
         serviceMessage = null
     }
 
-    /** Closes the shop overlay and clears its service message. */
+    /**
+     * Closes the shop overlay and clears its service message.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun closeShop() {
         isShopOpen = false
         serviceMessage = null
     }
 
-    /** Updates the message shown by the service dialog or shop. */
+    /**
+     * Updates the message shown by the service dialog or shop.
+     *
+     * @param message The message value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun showServiceMessage(message: String?) {
         serviceMessage = message
     }
 
-    /** Closes the service NPC dialog and clears its message. */
+    /**
+     * Closes the service NPC dialog and clears its message.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun closeServiceDialog() {
         dialogStep = null
         serviceMessage = null
     }
 }
 
-/** Remembers interaction state for one town interior. */
+/**
+ * Remembers interaction state for one town interior.
+ *
+ * @param interior The interior value used by this operation.
+ * @return The resulting TownInteriorInteractionState value.
+ */
 @Composable
 internal fun rememberTownInteriorInteractionState(interior: TownInterior): TownInteriorInteractionState {
     return remember(interior) { TownInteriorInteractionState() }

@@ -51,7 +51,19 @@ import com.example.chimeralis.ui.screens.world.sprites.teamImageRes
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlin.math.abs
 
-/** Shows the PC-style overlay for managing the active team and stored chimeras. */
+/**
+ * Shows the PC-style overlay for managing the active team and stored chimeras.
+ *
+ * @param team The team value used by this operation.
+ * @param storage The storage value used by this operation.
+ * @param teamStateKey The team state key value used by this operation.
+ * @param onSwapTeamMembers Callback invoked when swap team members occurs.
+ * @param onDepositTeamMember Callback invoked when deposit team member occurs.
+ * @param onWithdrawStoredChimera Callback invoked when withdraw stored chimera occurs.
+ * @param onSwapTeamWithStorage Callback invoked when swap team with storage occurs.
+ * @param onClose Callback invoked when close occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ChimeraStorageOverlay(
     team: List<Chimera>,
@@ -68,7 +80,12 @@ internal fun ChimeraStorageOverlay(
     var selectedStorageIndex by remember(teamStateKey) { mutableStateOf<Int?>(null) }
     val storageScrollState = rememberScrollState()
 
-    /** Selects a team slot for storage actions. */
+    /**
+     * Selects a team slot for storage actions.
+     *
+     * @param index Numeric value used by this operation: index.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun selectTeam(index: Int) {
         val storageIndex = selectedStorageIndex
         if (storageIndex != null) {
@@ -80,7 +97,12 @@ internal fun ChimeraStorageOverlay(
         }
     }
 
-    /** Selects a storage slot for team actions. */
+    /**
+     * Selects a storage slot for team actions.
+     *
+     * @param index Numeric value used by this operation: index.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun selectStorage(index: Int) {
         val teamIndex = selectedTeamIndex
         if (teamIndex != null) {
@@ -196,7 +218,15 @@ internal fun ChimeraStorageOverlay(
     }
 }
 
-/** Draws a bordered storage section with a title, counter, and custom content. */
+/**
+ * Draws a bordered storage section with a title, counter, and custom content.
+ *
+ * @param title The title value used by this operation.
+ * @param count The count value used by this operation.
+ * @param width Numeric value used by this operation: width.
+ * @param content Composable content rendered inside this component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StoragePanel(
     title: String,
@@ -228,7 +258,13 @@ private fun StoragePanel(
     }
 }
 
-/** Renders the compact top-right close control for the storage overlay. */
+/**
+ * Renders the compact top-right close control for the storage overlay.
+ *
+ * @param onClose Callback invoked when close occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun CloseStorageButton(
     onClose: () -> Unit,
@@ -258,7 +294,16 @@ private fun CloseStorageButton(
     }
 }
 
-/** Draws one team slot with level, sprite, HP bar, and drag gestures. */
+/**
+ * Draws one team slot with level, sprite, HP bar, and drag gestures.
+ *
+ * @param chimera Domain object used by this operation: chimera.
+ * @param selected The selected value used by this operation.
+ * @param isPrimary Flag that controls or describes is primary.
+ * @param onTap Callback invoked when tap occurs.
+ * @param onDrag Callback invoked when drag occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StorageTeamSlot(
     chimera: Chimera?,
@@ -366,7 +411,16 @@ private fun StorageTeamSlot(
     }
 }
 
-/** Draws one scrollable storage row and handles left-swipe withdrawal. */
+/**
+ * Draws one scrollable storage row and handles left-swipe withdrawal.
+ *
+ * @param chimera Domain object used by this operation: chimera.
+ * @param selected The selected value used by this operation.
+ * @param isPrimary Flag that controls or describes is primary.
+ * @param onTap Callback invoked when tap occurs.
+ * @param onSwipeLeft Callback invoked when swipe left occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StorageChimeraRow(
     chimera: Chimera?,
@@ -447,7 +501,12 @@ private fun StorageChimeraRow(
     }
 }
 
-/** Chooses the HP bar color according to the remaining health ratio. */
+/**
+ * Chooses the HP bar color according to the remaining health ratio.
+ *
+ * @param hpRatio The hp ratio value used by this operation.
+ * @return The resulting Color value.
+ */
 private fun hpBarColor(hpRatio: Float): Color =
     when {
         hpRatio > 0.5f -> Color(0xFF66C96A)
@@ -455,7 +514,14 @@ private fun hpBarColor(hpRatio: Float): Color =
         else -> Color(0xFFD85A4A)
     }
 
-/** Draws a menu-style vertical scrollbar beside the storage list. */
+/**
+ * Draws a menu-style vertical scrollbar beside the storage list.
+ *
+ * @param scrollFraction The scroll fraction value used by this operation.
+ * @param totalItems The total items value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StorageScrollIndicator(
     scrollFraction: Float,

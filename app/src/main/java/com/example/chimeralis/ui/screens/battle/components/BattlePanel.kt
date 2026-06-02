@@ -20,7 +20,27 @@ import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveOpt
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMode
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelPresentation
 
-/** Renders the battle panel UI. */
+/**
+ * Renders the battle panel UI.
+ *
+ * @param message The message value used by this operation.
+ * @param mode The mode value used by this operation.
+ * @param isTeamSelectionForced Flag that controls or describes is team selection forced.
+ * @param presentation The presentation value used by this operation.
+ * @param onFight Callback invoked when fight occurs.
+ * @param onBag Callback invoked when bag occurs.
+ * @param onTeam Callback invoked when team occurs.
+ * @param onMoveSelected Callback invoked when move selected occurs.
+ * @param onMoveReplacementSelected Callback invoked when move replacement selected occurs.
+ * @param onSwitchSelected Callback invoked when switch selected occurs.
+ * @param onItemSelected Callback invoked when item selected occurs.
+ * @param onItemTargetSelected Callback invoked when item target selected occurs.
+ * @param onRun Callback invoked when run occurs.
+ * @param onBackToActions Callback invoked when back to actions occurs.
+ * @param colors The colors value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattlePanel(
     message: String,

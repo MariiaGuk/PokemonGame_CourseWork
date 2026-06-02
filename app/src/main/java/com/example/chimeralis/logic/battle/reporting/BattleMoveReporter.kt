@@ -15,7 +15,19 @@ import com.example.chimeralis.logic.items.Item
 /** Represents the battle move reporter. */
 class BattleMoveReporter {
 
-    /** Handles report move behavior. */
+    /**
+     * Handles report move behavior.
+     *
+     * @param log The log value used by this operation.
+     * @param side The side value used by this operation.
+     * @param user The user value used by this operation.
+     * @param target The target value used by this operation.
+     * @param move Domain object used by this operation: move.
+     * @param executionResult The execution result value used by this operation.
+     * @param userBefore The user before value used by this operation.
+     * @param targetBefore The target before value used by this operation.
+     * @return The resulting BattleMoveAnimation value.
+     */
     fun reportMove(
         log: MutableList<String>,
         side: BattleSide,
@@ -64,7 +76,15 @@ class BattleMoveReporter {
         )
     }
 
-    /** Handles report item behavior. */
+    /**
+     * Handles report item behavior.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param target The target value used by this operation.
+     * @param targetBefore The target before value used by this operation.
+     * @param targetAfter The target after value used by this operation.
+     * @return The resulting BattleMoveAnimation value.
+     */
     fun reportItem(
         item: Item,
         target: Chimera,
@@ -83,7 +103,14 @@ class BattleMoveReporter {
         )
     }
 
-    /** Handles report capture behavior. */
+    /**
+     * Handles report capture behavior.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param target The target value used by this operation.
+     * @param captureResult The capture result value used by this operation.
+     * @return The resulting BattleMoveAnimation value.
+     */
     fun reportCapture(item: Item, target: Chimera, captureResult: BattleCaptureResult): BattleMoveAnimation {
         return BattleMoveAnimation(
             side = BattleSide.Player,
@@ -96,7 +123,19 @@ class BattleMoveReporter {
         )
     }
 
-    /** Adds the move outcome and any resulting battle stat changes to the log. */
+    /**
+     * Adds the move outcome and any resulting battle stat changes to the log.
+     *
+     * @param log The log value used by this operation.
+     * @param executionResult The execution result value used by this operation.
+     * @param targetLabel The target label value used by this operation.
+     * @param targetBefore The target before value used by this operation.
+     * @param targetAfter The target after value used by this operation.
+     * @param userLabel The user label value used by this operation.
+     * @param userBefore The user before value used by this operation.
+     * @param userAfter The user after value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun appendMoveResult(
         log: MutableList<String>,
         executionResult: MoveExecutionResult,
@@ -131,7 +170,17 @@ class BattleMoveReporter {
         }
     }
 
-    /** Handles collect move feedbacks behavior. */
+    /**
+     * Handles collect move feedbacks behavior.
+     *
+     * @param targetSide The target side value used by this operation.
+     * @param targetBefore The target before value used by this operation.
+     * @param targetAfter The target after value used by this operation.
+     * @param userSide The user side value used by this operation.
+     * @param userBefore The user before value used by this operation.
+     * @param userAfter The user after value used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun collectMoveFeedbacks(
         targetSide: BattleSide,
         targetBefore: BattleStatsSnapshot,
@@ -146,7 +195,15 @@ class BattleMoveReporter {
         }.distinct()
     }
 
-    /** Handles add feedbacks for stat snapshot behavior. */
+    /**
+     * Handles add feedbacks for stat snapshot behavior.
+     *
+     * @receiver The mutable list<battle move feedback> receiver used by this operation.
+     * @param side The side value used by this operation.
+     * @param before The before value used by this operation.
+     * @param after The after value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun MutableList<BattleMoveFeedback>.addFeedbacksForStatSnapshot(
         side: BattleSide,
         before: BattleStatsSnapshot,
@@ -166,7 +223,15 @@ class BattleMoveReporter {
         }
     }
 
-    /** Handles append hp change behavior. */
+    /**
+     * Handles append hp change behavior.
+     *
+     * @param log The log value used by this operation.
+     * @param label The label value used by this operation.
+     * @param before The before value used by this operation.
+     * @param after The after value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun appendHpChange(
         log: MutableList<String>,
         label: String,
@@ -178,7 +243,15 @@ class BattleMoveReporter {
         }
     }
 
-    /** Handles append stat changes behavior. */
+    /**
+     * Handles append stat changes behavior.
+     *
+     * @param log The log value used by this operation.
+     * @param label The label value used by this operation.
+     * @param before The before value used by this operation.
+     * @param after The after value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun appendStatChanges(
         log: MutableList<String>,
         label: String,
@@ -190,7 +263,16 @@ class BattleMoveReporter {
         appendStatChange(log, label, "speed", before.speed, after.speed)
     }
 
-    /** Handles append stat change behavior. */
+    /**
+     * Handles append stat change behavior.
+     *
+     * @param log The log value used by this operation.
+     * @param label The label value used by this operation.
+     * @param statName The stat name value used by this operation.
+     * @param before The before value used by this operation.
+     * @param after The after value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun appendStatChange(
         log: MutableList<String>,
         label: String,
@@ -204,7 +286,12 @@ class BattleMoveReporter {
         }
     }
 
-    /** Handles opponent behavior. */
+    /**
+     * Handles opponent behavior.
+     *
+     * @receiver The battle side receiver used by this operation.
+     * @return The resulting BattleSide value.
+     */
     private fun BattleSide.opponent(): BattleSide {
         return when (this) {
             BattleSide.Player -> BattleSide.Enemy

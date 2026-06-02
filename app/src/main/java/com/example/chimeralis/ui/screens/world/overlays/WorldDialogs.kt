@@ -48,7 +48,16 @@ import com.example.chimeralis.ui.screens.world.TeamSlots
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 
-/** Renders the item target selection overlay UI. */
+/**
+ * Renders the item target selection overlay UI.
+ *
+ * @param item Domain object used by this operation: item.
+ * @param team The team value used by this operation.
+ * @param teamStateKey The team state key value used by this operation.
+ * @param onChimeraSelected Callback invoked when chimera selected occurs.
+ * @param onCancel Callback invoked when cancel occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ItemTargetSelectionOverlay(
     item: Item,
@@ -112,7 +121,15 @@ internal fun ItemTargetSelectionOverlay(
     }
 }
 
-/** Renders the confirm item use dialog UI. */
+/**
+ * Renders the confirm item use dialog UI.
+ *
+ * @param item Domain object used by this operation: item.
+ * @param chimera Domain object used by this operation: chimera.
+ * @param onConfirm Callback invoked when confirm occurs.
+ * @param onCancel Callback invoked when cancel occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ConfirmItemUseDialog(
     item: Item,
@@ -161,7 +178,13 @@ internal fun ConfirmItemUseDialog(
     }
 }
 
-/** Renders the town sign dialog overlay UI. */
+/**
+ * Renders the town sign dialog overlay UI.
+ *
+ * @param sign The sign value used by this operation.
+ * @param onClose Callback invoked when close occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TownSignDialogOverlay(
     sign: TownSign,
@@ -220,7 +243,17 @@ internal fun TownSignDialogOverlay(
     }
 }
 
-/** Renders the shift npc dialog overlay UI. */
+/**
+ * Renders the shift npc dialog overlay UI.
+ *
+ * @param step Numeric value used by this operation: step.
+ * @param isReturnDialog Flag that controls or describes is return dialog.
+ * @param isShortTravelDialog Flag that controls or describes is short travel dialog.
+ * @param onNext Callback invoked when next occurs.
+ * @param onStay Callback invoked when stay occurs.
+ * @param onTravel Callback invoked when travel occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ShiftNpcDialogOverlay(
     step: Int,
@@ -321,7 +354,15 @@ internal fun ShiftNpcDialogOverlay(
     }
 }
 
-/** Renders the trainer npc challenge overlay UI. */
+/**
+ * Renders the trainer npc challenge overlay UI.
+ *
+ * @param step Numeric value used by this operation: step.
+ * @param onNext Callback invoked when next occurs.
+ * @param onDecline Callback invoked when decline occurs.
+ * @param onChallenge Callback invoked when challenge occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TrainerNpcChallengeOverlay(
     step: Int,

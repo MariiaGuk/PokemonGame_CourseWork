@@ -21,7 +21,13 @@ internal class BattleLogUiState(openingMessage: String) {
     val currentBattleMessage: String get() = battleLogMessages.getOrElse(battleLogIndex) { "" }
     val hasNextMessage: Boolean get() = battleLogIndex < battleLogMessages.lastIndex
 
-    /** Shows a new battle log sequence from the first message. */
+    /**
+     * Shows a new battle log sequence from the first message.
+     *
+     * @param messages The messages value used by this operation.
+     * @param animations The animations value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun show(
         messages: List<String>,
         animations: List<BattleMoveAnimation>
@@ -31,19 +37,32 @@ internal class BattleLogUiState(openingMessage: String) {
         battleLogIndex = 0
     }
 
-    /** Moves the log cursor to the next message. */
+    /**
+     * Moves the log cursor to the next message.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun advance() {
         if (hasNextMessage) {
             battleLogIndex++
         }
     }
 
-    /** Returns the animation that should play for the current log message. */
+    /**
+     * Returns the animation that should play for the current log message.
+     *
+     * @param panelMode The panel mode value used by this operation.
+     * @return The resolved battle move animation value, or null when it is unavailable.
+     */
     fun activeAnimation(panelMode: BattlePanelMode): BattleMoveAnimation? {
         return battleLogAnimations[battleLogIndex].takeIf { panelMode == BattlePanelMode.Log }
     }
 
-    /** Returns the current capture animation when the current message belongs to capture flow. */
+    /**
+     * Returns the current capture animation when the current message belongs to capture flow.
+     *
+     * @return The resolved battle move animation value, or null when it is unavailable.
+     */
     fun currentCaptureAnimation(): BattleMoveAnimation? {
         return battleLogAnimations[battleLogIndex]
             ?.takeIf { animation -> animation.kind == BattleAnimationKind.Capture }

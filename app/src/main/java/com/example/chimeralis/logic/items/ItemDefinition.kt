@@ -8,7 +8,11 @@ data class ItemDefinition(
     private val effectsFactory: () -> List<IItemEffect>
 ) {
 
-    /** Creates a fresh item instance with its configured effects. */
+    /**
+     * Creates a fresh item instance with its configured effects.
+     *
+     * @return The resulting Item value.
+     */
     fun createItem(): Item {
         return Item(
             itemName = itemName,

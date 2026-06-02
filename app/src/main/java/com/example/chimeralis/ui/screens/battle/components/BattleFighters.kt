@@ -25,7 +25,20 @@ import com.example.chimeralis.ui.screens.battle.presentation.shakeOffset
 import com.example.chimeralis.ui.screens.battle.presentation.tintColor
 import kotlin.math.roundToInt
 
-/** Renders the battle fighter UI. */
+/**
+ * Renders the battle fighter UI.
+ *
+ * @param imageRes The image res value used by this operation.
+ * @param mirrored The mirrored value used by this operation.
+ * @param spriteWidth The sprite width value used by this operation.
+ * @param spriteHeight The sprite height value used by this operation.
+ * @param effectOffsetX The effect offset x value used by this operation.
+ * @param effectOffsetY The effect offset y value used by this operation.
+ * @param tintColor The tint color value used by this operation.
+ * @param alpha The alpha value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleFighter(
     imageRes: Int,
@@ -54,7 +67,17 @@ internal fun BattleFighter(
     )
 }
 
-/** Renders the capture ball animation UI. */
+/**
+ * Renders the capture ball animation UI.
+ *
+ * @param progress The progress value used by this operation.
+ * @param startX The start x value used by this operation.
+ * @param startY The start y value used by this operation.
+ * @param targetX The target x value used by this operation.
+ * @param targetY The target y value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun CaptureBallAnimation(
     progress: Float,
@@ -146,7 +169,16 @@ internal fun CaptureBallAnimation(
     }
 }
 
-/** Renders the capture result binding stone UI. */
+/**
+ * Renders the capture result binding stone UI.
+ *
+ * @param caught The caught value used by this operation.
+ * @param isResultRevealed Flag that controls or describes is result revealed.
+ * @param targetX The target x value used by this operation.
+ * @param targetY The target y value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun CaptureResultBindingStone(
     caught: Boolean,
@@ -171,7 +203,13 @@ internal fun CaptureResultBindingStone(
     }
 }
 
-/** Renders the binding stone capture sprite UI. */
+/**
+ * Renders the binding stone capture sprite UI.
+ *
+ * @param phase The phase value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BindingStoneCaptureSprite(
     phase: CaptureBallPhase,
@@ -193,7 +231,13 @@ internal fun BindingStoneCaptureSprite(
     )
 }
 
-/** Renders the capture absorb flash UI. */
+/**
+ * Renders the capture absorb flash UI.
+ *
+ * @param progress The progress value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun CaptureAbsorbFlash(
     progress: Float,
@@ -215,7 +259,16 @@ internal fun CaptureAbsorbFlash(
     }
 }
 
-/** Handles capture throw point behavior. */
+/**
+ * Handles capture throw point behavior.
+ *
+ * @param progress The progress value used by this operation.
+ * @param startX The start x value used by this operation.
+ * @param startY The start y value used by this operation.
+ * @param targetX The target x value used by this operation.
+ * @param targetY The target y value used by this operation.
+ * @return The pair of values produced by this operation.
+ */
 internal fun captureThrowPoint(
     progress: Float,
     startX: Dp,
@@ -231,7 +284,13 @@ internal fun captureThrowPoint(
     return x to y
 }
 
-/** Handles trajectory rotation degrees behavior. */
+/**
+ * Handles trajectory rotation degrees behavior.
+ *
+ * @param previousPoint The previous point value used by this operation.
+ * @param nextPoint The next point value used by this operation.
+ * @return The calculated numeric value.
+ */
 internal fun trajectoryRotationDegrees(
     previousPoint: Pair<Dp, Dp>,
     nextPoint: Pair<Dp, Dp>
@@ -245,7 +304,12 @@ internal fun trajectoryRotationDegrees(
     return directionDegrees - 18f
 }
 
-/** Handles ease in out cubic behavior. */
+/**
+ * Handles ease in out cubic behavior.
+ *
+ * @param progress The progress value used by this operation.
+ * @return The calculated numeric value.
+ */
 internal fun easeInOutCubic(progress: Float): Float {
     val p = progress.coerceIn(0f, 1f)
     return if (p < 0.5f) {
@@ -256,7 +320,12 @@ internal fun easeInOutCubic(progress: Float): Float {
     }
 }
 
-/** Handles ease in cubic behavior. */
+/**
+ * Handles ease in cubic behavior.
+ *
+ * @param progress The progress value used by this operation.
+ * @return The calculated numeric value.
+ */
 internal fun easeInCubic(progress: Float): Float {
     val p = progress.coerceIn(0f, 1f)
     return p * p * p

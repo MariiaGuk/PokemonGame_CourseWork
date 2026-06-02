@@ -15,7 +15,17 @@ import com.example.chimeralis.ui.screens.battle.presentation.toEnemyStatusPresen
 import com.example.chimeralis.ui.screens.battle.presentation.toPlayerStatusPresentation
 import com.example.chimeralis.ui.screens.battle.state.rememberBattleUiState
 
-/** Renders the battle screen UI. */
+/**
+ * Renders the battle screen UI.
+ *
+ * @param player Domain object used by this operation: player.
+ * @param battleKey The battle key value used by this operation.
+ * @param wildSpecies The wild species value used by this operation.
+ * @param isTrainerBattle Flag that controls or describes is trainer battle.
+ * @param onBattleResultSoundStarted Callback invoked when battle result sound started occurs.
+ * @param onBattleFinished Callback invoked when battle finished occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun BattleScreen(
     player: Player,

@@ -27,7 +27,14 @@ import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the menu button UI. */
+/**
+ * Renders the menu button UI.
+ *
+ * @param text The text value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param onClick Callback invoked when click occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun MenuButton(
     text: String,

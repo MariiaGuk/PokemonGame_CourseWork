@@ -6,7 +6,13 @@ import com.example.chimeralis.ui.navigation.GameTransitionState
 import com.example.chimeralis.ui.navigation.session.GameSessionState
 import com.example.chimeralis.ui.screens.battle.BattleScreen
 
-/** Renders the battle route UI. */
+/**
+ * Renders the battle route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param transition The transition value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.BattleRoute(transition: GameTransitionState) {
     player?.let { currentPlayer ->

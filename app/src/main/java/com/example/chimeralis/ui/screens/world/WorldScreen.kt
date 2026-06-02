@@ -59,7 +59,48 @@ import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.model.WorldField
 import com.example.chimeralis.ui.screens.world.model.ExitAction
 
-/** Renders the world screen UI. */
+/**
+ * Renders the world screen UI.
+ *
+ * @param starter The starter value used by this operation.
+ * @param team The team value used by this operation.
+ * @param inventoryItems The inventory items value used by this operation.
+ * @param money The money value used by this operation.
+ * @param teamStateKey The team state key value used by this operation.
+ * @param canStartBattles Flag that controls or describes can start battles.
+ * @param field The field value used by this operation.
+ * @param showShiftNpc Flag that controls or describes show shift npc.
+ * @param shiftNpcIntroSeen The shift npc intro seen value used by this operation.
+ * @param worldTransitionScale The world transition scale value used by this operation.
+ * @param inputLockKey The input lock key value used by this operation.
+ * @param initialPlayerColumn The initial player column value used by this operation.
+ * @param initialPlayerRow The initial player row value used by this operation.
+ * @param initialPlayerDirection The initial player direction value used by this operation.
+ * @param hasUnsavedChanges Flag that controls or describes has unsaved changes.
+ * @param musicEnabled The music enabled value used by this operation.
+ * @param musicVolume The music volume value used by this operation.
+ * @param soundEnabled The sound enabled value used by this operation.
+ * @param soundVolume The sound volume value used by this operation.
+ * @param encounterChance The encounter chance value used by this operation.
+ * @param onMusicEnabledChanged Callback invoked when music enabled changed occurs.
+ * @param onMusicVolumeChanged Callback invoked when music volume changed occurs.
+ * @param onSoundEnabledChanged Callback invoked when sound enabled changed occurs.
+ * @param onSoundVolumeChanged Callback invoked when sound volume changed occurs.
+ * @param onEncounterChanceChanged Callback invoked when encounter chance changed occurs.
+ * @param onPlayerPositionChanged Callback invoked when player position changed occurs.
+ * @param onPlayerDirectionChanged Callback invoked when player direction changed occurs.
+ * @param onSaveGame Callback invoked when save game occurs.
+ * @param onUseInventoryItem Callback invoked when use inventory item occurs.
+ * @param onTravelToGrassField Callback invoked when travel to grass field occurs.
+ * @param onReturnToLavaField Callback invoked when return to lava field occurs.
+ * @param onEnterTownInterior Callback invoked when enter town interior occurs.
+ * @param onShiftNpcIntroSeen Callback invoked when shift npc intro seen occurs.
+ * @param onTrainerChallenge Callback invoked when trainer challenge occurs.
+ * @param onBackToMainMenu Callback invoked when back to main menu occurs.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @param onWildEncounter Callback invoked when wild encounter occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun WorldScreen(
     starter: ChimeraSpecies?,

@@ -6,7 +6,14 @@ import com.example.chimeralis.logic.trainers.Player
 /** Calculates and applies battle rewards after victory or capture. */
 class BattleRewardCalculator {
 
-    /** Awards experience to all living participants and logs level-up events. */
+    /**
+     * Awards experience to all living participants and logs level-up events.
+     *
+     * @param playerBattleParticipants The player battle participants value used by this operation.
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @param log The log value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun awardExperience(
         playerBattleParticipants: Collection<Chimera>,
         defeatedChimera: Chimera,
@@ -42,7 +49,14 @@ class BattleRewardCalculator {
         }
     }
 
-    /** Awards coins to the player based on the defeated chimera. */
+    /**
+     * Awards coins to the player based on the defeated chimera.
+     *
+     * @param player Domain object used by this operation: player.
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @param log The log value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun awardMoney(
         player: Player,
         defeatedChimera: Chimera,
@@ -53,12 +67,22 @@ class BattleRewardCalculator {
         log.add("You earned $moneyReward coins.")
     }
 
-    /** Calculates experience from defeated chimera level. */
+    /**
+     * Calculates experience from defeated chimera level.
+     *
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun experienceReward(defeatedChimera: Chimera): Int {
         return (defeatedChimera.level * ExpPerLevel).coerceAtLeast(1)
     }
 
-    /** Calculates coin reward from defeated chimera level. */
+    /**
+     * Calculates coin reward from defeated chimera level.
+     *
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun moneyReward(defeatedChimera: Chimera): Int {
         return (defeatedChimera.level * CoinsPerLevel).coerceAtLeast(MinCoins)
     }

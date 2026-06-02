@@ -28,7 +28,12 @@ internal class BattleVisualUiState(
 
     val refreshKey: Int get() = uiVersion
 
-    /** Applies post-animation stats to the visible fighters. */
+    /**
+     * Applies post-animation stats to the visible fighters.
+     *
+     * @param animation The animation value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun applyAnimationVisualState(animation: BattleMoveAnimation) {
         val userAfter = animation.userAfter
         val targetAfter = animation.targetAfter
@@ -48,7 +53,14 @@ internal class BattleVisualUiState(
         }
     }
 
-    /** Sets the visible player snapshot before action animations start. */
+    /**
+     * Sets the visible player snapshot before action animations start.
+     *
+     * @param stats The stats value used by this operation.
+     * @param level Numeric value used by this operation: level.
+     * @param exp The exp value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun setPlayerSnapshot(
         stats: BattleStatsSnapshot,
         level: Int,
@@ -59,19 +71,34 @@ internal class BattleVisualUiState(
         visualPlayerExp = exp
     }
 
-    /** Sets the visible enemy stats before or after battle flow changes. */
+    /**
+     * Sets the visible enemy stats before or after battle flow changes.
+     *
+     * @param stats The stats value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun setWildStats(stats: BattleStatsSnapshot) {
         visualWildStats = stats
     }
 
-    /** Handles set visual player progress behavior. */
+    /**
+     * Handles set visual player progress behavior.
+     *
+     * @param level Numeric value used by this operation: level.
+     * @param exp The exp value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun setPlayerProgress(level: Int, exp: Int) {
         visualPlayerLevel = level
         visualPlayerExp = exp
         refresh()
     }
 
-    /** Increments the version used by status widgets to refresh their animation state. */
+    /**
+     * Increments the version used by status widgets to refresh their animation state.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun refresh() {
         uiVersion++
     }

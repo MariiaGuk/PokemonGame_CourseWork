@@ -14,7 +14,13 @@ import com.example.chimeralis.ui.screens.menu.MainMenuScreen
 import com.example.chimeralis.ui.screens.onboarding.StarterSelectionScreen
 import com.example.chimeralis.ui.screens.onboarding.TrainerNameScreen
 
-/** Renders the main menu route UI. */
+/**
+ * Renders the main menu route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.MainMenuRoute(onExitGame: () -> Unit) {
     MainMenuScreen(
@@ -40,7 +46,12 @@ internal fun GameSessionState.MainMenuRoute(onExitGame: () -> Unit) {
     )
 }
 
-/** Renders the continue route UI. */
+/**
+ * Renders the continue route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.ContinueRoute() {
     ContinueScreen(
@@ -57,7 +68,12 @@ internal fun GameSessionState.ContinueRoute() {
     )
 }
 
-/** Renders the trainer name route UI. */
+/**
+ * Renders the trainer name route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.TrainerNameRoute() {
     TrainerNameScreen(
@@ -79,7 +95,12 @@ internal fun GameSessionState.TrainerNameRoute() {
     )
 }
 
-/** Renders the starter selection route UI. */
+/**
+ * Renders the starter selection route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.StarterSelectionRoute() {
     StarterSelectionScreen(

@@ -36,7 +36,12 @@ import com.example.chimeralis.R
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 
-/** Renders the splash screen UI. */
+/**
+ * Renders the splash screen UI.
+ *
+ * @param onFinished Callback invoked when finished occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun SplashScreen(onFinished: () -> Unit) {
     val colors = MaterialTheme.colorScheme

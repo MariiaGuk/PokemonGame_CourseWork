@@ -19,7 +19,12 @@ import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedbac
 import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedbackType
 import com.example.chimeralis.ui.screens.chimera.battleMoveFrames
 
-/** Converts data into battle feedbacks. */
+/**
+ * Converts data into battle feedbacks.
+ *
+ * @receiver The list<battle move feedback> receiver used by this operation.
+ * @return The collection produced by this operation.
+ */
 internal fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> {
     return map { feedback ->
         BattleFeedback(
@@ -33,7 +38,13 @@ internal fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> 
     }
 }
 
-/** Handles shake offset behavior. */
+/**
+ * Handles shake offset behavior.
+ *
+ * @receiver The battle feedback? receiver used by this operation.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The resulting Dp value.
+ */
 internal fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
     if (this?.type != BattleFeedbackType.Damage && this?.type != BattleFeedbackType.Faint) return 0.dp
 
@@ -45,14 +56,25 @@ internal fun BattleFeedback?.shakeOffset(frameIndex: Int): Dp {
     }
 }
 
-/** Handles faint drop offset behavior. */
+/**
+ * Handles faint drop offset behavior.
+ *
+ * @receiver The battle feedback? receiver used by this operation.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The resulting Dp value.
+ */
 internal fun BattleFeedback?.faintDropOffset(frameIndex: Int): Dp {
     if (this?.type != BattleFeedbackType.Faint) return 0.dp
 
     return (34f * faintProgress(frameIndex)).dp
 }
 
-/** Handles tint color behavior. */
+/**
+ * Handles tint color behavior.
+ *
+ * @receiver The battle feedback? receiver used by this operation.
+ * @return The resolved color value, or null when it is unavailable.
+ */
 internal fun BattleFeedback?.tintColor(): Color? {
     return when (this?.type) {
         BattleFeedbackType.Damage -> Color(0xFFFF3535).copy(alpha = 0.42f)
@@ -62,7 +84,16 @@ internal fun BattleFeedback?.tintColor(): Color? {
     }
 }
 
-/** Handles fighter alpha behavior. */
+/**
+ * Handles fighter alpha behavior.
+ *
+ * @param currentHp The current hp value used by this operation.
+ * @param hasPendingFaint Flag that controls or describes has pending faint.
+ * @param isHiddenAfterFaint Flag that controls or describes is hidden after faint.
+ * @param activeFeedback The active feedback value used by this operation.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun fighterAlpha(
     currentHp: Int,
     hasPendingFaint: Boolean,
@@ -81,19 +112,36 @@ internal fun fighterAlpha(
     return 1f
 }
 
-/** Handles faint progress behavior. */
+/**
+ * Handles faint progress behavior.
+ *
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun faintProgress(frameIndex: Int): Float {
     return (frameIndex / 6f).coerceIn(0f, 1f)
 }
 
-/** Checks whether faint feedback exists. */
+/**
+ * Checks whether faint feedback exists.
+ *
+ * @receiver The battle move animation? receiver used by this operation.
+ * @param side The side value used by this operation.
+ * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+ */
 internal fun BattleMoveAnimation?.hasFaintFeedback(side: BattleSide): Boolean {
     return this?.feedbacks?.any {
         it.side == side && it.type == BattleMoveFeedbackType.Faint
     } == true
 }
 
-/** Handles capture target alpha behavior. */
+/**
+ * Handles capture target alpha behavior.
+ *
+ * @param animation The animation value used by this operation.
+ * @param progress The progress value used by this operation.
+ * @return The calculated numeric value.
+ */
 internal fun captureTargetAlpha(animation: BattleMoveAnimation?, progress: Float): Float {
     if (animation == null) return 1f
 
@@ -107,7 +155,13 @@ internal fun captureTargetAlpha(animation: BattleMoveAnimation?, progress: Float
     }
 }
 
-/** Handles map animations to log messages behavior. */
+/**
+ * Handles map animations to log messages behavior.
+ *
+ * @param messages The messages value used by this operation.
+ * @param animations The animations value used by this operation.
+ * @return The collection produced by this operation.
+ */
 internal fun mapAnimationsToLogMessages(
     messages: List<String>,
     animations: List<BattleMoveAnimation>
@@ -132,7 +186,12 @@ internal fun mapAnimationsToLogMessages(
     return mappedAnimations
 }
 
-/** Handles message behavior. */
+/**
+ * Handles message behavior.
+ *
+ * @receiver The battle move animation receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 internal fun BattleMoveAnimation.message(): String {
     when (kind) {
         BattleAnimationKind.Capture -> return "You threw a $moveName!"
@@ -148,7 +207,12 @@ internal fun BattleMoveAnimation.message(): String {
     return "$owner $chimeraName used $moveName!"
 }
 
-/** Handles animation frames behavior. */
+/**
+ * Handles animation frames behavior.
+ *
+ * @receiver The battle move animation receiver used by this operation.
+ * @return The collection produced by this operation.
+ */
 internal fun BattleMoveAnimation.animationFrames(): List<BattleAnimationFrame> {
     if (kind == BattleAnimationKind.Capture) {
         val frameCount = if (captureSucceeded) 15 else 16

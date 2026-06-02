@@ -22,7 +22,13 @@ class GameTransitionState(
     val whiteAlpha = Animatable(0f)
     val battleZoomScale = Animatable(1f)
 
-    /** Handles transition to behavior. */
+    /**
+     * Handles transition to behavior.
+     *
+     * @param screen The screen value used by this operation.
+     * @param session The session value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun transitionTo(
         screen: GameScreen,
         session: GameSessionState
@@ -87,7 +93,11 @@ class GameTransitionState(
     }
 }
 
-/** Remembers the remember game transition state state. */
+/**
+ * Remembers the remember game transition state state.
+ *
+ * @return The resulting GameTransitionState value.
+ */
 @Composable
 fun rememberGameTransitionState(): GameTransitionState {
     val context = LocalContext.current

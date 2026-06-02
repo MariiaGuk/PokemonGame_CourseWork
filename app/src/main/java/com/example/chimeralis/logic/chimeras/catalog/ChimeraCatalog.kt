@@ -7,13 +7,23 @@ import com.example.chimeralis.logic.toSaveLookupKey
 interface ChimeraCatalog {
     val definitions: List<ChimeraDefinition>
 
-    /** Finds the definition that belongs to a concrete species. */
+    /**
+     * Finds the definition that belongs to a concrete species.
+     *
+     * @param species The species value used by this operation.
+     * @return The resulting ChimeraDefinition value.
+     */
     fun definitionFor(species: ChimeraSpecies): ChimeraDefinition {
         return definitions.firstOrNull { definition -> definition.species == species }
             ?: throw IllegalArgumentException("Unknown chimera species: $species")
     }
 
-    /** Finds a species by its display name. */
+    /**
+     * Finds a species by its display name.
+     *
+     * @param name The name value used by this operation.
+     * @return The resolved chimera species value, or null when it is unavailable.
+     */
     fun speciesByName(name: String): ChimeraSpecies? {
         val lookupKey = name.toSaveLookupKey()
         return definitions.firstOrNull { definition ->
@@ -22,7 +32,12 @@ interface ChimeraCatalog {
     }
 }
 
-/** Returns every supported saved-name candidate for one chimera definition. */
+/**
+ * Returns every supported saved-name candidate for one chimera definition.
+ *
+ * @receiver The chimera definition receiver used by this operation.
+ * @return The collection produced by this operation.
+ */
 internal fun ChimeraDefinition.saveLookupNames(): List<String> {
     return listOf(displayName, species.javaClass.simpleName) + saveAliases
 }

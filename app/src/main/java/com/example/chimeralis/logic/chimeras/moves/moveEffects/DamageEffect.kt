@@ -6,14 +6,29 @@ import com.example.chimeralis.logic.chimeras.ChimeraType
 /** Applies direct damage to the target chimera. */
 class DamageEffect(private val power: Int): IMoveEffect
 {
-    /** Calculates and applies damage to the target. */
+    /**
+     * Calculates and applies damage to the target.
+     *
+     * @param attacker The attacker value used by this operation.
+     * @param target The target value used by this operation.
+     * @param moveType The move type value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     override fun apply(attacker: Chimera, target: Chimera, moveType: ChimeraType) {
         val damage = calculateDamageAmount(attacker, target, moveType, power)
         target.stats.takeDamage(damage)
     }
     companion object {
 
-        /** Calculates typed damage with effectiveness and same-type attack bonus. */
+        /**
+         * Calculates typed damage with effectiveness and same-type attack bonus.
+         *
+         * @param attacker The attacker value used by this operation.
+         * @param target The target value used by this operation.
+         * @param moveType The move type value used by this operation.
+         * @param power The power value used by this operation.
+         * @return The calculated numeric value.
+         */
         fun calculateDamageAmount(attacker: Chimera, target: Chimera, moveType: ChimeraType, power: Int): Int {
             val effectiveness = moveType.typeEffectiveness(target.type)
             val stab = if (attacker.type == moveType) 1.5 else 1.0

@@ -8,7 +8,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Modifier
 
-/** Renders the location transition overlay UI. */
+/**
+ * Renders the location transition overlay UI.
+ *
+ * @param alpha The alpha value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun LocationTransitionOverlay(
     alpha: Float,

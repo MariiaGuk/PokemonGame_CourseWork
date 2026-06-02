@@ -53,7 +53,13 @@ import com.example.chimeralis.ui.screens.chimera.starterShadowColor
 import com.example.chimeralis.ui.theme.CinzelFamily
 import com.example.chimeralis.ui.screens.onboarding.model.StarterOption
 
-/** Renders the starter selection screen UI. */
+/**
+ * Renders the starter selection screen UI.
+ *
+ * @param onStarterSelected Callback invoked when starter selected occurs.
+ * @param onBack Callback invoked when back occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun StarterSelectionScreen(
     onStarterSelected: (ChimeraSpecies, String) -> Unit,
@@ -173,7 +179,18 @@ fun StarterSelectionScreen(
     }
 }
 
-/** Renders the chimera name overlay UI. */
+/**
+ * Renders the chimera name overlay UI.
+ *
+ * @param starter The starter value used by this operation.
+ * @param name The name value used by this operation.
+ * @param isNameFocused Flag that controls or describes is name focused.
+ * @param onNameChanged Callback invoked when name changed occurs.
+ * @param onFocusChanged Callback invoked when focus changed occurs.
+ * @param onBack Callback invoked when back occurs.
+ * @param onConfirm Callback invoked when confirm occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun ChimeraNameOverlay(
     starter: StarterOption,
@@ -280,7 +297,14 @@ private fun ChimeraNameOverlay(
     }
 }
 
-/** Renders the starter card UI. */
+/**
+ * Renders the starter card UI.
+ *
+ * @param starter The starter value used by this operation.
+ * @param onClick Callback invoked when click occurs.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StarterCard(
     starter: StarterOption,
@@ -341,7 +365,13 @@ private fun StarterCard(
     }
 }
 
-/** Renders the starter image UI. */
+/**
+ * Renders the starter image UI.
+ *
+ * @param starter The starter value used by this operation.
+ * @param name The name value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StarterImage(starter: StarterOption, name: String) {
     Box(
@@ -362,7 +392,12 @@ private fun StarterImage(starter: StarterOption, name: String) {
     }
 }
 
-/** Handles as ui stats behavior. */
+/**
+ * Handles as ui stats behavior.
+ *
+ * @receiver The stats receiver used by this operation.
+ * @return The collection produced by this operation.
+ */
 private fun Stats.asUiStats(): List<Pair<String, Int>> = listOf(
     "HP" to maxHp,
     "ATK" to attack,
@@ -370,13 +405,23 @@ private fun Stats.asUiStats(): List<Pair<String, Int>> = listOf(
     "SPD" to speed
 )
 
-/** Handles display name behavior. */
+/**
+ * Handles display name behavior.
+ *
+ * @receiver The chimera type receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraType.displayName(): String {
     val lower = name.lowercase()
     return lower.replaceFirstChar { it.uppercase() }
 }
 
-/** Handles battle trait behavior. */
+/**
+ * Handles battle trait behavior.
+ *
+ * @receiver The chimera type receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraType.battleTrait(): String = when (this) {
     ChimeraType.FIRE -> "Fast striker"
     ChimeraType.GRASS -> "Steady fighter"
@@ -384,12 +429,23 @@ private fun ChimeraType.battleTrait(): String = when (this) {
     ChimeraType.NORMAL -> "Balanced fighter"
 }
 
-/** Handles default name behavior. */
+/**
+ * Handles default name behavior.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraSpecies.defaultName(): String = ChimeraFactory.speciesName(this)
 
 private const val MaxChimeraNameLength = 12
 
-/** Renders the stats grid UI. */
+/**
+ * Renders the stats grid UI.
+ *
+ * @param stats The stats value used by this operation.
+ * @param accent The accent value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StatsGrid(
     stats: List<Pair<String, Int>>,
@@ -417,7 +473,15 @@ private fun StatsGrid(
     }
 }
 
-/** Renders the stat row UI. */
+/**
+ * Renders the stat row UI.
+ *
+ * @param name The name value used by this operation.
+ * @param value The value value used by this operation.
+ * @param accent The accent value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun StatRow(
     name: String,

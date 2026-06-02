@@ -13,7 +13,11 @@ data class MoveDefinition(
     private val effectsFactory: () -> List<IMoveEffect>
 ) {
 
-    /** Creates a fresh move instance with independent PP state. */
+    /**
+     * Creates a fresh move instance with independent PP state.
+     *
+     * @return The resulting Move value.
+     */
     fun createMove(): Move {
         return Move(
             id = id,

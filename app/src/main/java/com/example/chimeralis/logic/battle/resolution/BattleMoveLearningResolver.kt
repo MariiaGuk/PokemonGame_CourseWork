@@ -9,7 +9,11 @@ class BattleMoveLearningResolver(
     private val player: Player
 ) {
 
-    /** Returns the first chimera currently waiting for a move replacement decision. */
+    /**
+     * Returns the first chimera currently waiting for a move replacement decision.
+     *
+     * @return The resolved move learn request value, or null when it is unavailable.
+     */
     fun pendingRequest(): MoveLearnRequest? {
         val chimera = player.team.firstOrNull { candidate ->
             candidate.pendingMoveToLearn != null
@@ -22,7 +26,12 @@ class BattleMoveLearningResolver(
         )
     }
 
-    /** Applies the player's decision for the current pending move-learning request. */
+    /**
+     * Applies the player's decision for the current pending move-learning request.
+     *
+     * @param replaceIndex The replace index value used by this operation.
+     * @return The collection produced by this operation.
+     */
     fun resolve(replaceIndex: Int?): List<String> {
         val request = pendingRequest() ?: return emptyList()
         val log = mutableListOf<String>()

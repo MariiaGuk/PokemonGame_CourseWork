@@ -6,7 +6,12 @@ package com.example.chimeralis.logic.chimeras
 enum class ChimeraType {
     NORMAL, FIRE, WATER, GRASS; //Can be added more later
 
-    /** Handles type effectiveness behavior. */
+    /**
+     * Handles type effectiveness behavior.
+     *
+     * @param targetType The target type value used by this operation.
+     * @return The calculated numeric value.
+     */
     fun typeEffectiveness(targetType: ChimeraType): Double {
         return effectiveness[this]?.get(targetType) ?: 1.0
     }

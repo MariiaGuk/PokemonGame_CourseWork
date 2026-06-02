@@ -44,7 +44,19 @@ import com.example.chimeralis.ui.screens.battle.presentation.StatusPlate
 import com.example.chimeralis.ui.screens.battle.presentation.tintColor
 import com.example.chimeralis.ui.screens.battle.state.BattleUiState
 
-/** Renders the battle arena, fighters, capture overlays, and command panel. */
+/**
+ * Renders the battle arena, fighters, capture overlays, and command panel.
+ *
+ * @param battleManager The battle manager value used by this operation.
+ * @param uiState The ui state value used by this operation.
+ * @param playerStatus The player status value used by this operation.
+ * @param wildStatus The wild status value used by this operation.
+ * @param panelPresentation The panel presentation value used by this operation.
+ * @param isTrainerBattle Flag that controls or describes is trainer battle.
+ * @param colors The colors value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleArenaScene(
     battleManager: BattleManager,
@@ -301,7 +313,14 @@ internal fun BattleArenaScene(
     }
 }
 
-/** Renders the trainer binding stone column UI. */
+/**
+ * Renders the trainer binding stone column UI.
+ *
+ * @param teamSize The team size value used by this operation.
+ * @param defeatedCount The defeated count value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 private fun TrainerBindingStoneColumn(
     teamSize: Int,

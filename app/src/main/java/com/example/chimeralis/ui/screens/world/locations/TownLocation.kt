@@ -107,7 +107,17 @@ internal val grassTownPathTiles = buildSet {
     }
 }
 
-/** Renders the town location tiles UI. */
+/**
+ * Renders the town location tiles UI.
+ *
+ * @param mapLeft The map left value used by this operation.
+ * @param mapTop The map top value used by this operation.
+ * @param tileWidth The tile width value used by this operation.
+ * @param tileHeight The tile height value used by this operation.
+ * @param groundTexture The ground texture value used by this operation.
+ * @param pathTexture The path texture value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TownLocationTiles(
     mapLeft: Float,
@@ -150,7 +160,17 @@ internal fun TownLocationTiles(
     }
 }
 
-/** Renders the town location buildings UI. */
+/**
+ * Renders the town location buildings UI.
+ *
+ * @param drawOverPlayer The draw over player value used by this operation.
+ * @param animatedRow The animated row value used by this operation.
+ * @param mapLeft The map left value used by this operation.
+ * @param mapTop The map top value used by this operation.
+ * @param tileWidth The tile width value used by this operation.
+ * @param tileHeight The tile height value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TownLocationBuildings(
     drawOverPlayer: Boolean,
@@ -198,7 +218,15 @@ internal fun TownLocationBuildings(
     }
 }
 
-/** Renders the town location signs UI. */
+/**
+ * Renders the town location signs UI.
+ *
+ * @param mapLeft The map left value used by this operation.
+ * @param mapTop The map top value used by this operation.
+ * @param tileWidth The tile width value used by this operation.
+ * @param tileHeight The tile height value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun TownLocationSigns(
     mapLeft: Float,

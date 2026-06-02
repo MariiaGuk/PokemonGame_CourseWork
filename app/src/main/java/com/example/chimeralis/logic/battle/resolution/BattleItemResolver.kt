@@ -15,7 +15,16 @@ class BattleItemResolver(
     private val moveReporter: BattleMoveReporter = BattleMoveReporter()
 ) {
 
-    /** Resolves an item action against the current battle state. */
+    /**
+     * Resolves an item action against the current battle state.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param target The target value used by this operation.
+     * @param player Domain object used by this operation: player.
+     * @param playerChimera The player chimera value used by this operation.
+     * @param enemyChimera The enemy chimera value used by this operation.
+     * @return The resulting BattleItemResolution value.
+     */
     fun resolve(
         item: Item,
         target: Chimera?,
@@ -30,7 +39,15 @@ class BattleItemResolver(
         }
     }
 
-    /** Resolves a regular battle item used on a player's chimera. */
+    /**
+     * Resolves a regular battle item used on a player's chimera.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param target The target value used by this operation.
+     * @param player Domain object used by this operation: player.
+     * @param playerChimera The player chimera value used by this operation.
+     * @return The resulting BattleItemResolution value.
+     */
     private fun resolveBattleItem(
         item: Item,
         target: Chimera,
@@ -56,7 +73,14 @@ class BattleItemResolver(
         )
     }
 
-    /** Resolves a capture item used against the enemy chimera. */
+    /**
+     * Resolves a capture item used against the enemy chimera.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param player Domain object used by this operation: player.
+     * @param enemyChimera The enemy chimera value used by this operation.
+     * @return The resulting BattleItemResolution value.
+     */
     private fun resolveCaptureItem(
         item: Item,
         player: Player,

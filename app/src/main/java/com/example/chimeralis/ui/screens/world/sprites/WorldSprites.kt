@@ -10,7 +10,13 @@ import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
 import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
-/** Handles service npc idle frame behavior. */
+/**
+ * Handles service npc idle frame behavior.
+ *
+ * @param interior The interior value used by this operation.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun serviceNpcIdleFrame(interior: TownInterior, frameIndex: Int): Int {
     val frames = when (interior) {
         TownInterior.ChimeraCenter -> nurseIdleFrames
@@ -20,7 +26,14 @@ internal fun serviceNpcIdleFrame(interior: TownInterior, frameIndex: Int): Int {
     return frames[frameIndex % frames.size]
 }
 
-/** Handles service npc dialog frame behavior. */
+/**
+ * Handles service npc dialog frame behavior.
+ *
+ * @param interior The interior value used by this operation.
+ * @param step Numeric value used by this operation: step.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun serviceNpcDialogFrame(interior: TownInterior, step: Int, frameIndex: Int): Int {
     val frames = when (interior) {
         TownInterior.ChimeraCenter -> if (step == 0) {
@@ -38,7 +51,14 @@ internal fun serviceNpcDialogFrame(interior: TownInterior, step: Int, frameIndex
     return frames[frameIndex % frames.size]
 }
 
-/** Handles player frame behavior. */
+/**
+ * Handles player frame behavior.
+ *
+ * @param direction The direction value used by this operation.
+ * @param isMoving Flag that controls or describes is moving.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: Int): Int {
     val frames = when {
         isMoving && direction == Direction.Down -> frontRunFrames
@@ -52,22 +72,43 @@ internal fun playerFrame(direction: Direction, isMoving: Boolean, frameIndex: In
     return frames[frameIndex % frames.size]
 }
 
-/** Handles shift npc idle frame behavior. */
+/**
+ * Handles shift npc idle frame behavior.
+ *
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun shiftNpcIdleFrame(frameIndex: Int): Int {
     return shiftNpcIdleFrames[frameIndex % shiftNpcIdleFrames.size]
 }
 
-/** Handles trainer npc idle frame behavior. */
+/**
+ * Handles trainer npc idle frame behavior.
+ *
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun trainerNpcIdleFrame(frameIndex: Int): Int {
     return trainerNpcIdleFrames[frameIndex % trainerNpcIdleFrames.size]
 }
 
-/** Handles trainer npc dialog frame behavior. */
+/**
+ * Handles trainer npc dialog frame behavior.
+ *
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun trainerNpcDialogFrame(frameIndex: Int): Int {
     return trainerNpcDialogFrames[frameIndex % trainerNpcDialogFrames.size]
 }
 
-/** Handles shift npc dialog frame behavior. */
+/**
+ * Handles shift npc dialog frame behavior.
+ *
+ * @param step Numeric value used by this operation: step.
+ * @param frameIndex Numeric value used by this operation: frame index.
+ * @return The calculated numeric value.
+ */
 internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
     val frames = when (step) {
         0 -> shiftNpcSeriousDialogFrames
@@ -78,7 +119,12 @@ internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
     return frames[frameIndex % frames.size]
 }
 
-/** Handles trainer npc dialog text behavior. */
+/**
+ * Handles trainer npc dialog text behavior.
+ *
+ * @param step Numeric value used by this operation: step.
+ * @return The text value produced by this operation.
+ */
 internal fun trainerNpcDialogText(step: Int): String {
     return if (step == 0) {
         "Hey! You look like you have a strong team. I have been waiting for a real challenge."
@@ -87,7 +133,12 @@ internal fun trainerNpcDialogText(step: Int): String {
     }
 }
 
-/** Handles shift npc dialog text behavior. */
+/**
+ * Handles shift npc dialog text behavior.
+ *
+ * @param step Numeric value used by this operation: step.
+ * @return The text value produced by this operation.
+ */
 internal fun shiftNpcDialogText(step: Int): String {
     return when (step) {
         0 -> "Hey, who are you and what do you want?"
@@ -208,15 +259,33 @@ internal val shiftNpcCalmDialogFrames = listOf(
     R.drawable.dialog_shift_npc_calm_2
 )
 
-/** Handles random wild chimera behavior. */
+/**
+ * Handles random wild chimera behavior.
+ *
+ * @param starter The starter value used by this operation.
+ * @return The resulting ChimeraSpecies value.
+ */
 internal fun randomWildChimera(starter: ChimeraSpecies?): ChimeraSpecies {
     return ChimeraFactory.wildSpecies().random()
 }
 
-/** Handles team image res behavior. */
+/**
+ * Handles team image res behavior.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The calculated numeric value.
+ */
 internal fun ChimeraSpecies.teamImageRes(): Int = chimeraImageRes()
 
-/** Draws the draw bush tile. */
+/**
+ * Draws the draw bush tile.
+ *
+ * @receiver The draw scope receiver used by this operation.
+ * @param left The left value used by this operation.
+ * @param top The top value used by this operation.
+ * @param tileSize The tile size value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBushTile(
     left: Float,
     top: Float,

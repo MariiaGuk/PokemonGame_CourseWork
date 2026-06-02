@@ -23,7 +23,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.ui.theme.CinzelFamily
 
-/** Renders the status plate UI. */
+/**
+ * Renders the status plate UI.
+ *
+ * @param name The name value used by this operation.
+ * @param level Numeric value used by this operation: level.
+ * @param currentHp The current hp value used by this operation.
+ * @param maxHp The max hp value used by this operation.
+ * @param currentExp The current exp value used by this operation.
+ * @param expToNextLevel The exp to next level value used by this operation.
+ * @param attackStage The attack stage value used by this operation.
+ * @param defenceStage The defence stage value used by this operation.
+ * @param speedStage The speed stage value used by this operation.
+ * @param refreshKey The refresh key value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun StatusPlate(
     name: String,
@@ -107,7 +122,13 @@ internal fun StatusPlate(
     }
 }
 
-/** Renders the exp bar UI. */
+/**
+ * Renders the exp bar UI.
+ *
+ * @param currentExp The current exp value used by this operation.
+ * @param expToNextLevel The exp to next level value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ExpBar(
     currentExp: Int,
@@ -156,7 +177,14 @@ internal fun ExpBar(
     }
 }
 
-/** Renders the stat stages row UI. */
+/**
+ * Renders the stat stages row UI.
+ *
+ * @param attackStage The attack stage value used by this operation.
+ * @param defenceStage The defence stage value used by this operation.
+ * @param speedStage The speed stage value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun StatStagesRow(
     attackStage: Int,
@@ -183,7 +211,14 @@ internal fun StatStagesRow(
     }
 }
 
-/** Renders the stat stage chip UI. */
+/**
+ * Renders the stat stage chip UI.
+ *
+ * @param label The label value used by this operation.
+ * @param value The value value used by this operation.
+ * @param modifier Compose modifier applied to the rendered component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun StatStageChip(
     label: String,

@@ -13,7 +13,12 @@ import com.example.chimeralis.logic.toSaveLookupKey
 /** Represents the game save mapper. */
 class GameSaveMapper {
 
-    /** Converts data into saved chimera. */
+    /**
+     * Converts data into saved chimera.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @return The resulting SavedChimera value.
+     */
     fun toSavedChimera(chimera: Chimera): SavedChimera {
         return SavedChimera(
             species = chimera.species,
@@ -31,7 +36,12 @@ class GameSaveMapper {
         )
     }
 
-    /** Converts data into chimera. */
+    /**
+     * Converts data into chimera.
+     *
+     * @param savedChimera The saved chimera value used by this operation.
+     * @return The resulting Chimera value.
+     */
     fun toChimera(savedChimera: SavedChimera): Chimera {
         return ChimeraFactory.createChimera(
             species = savedChimera.species,
@@ -53,7 +63,12 @@ class GameSaveMapper {
         }
     }
 
-    /** Converts data into inventory. */
+    /**
+     * Converts data into inventory.
+     *
+     * @param savedItems The saved items value used by this operation.
+     * @return The resulting Inventory value.
+     */
     fun toInventory(savedItems: List<SavedItem>): Inventory {
         return Inventory().also { inventory ->
             savedItems.forEach { savedItem ->
@@ -62,21 +77,47 @@ class GameSaveMapper {
         }
     }
 
-    /** Converts data into saved item. */
+    /**
+     * Converts data into saved item.
+     *
+     * @param item Domain object used by this operation: item.
+     * @param amount Numeric value used by this operation: amount.
+     * @return The resulting SavedItem value.
+     */
     fun toSavedItem(item: Item, amount: Int): SavedItem {
         return SavedItem(item.itemName, amount)
     }
 
-    /** Handles species save name behavior. */
+    /**
+     * Handles species save name behavior.
+     *
+     * @param species The species value used by this operation.
+     * @return The text value produced by this operation.
+     */
     fun speciesSaveName(species: ChimeraSpecies): String = battleName(species)
 
-    /** Handles item save name behavior. */
+    /**
+     * Handles item save name behavior.
+     *
+     * @param itemName The item name value used by this operation.
+     * @return The text value produced by this operation.
+     */
     fun itemSaveName(itemName: ItemName): String = itemName.displayName
 
-    /** Converts data into chimera species. */
+    /**
+     * Converts data into chimera species.
+     *
+     * @param value The value value used by this operation.
+     * @return The resolved chimera species value, or null when it is unavailable.
+     */
     fun toChimeraSpecies(value: String): ChimeraSpecies? = ChimeraFactory.speciesByName(value)
 
-    /** Converts data into item name. */
+    /**
+     * Converts data into item name.
+     *
+     * @param value The value value used by this operation.
+     * @return The resolved item name value, or null when it is unavailable.
+     */
     fun toItemName(value: String): ItemName? {
         val lookupKey = value.toSaveLookupKey()
         return ItemName.values().firstOrNull { itemName ->
@@ -84,7 +125,13 @@ class GameSaveMapper {
         }
     }
 
-    /** Restores a nickname only when it still passes current validation rules. */
+    /**
+     * Restores a nickname only when it still passes current validation rules.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @param nickname The nickname value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun restoreNickname(chimera: Chimera, nickname: String) {
         if (nickname.isBlank()) return
 
@@ -93,7 +140,13 @@ class GameSaveMapper {
         }
     }
 
-    /** Finds a saved PP row for a move using both enum and display-name formats. */
+    /**
+     * Finds a saved PP row for a move using both enum and display-name formats.
+     *
+     * @param move Domain object used by this operation: move.
+     * @param savedMoves The saved moves value used by this operation.
+     * @return The resolved saved move pp value, or null when it is unavailable.
+     */
     private fun savedMovePp(move: Move, savedMoves: List<SavedMovePp>): SavedMovePp? {
         val moveNameKey = move.name.toSaveLookupKey()
         val moveIdKey = move.id.name.toSaveLookupKey()
@@ -104,7 +157,12 @@ class GameSaveMapper {
         }
     }
 
-    /** Returns every persisted-name candidate accepted for one item. */
+    /**
+     * Returns every persisted-name candidate accepted for one item.
+     *
+     * @receiver The item name receiver used by this operation.
+     * @return The collection produced by this operation.
+     */
     private fun ItemName.saveLookupNames(): List<String> {
         return listOf(displayName, name) + legacySaveNames
     }
@@ -116,6 +174,11 @@ class GameSaveMapper {
             else -> emptyList()
         }
 
-    /** Handles battle name behavior. */
+    /**
+     * Handles battle name behavior.
+     *
+     * @param species The species value used by this operation.
+     * @return The text value produced by this operation.
+     */
     fun battleName(species: ChimeraSpecies): String = ChimeraFactory.speciesName(species)
 }

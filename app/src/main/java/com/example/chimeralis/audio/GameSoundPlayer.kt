@@ -19,7 +19,12 @@ object GameSoundPlayer {
     private var isEnabled: Boolean = true
     private var volume: Float = 1f
 
-    /** Handles initialize behavior. */
+    /**
+     * Handles initialize behavior.
+     *
+     * @param context Android context used to access application resources and services.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun initialize(context: Context) {
         if (soundPool != null) return
 
@@ -56,7 +61,14 @@ object GameSoundPlayer {
         preload(context, R.raw.end_transition)
     }
 
-    /** Handles play behavior. */
+    /**
+     * Handles play behavior.
+     *
+     * @param context Android context used to access application resources and services.
+     * @param soundResId The sound res id value used by this operation.
+     * @param force The force value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun play(context: Context, @RawRes soundResId: Int, force: Boolean = false) {
         if ((!isEnabled && !force) || volume <= 0f) return
 
@@ -73,20 +85,35 @@ object GameSoundPlayer {
         }
     }
 
-    /** Handles stop behavior. */
+    /**
+     * Handles stop behavior.
+     *
+     * @param soundResId The sound res id value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun stop(@RawRes soundResId: Int) {
         val pool = soundPool ?: return
         activeStreams.remove(soundResId)?.forEach(pool::stop)
     }
 
-    /** Handles stop battle result sounds behavior. */
+    /**
+     * Handles stop battle result sounds behavior.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun stopBattleResultSounds() {
         stop(R.raw.battle_victory)
         stop(R.raw.battle_loss)
         stop(R.raw.caught_a_chimera)
     }
 
-    /** Handles configure behavior. */
+    /**
+     * Handles configure behavior.
+     *
+     * @param enabled Flag that controls or describes enabled.
+     * @param soundVolume The sound volume value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun configure(enabled: Boolean, soundVolume: Float) {
         isEnabled = enabled
         volume = soundVolume.coerceIn(0f, 1f)
@@ -95,7 +122,11 @@ object GameSoundPlayer {
         }
     }
 
-    /** Handles release behavior. */
+    /**
+     * Handles release behavior.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun release() {
         soundPool?.release()
         soundPool = null
@@ -105,7 +136,13 @@ object GameSoundPlayer {
         pendingSounds.clear()
     }
 
-    /** Handles preload behavior. */
+    /**
+     * Handles preload behavior.
+     *
+     * @param context Android context used to access application resources and services.
+     * @param soundResId The sound res id value used by this operation.
+     * @return The calculated numeric value.
+     */
     private fun preload(context: Context, @RawRes soundResId: Int): Int {
         val existingId = soundIds[soundResId]
         if (existingId != null) return existingId
@@ -116,7 +153,13 @@ object GameSoundPlayer {
     }
 }
 
-/** Renders the game sound effects UI. */
+/**
+ * Renders the game sound effects UI.
+ *
+ * @param enabled Flag that controls or describes enabled.
+ * @param volume The volume value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun GameSoundEffects(
     enabled: Boolean = true,

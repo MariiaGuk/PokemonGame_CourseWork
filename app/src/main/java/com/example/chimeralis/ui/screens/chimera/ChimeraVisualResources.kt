@@ -11,7 +11,12 @@ import com.example.chimeralis.R
 
 private var validatedCatalog: ChimeraCatalog? = null
 
-/** Validates that all chimera visual resource names exist in drawable resources. */
+/**
+ * Validates that all chimera visual resource names exist in drawable resources.
+ *
+ * @param catalog Domain object used by this operation: catalog.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 internal fun validateChimeraVisualResourceMappings(
     catalog: ChimeraCatalog = ChimeraFactory.catalog
 ) {
@@ -35,7 +40,12 @@ internal fun validateChimeraVisualResourceMappings(
     validatedCatalog = catalog
 }
 
-/** Resolves the main image from the species visual definition. */
+/**
+ * Resolves the main image from the species visual definition.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The calculated numeric value.
+ */
 internal fun ChimeraSpecies.chimeraImageRes(): Int {
     validateChimeraVisualResourceMappings()
 
@@ -46,7 +56,12 @@ internal fun ChimeraSpecies.chimeraImageRes(): Int {
     )
 }
 
-/** Selects the starter card accent color from the species type. */
+/**
+ * Selects the starter card accent color from the species type.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The resulting Color value.
+ */
 internal fun ChimeraSpecies.starterAccentColor(): Color {
     return when (ChimeraFactory.speciesType(this)) {
         ChimeraType.FIRE -> Color(0xFFFF6A2A)
@@ -56,7 +71,12 @@ internal fun ChimeraSpecies.starterAccentColor(): Color {
     }
 }
 
-/** Selects the starter card shadow color from the species type. */
+/**
+ * Selects the starter card shadow color from the species type.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The resulting Color value.
+ */
 internal fun ChimeraSpecies.starterShadowColor(): Color {
     return when (ChimeraFactory.speciesType(this)) {
         ChimeraType.FIRE -> Color(0xFF5A1708)
@@ -66,7 +86,13 @@ internal fun ChimeraSpecies.starterShadowColor(): Color {
     }
 }
 
-/** Resolves move animation frames from the species visual definition. */
+/**
+ * Resolves move animation frames from the species visual definition.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @param moveId The move id value used by this operation.
+ * @return The collection produced by this operation.
+ */
 internal fun ChimeraSpecies.battleMoveFrames(moveId: MoveName?): List<Int> {
     if (moveId == null) return emptyList()
 
@@ -83,7 +109,14 @@ internal fun ChimeraSpecies.battleMoveFrames(moveId: MoveName?): List<Int> {
         }
 }
 
-/** Validates every visual resource configured for one definition. */
+/**
+ * Validates every visual resource configured for one definition.
+ *
+ * @param index Numeric value used by this operation: index.
+ * @param definition The definition value used by this operation.
+ * @param errors The errors value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 private fun validateDefinitionVisualResources(
     index: Int,
     definition: ChimeraDefinition,
@@ -101,7 +134,15 @@ private fun validateDefinitionVisualResources(
     }
 }
 
-/** Validates one drawable resource name and appends a detailed error if it is missing. */
+/**
+ * Validates one drawable resource name and appends a detailed error if it is missing.
+ *
+ * @param label The label value used by this operation.
+ * @param usage The usage value used by this operation.
+ * @param name The name value used by this operation.
+ * @param errors The errors value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 private fun validateDrawableResource(
     label: String,
     usage: String,
@@ -113,23 +154,45 @@ private fun validateDrawableResource(
     }
 }
 
-/** Resolves a drawable id or throws a resource-specific configuration error. */
+/**
+ * Resolves a drawable id or throws a resource-specific configuration error.
+ *
+ * @param name The name value used by this operation.
+ * @param usage The usage value used by this operation.
+ * @return The calculated numeric value.
+ */
 private fun requireDrawableResourceId(name: String, usage: String): Int {
     return drawableResourceId(name)
         ?: throw IllegalArgumentException("Missing drawable resource '$name' for $usage.")
 }
 
-/** Finds a drawable id by the resource name configured in the catalog. */
+/**
+ * Finds a drawable id by the resource name configured in the catalog.
+ *
+ * @param name The name value used by this operation.
+ * @return The resolved int value, or null when it is unavailable.
+ */
 private fun drawableResourceId(name: String): Int? {
     return drawableResourceIds[name]
 }
 
-/** Formats one catalog definition for visual resource errors. */
+/**
+ * Formats one catalog definition for visual resource errors.
+ *
+ * @receiver The chimera definition receiver used by this operation.
+ * @param index Numeric value used by this operation: index.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraDefinition.catalogLabel(index: Int): String {
     return "definition #$index (${species.catalogName()}, displayName='$displayName')"
 }
 
-/** Formats one species identifier for visual resource errors. */
+/**
+ * Formats one species identifier for visual resource errors.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraSpecies.catalogName(): String {
     return javaClass.simpleName
 }

@@ -69,7 +69,12 @@ class BattleManager(
         markPlayerParticipant(playerChimera)
     }
 
-    /** Executes one player action and returns UI log messages with animations. */
+    /**
+     * Executes one player action and returns UI log messages with animations.
+     *
+     * @param playerAction The player action value used by this operation.
+     * @return The resulting BattleTurnResult value.
+     */
     fun performTurnWithAnimations(playerAction: BattleAction): BattleTurnResult {
         val log = mutableListOf<String>()
         val animations = mutableListOf<BattleMoveAnimation>()
@@ -153,12 +158,21 @@ class BattleManager(
         )
     }
 
-    /** Applies the player's decision for a pending move-learning request. */
+    /**
+     * Applies the player's decision for a pending move-learning request.
+     *
+     * @param replaceIndex The replace index value used by this operation.
+     * @return The collection produced by this operation.
+     */
     fun resolvePendingMoveLearning(replaceIndex: Int?): List<String> {
         return moveLearningResolver.resolve(replaceIndex)
     }
 
-    /** Sends out the next enemy chimera after the faint log has been shown. */
+    /**
+     * Sends out the next enemy chimera after the faint log has been shown.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun resolvePendingEnemySwitch() {
         val nextChimera = pendingEnemySwitch ?: return
         if (nextChimera.stats.isAlive()) {
@@ -167,12 +181,22 @@ class BattleManager(
         pendingEnemySwitch = null
     }
 
-    /** Applies a queued evolution when the post-battle animation starts. */
+    /**
+     * Applies a queued evolution when the post-battle animation starts.
+     *
+     * @param event The event value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun applyEvolution(event: ChimeraEvolutionEvent) {
         evolutionQueue.apply(event, player, playerBattleParticipants)
     }
 
-    /** Executes an enemy move and resolves resulting faint states. */
+    /**
+     * Executes an enemy move and resolves resulting faint states.
+     *
+     * @param log The log value used by this operation.
+     * @return The resulting BattleMoveAnimation value.
+     */
     private fun enemyTurn(log: MutableList<String>): BattleMoveAnimation {
         val enemyMove = enemyMoveSelector.selectMove(enemyChimera)
         val beforeTargetStats = playerChimera.stats.toBattleStatsSnapshot()
@@ -195,7 +219,13 @@ class BattleManager(
         return animation
     }
 
-    /** Executes a player move and resolves resulting faint states. */
+    /**
+     * Executes a player move and resolves resulting faint states.
+     *
+     * @param playerMove The player move value used by this operation.
+     * @param log The log value used by this operation.
+     * @return The resulting BattleMoveAnimation value.
+     */
     private fun playerTurn(playerMove: Move, log: MutableList<String>): BattleMoveAnimation {
         markPlayerParticipant(playerChimera)
         val beforeTargetStats = enemyChimera.stats.toBattleStatsSnapshot()
@@ -218,7 +248,14 @@ class BattleManager(
         return animation
     }
 
-    /** Applies the result of an item action to the battle manager state. */
+    /**
+     * Applies the result of an item action to the battle manager state.
+     *
+     * @param resolution The resolution value used by this operation.
+     * @param log The log value used by this operation.
+     * @param animations The animations value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun applyItemResolution(
         resolution: BattleItemResolution,
         log: MutableList<String>,
@@ -232,20 +269,37 @@ class BattleManager(
         }
     }
 
-    /** Switches the active chimera and marks it as a battle participant. */
+    /**
+     * Switches the active chimera and marks it as a battle participant.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @param log The log value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun switchChimera(chimera: Chimera, log: MutableList<String>) {
         player.switchChimera(chimera)
         markPlayerParticipant(chimera)
         log.add("Go, ${chimera.name}!")
     }
 
-    /** Resolves the player's active chimera fainting. */
+    /**
+     * Resolves the player's active chimera fainting.
+     *
+     * @param log The log value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun resolvePlayerFaint(log: MutableList<String>) {
         val resolution = faintResolver.resolvePlayerFaint(player) ?: return
         applyPlayerFaintResolution(resolution, log)
     }
 
-    /** Applies a player faint or forced-switch result to the battle state. */
+    /**
+     * Applies a player faint or forced-switch result to the battle state.
+     *
+     * @param resolution The resolution value used by this operation.
+     * @param log The log value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun applyPlayerFaintResolution(
         resolution: PlayerFaintResolution,
         log: MutableList<String>
@@ -255,7 +309,13 @@ class BattleManager(
         log.add(resolution.message)
     }
 
-    /** Resolves the enemy chimera fainting and battle victory rewards. */
+    /**
+     * Resolves the enemy chimera fainting and battle victory rewards.
+     *
+     * @param log The log value used by this operation.
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun resolveEnemyFaint(log: MutableList<String>, defeatedChimera: Chimera) {
         val resolution = faintResolver.resolveEnemyFaint(enemy, defeatedChimera) ?: return
 
@@ -268,12 +328,23 @@ class BattleManager(
         }
     }
 
-    /** Prompts a forced switch or ends the battle when the player is defeated. */
+    /**
+     * Prompts a forced switch or ends the battle when the player is defeated.
+     *
+     * @param log The log value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun promptForcedSwitch(log: MutableList<String>) {
         applyPlayerFaintResolution(faintResolver.promptForcedSwitch(player), log)
     }
 
-    /** Attempts to escape from the battle and lets the enemy act on failure. */
+    /**
+     * Attempts to escape from the battle and lets the enemy act on failure.
+     *
+     * @param log The log value used by this operation.
+     * @param animations The animations value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun tryRun(
         log: MutableList<String>,
         animations: MutableList<BattleMoveAnimation>
@@ -293,25 +364,47 @@ class BattleManager(
         }
     }
 
-    /** Awards experience to all participating player chimeras. */
+    /**
+     * Awards experience to all participating player chimeras.
+     *
+     * @param log The log value used by this operation.
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun awardExperience(log: MutableList<String>, defeatedChimera: Chimera) {
         rewardCalculator.awardExperience(playerBattleParticipants, defeatedChimera, log)
         queueReadyEvolutions()
     }
 
-    /** Queues evolution events without changing battle sprites or team members yet. */
+    /**
+     * Queues evolution events without changing battle sprites or team members yet.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun queueReadyEvolutions() {
         evolutionQueue.queueReadyEvolutions(playerBattleParticipants)
     }
 
-    /** Records a living player chimera as eligible for experience. */
+    /**
+     * Records a living player chimera as eligible for experience.
+     *
+     * @param chimera Domain object used by this operation: chimera.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun markPlayerParticipant(chimera: Chimera) {
         if (chimera.stats.isAlive()) {
             playerBattleParticipants.add(chimera)
         }
     }
 
-    /** Executes one move using the battle's injected accuracy resolver. */
+    /**
+     * Executes one move using the battle's injected accuracy resolver.
+     *
+     * @param move Domain object used by this operation: move.
+     * @param attacker The attacker value used by this operation.
+     * @param target The target value used by this operation.
+     * @return The resulting MoveExecutionResult value.
+     */
     private fun executeMove(
         move: Move,
         attacker: Chimera,
@@ -324,7 +417,13 @@ class BattleManager(
         )
     }
 
-    /** Awards money after defeating an enemy trainer or wild chimera. */
+    /**
+     * Awards money after defeating an enemy trainer or wild chimera.
+     *
+     * @param log The log value used by this operation.
+     * @param defeatedChimera The defeated chimera value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun awardMoney(log: MutableList<String>, defeatedChimera: Chimera) {
         rewardCalculator.awardMoney(player, defeatedChimera, log)
     }

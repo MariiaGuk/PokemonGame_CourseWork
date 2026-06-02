@@ -23,7 +23,26 @@ import com.example.chimeralis.ui.screens.world.sprites.serviceNpcIdleFrame
 import com.example.chimeralis.ui.screens.world.WorldZoom
 import kotlin.math.roundToInt
 
-/** Renders the town interior scene UI. */
+/**
+ * Renders the town interior scene UI.
+ *
+ * @receiver The box scope receiver used by this operation.
+ * @param interior The interior value used by this operation.
+ * @param interiorData The interior data value used by this operation.
+ * @param widthPx The width px value used by this operation.
+ * @param heightPx The height px value used by this operation.
+ * @param imageSizePx The image size px value used by this operation.
+ * @param imageLeft The image left value used by this operation.
+ * @param imageTop The image top value used by this operation.
+ * @param tileSize The tile size value used by this operation.
+ * @param animatedColumn The animated column value used by this operation.
+ * @param animatedRow The animated row value used by this operation.
+ * @param direction The direction value used by this operation.
+ * @param isMoving Flag that controls or describes is moving.
+ * @param animationFrame The animation frame value used by this operation.
+ * @param serviceNpcIdleFrame The service npc idle frame value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BoxScope.TownInteriorScene(
     interior: TownInterior,

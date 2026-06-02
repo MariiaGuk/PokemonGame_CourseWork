@@ -13,7 +13,19 @@ import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMo
 import com.example.chimeralis.ui.screens.battle.state.BattleUiState
 import kotlinx.coroutines.delay
 
-/** Runs battle-screen side effects that react to UI state changes. */
+/**
+ * Runs battle-screen side effects that react to UI state changes.
+ *
+ * @param player Domain object used by this operation: player.
+ * @param battleManager The battle manager value used by this operation.
+ * @param uiState The ui state value used by this operation.
+ * @param playerChimera The player chimera value used by this operation.
+ * @param wildChimera The wild chimera value used by this operation.
+ * @param isTrainerBattle Flag that controls or describes is trainer battle.
+ * @param battleSoundEvents The battle sound events value used by this operation.
+ * @param onBattleFinished Callback invoked when battle finished occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun BattleScreenEffects(
     player: Player,

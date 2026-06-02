@@ -16,7 +16,12 @@ private val ChimeralisColorScheme = darkColorScheme(
     onSurface = Gold,
 )
 
-/** Renders the chimeralis theme UI. */
+/**
+ * Renders the chimeralis theme UI.
+ *
+ * @param content Composable content rendered inside this component.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 fun ChimeralisTheme(content: @Composable () -> Unit) {
     MaterialTheme(

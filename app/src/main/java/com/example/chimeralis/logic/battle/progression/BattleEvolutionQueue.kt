@@ -16,12 +16,21 @@ class BattleEvolutionQueue(
     val events: List<ChimeraEvolutionEvent>
         get() = pendingEvents.toList()
 
-    /** Clears events already returned with the latest battle result. */
+    /**
+     * Clears events already returned with the latest battle result.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun clearPendingEvents() {
         pendingEvents.clear()
     }
 
-    /** Queues all participant evolutions that became available after battle rewards. */
+    /**
+     * Queues all participant evolutions that became available after battle rewards.
+     *
+     * @param participants The participants value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun queueReadyEvolutions(participants: Collection<Chimera>) {
         participants.forEach { chimera ->
             if (!evolutionService.canEvolve(chimera) || chimera in queuedSources) return@forEach
@@ -41,7 +50,14 @@ class BattleEvolutionQueue(
         }
     }
 
-    /** Applies one selected evolution to the player's team and battle participants. */
+    /**
+     * Applies one selected evolution to the player's team and battle participants.
+     *
+     * @param event The event value used by this operation.
+     * @param player Domain object used by this operation: player.
+     * @param participants The participants value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun apply(
         event: ChimeraEvolutionEvent,
         player: Player,

@@ -10,7 +10,12 @@ import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.navigation.GameScreen
 import com.example.chimeralis.ui.screens.world.model.Direction
 
-/** Handles reset for new game behavior. */
+/**
+ * Handles reset for new game behavior.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 fun GameSessionState.resetForNewGame() {
     trainerName = ""
     trainerNameError = null
@@ -32,7 +37,14 @@ fun GameSessionState.resetForNewGame() {
     trainerBattleKey = null
 }
 
-/** Handles start new game behavior. */
+/**
+ * Handles start new game behavior.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param starter The starter value used by this operation.
+ * @param nickname The nickname value used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 fun GameSessionState.startNewGame(starter: ChimeraSpecies, nickname: String) {
     val starterChimera = ChimeraFactory.createChimera(starter, level = 5)
     if (nickname.isNotBlank()) {
@@ -59,7 +71,11 @@ fun GameSessionState.startNewGame(starter: ChimeraSpecies, nickname: String) {
     lastSavedLocation = SavedGameLocation.LavaField
 }
 
-/** Creates the create starting inventory. */
+/**
+ * Creates the create starting inventory.
+ *
+ * @return The resulting Inventory value.
+ */
 private fun createStartingInventory(): Inventory {
     return Inventory().also { inventory ->
         inventory.addItem(ItemFactory.createItem(ItemName.POTION), 3)

@@ -9,18 +9,33 @@ object ItemFactory {
         validateCatalog(catalog)
     }
 
-    /** Replaces the catalog source for alternative item data. */
+    /**
+     * Replaces the catalog source for alternative item data.
+     *
+     * @param newCatalog The new catalog value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun configureCatalog(newCatalog: ItemCatalog) {
         validateCatalog(newCatalog)
         catalog = newCatalog
     }
 
-    /** Builds an item with the effects required by its name. */
+    /**
+     * Builds an item with the effects required by its name.
+     *
+     * @param itemName The item name value used by this operation.
+     * @return The resulting Item value.
+     */
     fun createItem(itemName: ItemName): Item {
         return catalog.definitionFor(itemName).createItem()
     }
 
-    /** Validates that the catalog covers every item id exactly once. */
+    /**
+     * Validates that the catalog covers every item id exactly once.
+     *
+     * @param catalog Domain object used by this operation: catalog.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateCatalog(catalog: ItemCatalog) {
         val itemNames = catalog.definitions.map { definition -> definition.itemName }
         require(itemNames.toSet().size == itemNames.size) { "Item catalog contains duplicate item names" }

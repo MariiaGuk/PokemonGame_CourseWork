@@ -6,7 +6,12 @@ import com.example.chimeralis.logic.toSaveLookupKey
 /** Validates chimera catalog consistency and reports all detected issues at once. */
 internal object ChimeraCatalogValidator {
 
-    /** Validates that a catalog can safely be used by factories and save mapping. */
+    /**
+     * Validates that a catalog can safely be used by factories and save mapping.
+     *
+     * @param catalog Domain object used by this operation: catalog.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     fun validate(catalog: ChimeraCatalog) {
         val definitions = catalog.definitions
         val errors = mutableListOf<String>()
@@ -31,7 +36,13 @@ internal object ChimeraCatalogValidator {
         }
     }
 
-    /** Validates that every species appears only once in the catalog. */
+    /**
+     * Validates that every species appears only once in the catalog.
+     *
+     * @param definitions The definitions value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateSpeciesUniqueness(
         definitions: List<ChimeraDefinition>,
         errors: MutableList<String>
@@ -46,7 +57,13 @@ internal object ChimeraCatalogValidator {
             }
     }
 
-    /** Validates required fields inside every definition. */
+    /**
+     * Validates required fields inside every definition.
+     *
+     * @param definitions The definitions value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateDefinitionFields(
         definitions: List<ChimeraDefinition>,
         errors: MutableList<String>
@@ -82,7 +99,14 @@ internal object ChimeraCatalogValidator {
         }
     }
 
-    /** Validates required visual resource names for one definition. */
+    /**
+     * Validates required visual resource names for one definition.
+     *
+     * @param label The label value used by this operation.
+     * @param visuals The visuals value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateVisuals(
         label: String,
         visuals: ChimeraVisualSet,
@@ -106,7 +130,14 @@ internal object ChimeraCatalogValidator {
         }
     }
 
-    /** Validates that base stat factories are executable and produce usable stats. */
+    /**
+     * Validates that base stat factories are executable and produce usable stats.
+     *
+     * @param label The label value used by this operation.
+     * @param definition The definition value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateBaseStatsFactory(
         label: String,
         definition: ChimeraDefinition,
@@ -128,7 +159,13 @@ internal object ChimeraCatalogValidator {
         }
     }
 
-    /** Validates save names and aliases used by save-file lookup. */
+    /**
+     * Validates save names and aliases used by save-file lookup.
+     *
+     * @param definitions The definitions value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateLookupNames(
         definitions: List<ChimeraDefinition>,
         errors: MutableList<String>
@@ -171,7 +208,13 @@ internal object ChimeraCatalogValidator {
             }
     }
 
-    /** Validates evolution targets, levels, and cycles. */
+    /**
+     * Validates evolution targets, levels, and cycles.
+     *
+     * @param definitions The definitions value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateEvolutionRules(
         definitions: List<ChimeraDefinition>,
         errors: MutableList<String>
@@ -207,7 +250,13 @@ internal object ChimeraCatalogValidator {
         }
     }
 
-    /** Validates that required gameplay pools are not accidentally empty. */
+    /**
+     * Validates that required gameplay pools are not accidentally empty.
+     *
+     * @param definitions The definitions value used by this operation.
+     * @param errors The errors value used by this operation.
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
     private fun validateAvailability(
         definitions: List<ChimeraDefinition>,
         errors: MutableList<String>
@@ -223,17 +272,34 @@ internal object ChimeraCatalogValidator {
         }
     }
 
-    /** Formats one definition for validation errors. */
+    /**
+     * Formats one definition for validation errors.
+     *
+     * @receiver The chimera definition receiver used by this operation.
+     * @param index Numeric value used by this operation: index.
+     * @return The text value produced by this operation.
+     */
     private fun ChimeraDefinition.catalogLabel(index: Int): String {
         return "definition #$index (${species.catalogName()}, displayName='$displayName')"
     }
 
-    /** Formats one species identifier for validation errors. */
+    /**
+     * Formats one species identifier for validation errors.
+     *
+     * @receiver The chimera species receiver used by this operation.
+     * @return The text value produced by this operation.
+     */
     private fun ChimeraSpecies.catalogName(): String {
         return javaClass.simpleName
     }
 
-    /** Returns a readable cycle path if this species belongs to an evolution cycle. */
+    /**
+     * Returns a readable cycle path if this species belongs to an evolution cycle.
+     *
+     * @receiver The chimera species receiver used by this operation.
+     * @param evolutionTargets The evolution targets value used by this operation.
+     * @return The resolved string value, or null when it is unavailable.
+     */
     private fun ChimeraSpecies.evolutionCycle(
         evolutionTargets: Map<ChimeraSpecies, ChimeraSpecies?>
     ): String? {

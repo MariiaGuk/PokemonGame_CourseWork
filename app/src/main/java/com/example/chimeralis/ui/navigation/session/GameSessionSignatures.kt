@@ -5,7 +5,12 @@ import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
 
-/** Handles team signature behavior. */
+/**
+ * Handles team signature behavior.
+ *
+ * @receiver The player receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 internal fun Player.teamSignature(): String {
     val teamState = team.joinToString(separator = "|") { chimera -> chimera.signature() }
     val storageState = storage.joinToString(separator = "|") { chimera -> chimera.signature() }
@@ -16,7 +21,12 @@ internal fun Player.teamSignature(): String {
     return "$teamState#$storageState#$inventoryState#$money"
 }
 
-/** Handles signature behavior. */
+/**
+ * Handles signature behavior.
+ *
+ * @receiver The chimera receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun Chimera.signature(): String {
     return listOf(
         species.battleName(),
@@ -32,5 +42,10 @@ private fun Chimera.signature(): String {
     ).joinToString(separator = ":")
 }
 
-/** Handles battle name behavior. */
+/**
+ * Handles battle name behavior.
+ *
+ * @receiver The chimera species receiver used by this operation.
+ * @return The text value produced by this operation.
+ */
 private fun ChimeraSpecies.battleName(): String = ChimeraFactory.speciesName(this)

@@ -52,7 +52,18 @@ import com.example.chimeralis.ui.screens.world.sprites.serviceNpcDialogFrame
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
 
-/** Renders the service npc dialog overlay UI. */
+/**
+ * Renders the service npc dialog overlay UI.
+ *
+ * @param interior The interior value used by this operation.
+ * @param step Numeric value used by this operation: step.
+ * @param message The message value used by this operation.
+ * @param onNext Callback invoked when next occurs.
+ * @param onHeal Callback invoked when heal occurs.
+ * @param onOpenShop Callback invoked when open shop occurs.
+ * @param onClose Callback invoked when close occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ServiceNpcDialogOverlay(
     interior: TownInterior,
@@ -144,7 +155,11 @@ internal fun ServiceNpcDialogOverlay(
     }
 }
 
-/** Renders the healing overlay UI. */
+/**
+ * Renders the healing overlay UI.
+ *
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun HealingOverlay() {
     Box(
@@ -167,7 +182,16 @@ internal fun HealingOverlay() {
     }
 }
 
-/** Renders the shop overlay UI. */
+/**
+ * Renders the shop overlay UI.
+ *
+ * @param money The money value used by this operation.
+ * @param inventoryItems The inventory items value used by this operation.
+ * @param message The message value used by this operation.
+ * @param onBuyItem Callback invoked when buy item occurs.
+ * @param onClose Callback invoked when close occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ShopOverlay(
     money: Int,
@@ -255,7 +279,18 @@ internal fun ShopOverlay(
     }
 }
 
-/** Renders the shop item row UI. */
+/**
+ * Renders the shop item row UI.
+ *
+ * @param itemName The item name value used by this operation.
+ * @param amount Numeric value used by this operation: amount.
+ * @param ownedAmount The owned amount value used by this operation.
+ * @param maxPurchasableAmount The max purchasable amount value used by this operation.
+ * @param canAfford Flag that controls or describes can afford.
+ * @param onAmountChanged Callback invoked when amount changed occurs.
+ * @param onBuyItem Callback invoked when buy item occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ShopItemRow(
     itemName: ItemName,
@@ -362,7 +397,14 @@ internal fun ShopItemRow(
     }
 }
 
-/** Renders the shop stepper button UI. */
+/**
+ * Renders the shop stepper button UI.
+ *
+ * @param label The label value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param onClick Callback invoked when click occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun ShopStepperButton(
     label: String,

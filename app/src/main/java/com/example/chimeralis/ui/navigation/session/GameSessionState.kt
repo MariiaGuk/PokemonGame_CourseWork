@@ -60,7 +60,12 @@ class GameSessionState(
                 teamSignature != lastSavedTeamSignature
 }
 
-/** Remembers the remember game session state state. */
+/**
+ * Remembers the remember game session state state.
+ *
+ * @param saveStore The save store value used by this operation.
+ * @return The resulting GameSessionState value.
+ */
 @Composable
 fun rememberGameSessionState(saveStore: GameSaveStore): GameSessionState {
     return remember(saveStore) { GameSessionState(saveStore) }

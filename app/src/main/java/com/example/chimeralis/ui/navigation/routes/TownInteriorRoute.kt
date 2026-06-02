@@ -19,7 +19,16 @@ import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.interior.TownInteriorScreen
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
-/** Renders the town interior route UI. */
+/**
+ * Renders the town interior route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param interior The interior value used by this operation.
+ * @param transition The transition value used by this operation.
+ * @param context Android context used to access application resources and services.
+ * @param onExitGame Callback invoked when exit game occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
 @Composable
 internal fun GameSessionState.TownInteriorRoute(
     interior: TownInterior,

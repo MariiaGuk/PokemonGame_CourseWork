@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.ui.components.MenuButton
-import com.example.chimeralis.ui.screens.world.locations.TownSign
+import com.example.chimeralis.ui.screens.world.locations.model.TownSign
 import com.example.chimeralis.ui.screens.world.SmallWorldMenuButton
 import com.example.chimeralis.ui.screens.world.sprites.shiftNpcDialogFrame
 import com.example.chimeralis.ui.screens.world.sprites.shiftNpcDialogText

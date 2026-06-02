@@ -4,14 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.example.chimeralis.logic.battle.BattleAction
 import com.example.chimeralis.logic.battle.BattleManager
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
-import com.example.chimeralis.logic.battle.BattleSide
-import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleSide
+import com.example.chimeralis.logic.battle.model.ChimeraEvolutionEvent
 import com.example.chimeralis.logic.battle.reporting.toBattleStatsSnapshot
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.ui.screens.battle.presentation.BattleFeedback
-import com.example.chimeralis.ui.screens.battle.presentation.BattlePanelMode
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedback
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMode
 
 /** Represents the battle ui state. */
 internal class BattleUiState(

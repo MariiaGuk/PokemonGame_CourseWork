@@ -7,12 +7,6 @@ import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.battle.components.EvolutionRevealMillis
 import kotlinx.coroutines.delay
 
-/** Describes one sound that should be played for a battle event. */
-internal data class BattleSoundEvent(
-    @param:RawRes val soundResId: Int,
-    val startsBattleResult: Boolean = false
-)
-
 /** Maps battle log messages and scripted battle moments to sound playback. */
 internal class BattleSoundEventHandler(
     private val context: Context,

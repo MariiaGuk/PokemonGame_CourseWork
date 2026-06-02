@@ -4,9 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
-import com.example.chimeralis.logic.battle.BattleSide
-import com.example.chimeralis.logic.battle.BattleStatsSnapshot
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleSide
+import com.example.chimeralis.logic.battle.model.BattleStatsSnapshot
 import com.example.chimeralis.logic.battle.reporting.toBattleStatsSnapshot
 import com.example.chimeralis.logic.chimeras.Chimera
 

@@ -7,12 +7,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.example.chimeralis.data.GameSaveStore
-import com.example.chimeralis.data.SavedGameLocation
+import com.example.chimeralis.data.save.GameSaveStore
+import com.example.chimeralis.data.save.SavedGameLocation
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.navigation.GameScreen
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 
 /** Represents the game session state. */
 class GameSessionState(

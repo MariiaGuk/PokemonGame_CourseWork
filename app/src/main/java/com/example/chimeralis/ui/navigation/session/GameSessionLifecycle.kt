@@ -1,6 +1,6 @@
 package com.example.chimeralis.ui.navigation.session
 
-import com.example.chimeralis.data.SavedGameLocation
+import com.example.chimeralis.data.save.SavedGameLocation
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.items.Inventory
@@ -8,7 +8,7 @@ import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.navigation.GameScreen
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 
 /** Handles reset for new game behavior. */
 fun GameSessionState.resetForNewGame() {

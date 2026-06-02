@@ -1,21 +1,12 @@
 package com.example.chimeralis.logic.battle.resolution
 
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
 import com.example.chimeralis.logic.battle.reporting.BattleMoveReporter
 import com.example.chimeralis.logic.battle.reporting.toBattleStatsSnapshot
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.logic.trainers.PlayerChimeraPlacement
-
-/** Describes the result of resolving one item action. */
-data class BattleItemResolution(
-    val log: List<String>,
-    val animation: BattleMoveAnimation? = null,
-    val shouldEnemyAct: Boolean = false,
-    val isBattleActive: Boolean = true,
-    val caughtChimera: Chimera? = null
-)
 
 /** Resolves battle item usage, including capture-item flow. */
 class BattleItemResolver(

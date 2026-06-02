@@ -1,8 +1,8 @@
 package com.example.chimeralis.logic.battle.scenario
 
 import com.example.chimeralis.logic.battle.BattleManager
-import com.example.chimeralis.logic.battle.DefaultRandomProvider
-import com.example.chimeralis.logic.battle.RandomProvider
+import com.example.chimeralis.logic.battle.random.DefaultRandomProvider
+import com.example.chimeralis.logic.battle.random.RandomProvider
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.NPC

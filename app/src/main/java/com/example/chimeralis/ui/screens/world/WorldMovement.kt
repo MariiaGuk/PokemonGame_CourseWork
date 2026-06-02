@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.IntOffset
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
+import com.example.chimeralis.ui.screens.world.model.Direction
 
 /** Renders the joystick UI. */
 @Composable

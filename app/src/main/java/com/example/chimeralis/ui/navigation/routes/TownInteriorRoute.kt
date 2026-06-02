@@ -15,7 +15,7 @@ import com.example.chimeralis.ui.navigation.session.swapTeamMembers
 import com.example.chimeralis.ui.navigation.session.swapTeamWithStorage
 import com.example.chimeralis.ui.navigation.session.useInventoryItem
 import com.example.chimeralis.ui.navigation.session.withdrawStoredChimera
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.interior.TownInteriorScreen
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 

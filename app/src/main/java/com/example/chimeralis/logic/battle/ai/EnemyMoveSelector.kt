@@ -1,7 +1,7 @@
 package com.example.chimeralis.logic.battle.ai
 
-import com.example.chimeralis.logic.battle.DefaultRandomProvider
-import com.example.chimeralis.logic.battle.RandomProvider
+import com.example.chimeralis.logic.battle.random.DefaultRandomProvider
+import com.example.chimeralis.logic.battle.random.RandomProvider
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move
 

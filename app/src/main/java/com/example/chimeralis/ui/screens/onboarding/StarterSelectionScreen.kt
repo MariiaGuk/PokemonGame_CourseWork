@@ -51,14 +51,7 @@ import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
 import com.example.chimeralis.ui.screens.chimera.starterAccentColor
 import com.example.chimeralis.ui.screens.chimera.starterShadowColor
 import com.example.chimeralis.ui.theme.CinzelFamily
-
-/** Stores starter option data. */
-private data class StarterOption(
-    val species: ChimeraSpecies,
-    val accent: Color,
-    val shadow: Color,
-    val imageRes: Int
-)
+import com.example.chimeralis.ui.screens.onboarding.model.StarterOption
 
 /** Renders the starter selection screen UI. */
 @Composable

@@ -1,8 +1,8 @@
 package com.example.chimeralis.logic.battle.progression
 
-import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
+import com.example.chimeralis.logic.battle.model.ChimeraEvolutionEvent
 import com.example.chimeralis.logic.chimeras.Chimera
-import com.example.chimeralis.logic.chimeras.ChimeraEvolutionService
+import com.example.chimeralis.logic.chimeras.evolution.ChimeraEvolutionService
 import com.example.chimeralis.logic.trainers.Player
 
 /** Queues and applies post-battle chimera evolutions. */

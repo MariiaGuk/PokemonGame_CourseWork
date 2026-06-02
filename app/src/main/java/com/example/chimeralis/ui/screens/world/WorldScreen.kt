@@ -55,6 +55,9 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlinx.coroutines.delay
+import com.example.chimeralis.ui.screens.world.model.Direction
+import com.example.chimeralis.ui.screens.world.model.WorldField
+import com.example.chimeralis.ui.screens.world.model.ExitAction
 
 /** Renders the world screen UI. */
 @Composable

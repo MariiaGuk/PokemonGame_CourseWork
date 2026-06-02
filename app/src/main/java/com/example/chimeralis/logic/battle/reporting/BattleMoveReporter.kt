@@ -1,11 +1,11 @@
 package com.example.chimeralis.logic.battle.reporting
 
-import com.example.chimeralis.logic.battle.BattleAnimationKind
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
-import com.example.chimeralis.logic.battle.BattleMoveFeedback
-import com.example.chimeralis.logic.battle.BattleMoveFeedbackType
-import com.example.chimeralis.logic.battle.BattleSide
-import com.example.chimeralis.logic.battle.BattleStatsSnapshot
+import com.example.chimeralis.logic.battle.model.BattleAnimationKind
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleMoveFeedback
+import com.example.chimeralis.logic.battle.model.BattleMoveFeedbackType
+import com.example.chimeralis.logic.battle.model.BattleSide
+import com.example.chimeralis.logic.battle.model.BattleStatsSnapshot
 import com.example.chimeralis.logic.battle.resolution.BattleCaptureResult
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.moves.Move

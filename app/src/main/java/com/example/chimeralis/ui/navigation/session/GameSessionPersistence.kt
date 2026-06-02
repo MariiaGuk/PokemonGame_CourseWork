@@ -1,9 +1,9 @@
 package com.example.chimeralis.ui.navigation.session
 
-import com.example.chimeralis.data.GameSave
-import com.example.chimeralis.data.SavedGameLocation
+import com.example.chimeralis.data.save.GameSave
+import com.example.chimeralis.data.save.SavedGameLocation
 import com.example.chimeralis.ui.navigation.GameScreen
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 
 /** Handles refresh saves behavior. */
 fun GameSessionState.refreshSaves() {

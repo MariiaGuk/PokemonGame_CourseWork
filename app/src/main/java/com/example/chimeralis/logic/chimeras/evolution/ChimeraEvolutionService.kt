@@ -1,9 +1,8 @@
-package com.example.chimeralis.logic.chimeras
+package com.example.chimeralis.logic.chimeras.evolution
 
-/** Creates chimera instances for services that should not depend on a concrete factory. */
-fun interface ChimeraCreator {
-    fun create(species: ChimeraSpecies, level: Int, ivStats: Stats): Chimera
-}
+import com.example.chimeralis.logic.chimeras.Chimera
+import com.example.chimeralis.logic.chimeras.ChimeraFactory
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraCatalog
 
 /** Resolves chimera evolution rules without coupling the Chimera entity to factory logic. */
 class ChimeraEvolutionService(
@@ -37,16 +36,5 @@ class ChimeraEvolutionService(
         evolved.stats.restoreHp(hpAfterEvolution)
         evolved.gainExp(chimera.exp)
         return evolved
-    }
-}
-
-/** Default chimera creator backed by the configured application factory. */
-private object ChimeraFactoryChimeraCreator : ChimeraCreator {
-    override fun create(species: ChimeraSpecies, level: Int, ivStats: Stats): Chimera {
-        return ChimeraFactory.createChimera(
-            species = species,
-            level = level,
-            ivStats = ivStats
-        )
     }
 }

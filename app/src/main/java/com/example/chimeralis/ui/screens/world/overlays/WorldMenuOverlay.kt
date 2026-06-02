@@ -39,7 +39,7 @@ import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.components.GameSettingsPanel
 import com.example.chimeralis.ui.components.MenuButton
-import com.example.chimeralis.ui.screens.world.ExitAction
+import com.example.chimeralis.ui.screens.world.model.ExitAction
 import com.example.chimeralis.ui.screens.world.SmallWorldMenuButton
 import com.example.chimeralis.ui.screens.world.WorldInventoryColumns
 import com.example.chimeralis.ui.screens.world.WorldInventorySlotCount

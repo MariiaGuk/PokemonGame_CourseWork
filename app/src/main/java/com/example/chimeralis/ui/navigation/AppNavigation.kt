@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.chimeralis.audio.GameMusic
 import com.example.chimeralis.audio.GameSoundEffects
-import com.example.chimeralis.data.GameSaveStore
+import com.example.chimeralis.data.save.GameSaveStore
 import com.example.chimeralis.ui.navigation.routes.BattleRoute
 import com.example.chimeralis.ui.navigation.routes.ContinueRoute
 import com.example.chimeralis.ui.navigation.routes.MainMenuRoute
@@ -21,7 +21,7 @@ import com.example.chimeralis.ui.navigation.session.rememberGameSessionState
 import com.example.chimeralis.ui.overlays.LocationTransitionOverlay
 import com.example.chimeralis.ui.screens.onboarding.SplashScreen
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
-import com.example.chimeralis.ui.screens.world.WorldField
+import com.example.chimeralis.ui.screens.world.model.WorldField
 
 /** Renders the app navigation UI. */
 @Composable

@@ -1,9 +1,9 @@
 package com.example.chimeralis
 
-import com.example.chimeralis.data.GameSaveMapper
-import com.example.chimeralis.data.SavedChimera
-import com.example.chimeralis.data.SavedItem
-import com.example.chimeralis.data.SavedMovePp
+import com.example.chimeralis.data.save.GameSaveMapper
+import com.example.chimeralis.data.save.SavedChimera
+import com.example.chimeralis.data.save.SavedItem
+import com.example.chimeralis.data.save.SavedMovePp
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.Stats
 import com.example.chimeralis.logic.chimeras.moves.MoveName

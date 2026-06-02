@@ -1,15 +1,15 @@
 package com.example.chimeralis.ui.screens.battle.effects
 
-import com.example.chimeralis.logic.battle.BattleAnimationKind
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleAnimationKind
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.battle.BattleFeedbackFrameMillis
 import com.example.chimeralis.ui.screens.battle.CaptureAnimationTickMillis
 import com.example.chimeralis.ui.screens.battle.CaptureFailDurationMillis
 import com.example.chimeralis.ui.screens.battle.CaptureSuccessDurationMillis
 import com.example.chimeralis.ui.screens.battle.presentation.animationFrames
-import com.example.chimeralis.ui.screens.battle.presentation.BattleFeedback
-import com.example.chimeralis.ui.screens.battle.presentation.BattleFeedbackType
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedback
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedbackType
 import com.example.chimeralis.ui.screens.battle.presentation.toBattleFeedbacks
 import com.example.chimeralis.ui.screens.battle.state.BattleUiState
 import kotlinx.coroutines.delay

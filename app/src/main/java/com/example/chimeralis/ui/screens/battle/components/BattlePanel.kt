@@ -14,11 +14,11 @@ import androidx.compose.ui.unit.dp
 import com.example.chimeralis.ui.screens.battle.BattleBackButtonGap
 import com.example.chimeralis.ui.screens.battle.BattleBackButtonSize
 import com.example.chimeralis.ui.screens.battle.BattlePanelHorizontalPadding
-import com.example.chimeralis.ui.screens.battle.presentation.BattleChimeraSlotPresentation
-import com.example.chimeralis.ui.screens.battle.presentation.BattleItemOptionPresentation
-import com.example.chimeralis.ui.screens.battle.presentation.BattleMoveOptionPresentation
-import com.example.chimeralis.ui.screens.battle.presentation.BattlePanelMode
-import com.example.chimeralis.ui.screens.battle.presentation.BattlePanelPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleChimeraSlotPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleItemOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMode
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelPresentation
 
 /** Renders the battle panel UI. */
 @Composable

@@ -8,9 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.ui.screens.world.Direction
-import com.example.chimeralis.ui.screens.world.ExitAction
-import com.example.chimeralis.ui.screens.world.locations.TownSign
+import com.example.chimeralis.ui.screens.world.model.Direction
+import com.example.chimeralis.ui.screens.world.model.ExitAction
+import com.example.chimeralis.ui.screens.world.locations.model.TownSign
 
 /** Controls transient UI state for the main world screen. */
 internal class WorldScreenState(

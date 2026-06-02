@@ -1,11 +1,19 @@
 package com.example.chimeralis.ui.screens.battle.presentation
 
-import com.example.chimeralis.logic.battle.BattleStatsSnapshot
+import com.example.chimeralis.logic.battle.model.BattleStatsSnapshot
 import com.example.chimeralis.logic.battle.resolution.MoveLearnRequest
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.ui.screens.battle.MaxBattleTeamSize
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleChimeraSlotPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFighterStatusPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleItemOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveLearningPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveReplacementOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleTeamPresentation
 import kotlin.math.roundToInt
 
 /** Maps battle domain objects into UI presentation models. */

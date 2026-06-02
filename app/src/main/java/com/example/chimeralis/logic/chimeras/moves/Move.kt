@@ -45,10 +45,3 @@ class Move (
         const val MaxAccuracyRoll = 100
     }
 }
-
-/** Describes the outcome of attempting to execute a move. */
-enum class MoveExecutionResult {
-    Hit,
-    Missed,
-    NoPowerPoints
-}

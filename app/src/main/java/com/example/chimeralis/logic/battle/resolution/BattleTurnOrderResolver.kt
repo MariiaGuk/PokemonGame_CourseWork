@@ -1,7 +1,7 @@
 package com.example.chimeralis.logic.battle.resolution
 
-import com.example.chimeralis.logic.battle.DefaultRandomProvider
-import com.example.chimeralis.logic.battle.RandomProvider
+import com.example.chimeralis.logic.battle.random.DefaultRandomProvider
+import com.example.chimeralis.logic.battle.random.RandomProvider
 import com.example.chimeralis.logic.chimeras.Chimera
 
 /** Resolves which side acts first during a move turn. */

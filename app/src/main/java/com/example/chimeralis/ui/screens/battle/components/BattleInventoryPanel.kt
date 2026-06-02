@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.ui.components.MenuButton
-import com.example.chimeralis.ui.screens.battle.presentation.BattleItemOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleItemOptionPresentation
 import com.example.chimeralis.ui.theme.CinzelFamily
 
 /** Renders the battle inventory buttons UI. */

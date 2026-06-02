@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.ui.screens.battle.presentation.BattlePanelMode
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMode
 
 /** Stores command-panel state for the battle UI. */
 internal class BattleCommandUiState {

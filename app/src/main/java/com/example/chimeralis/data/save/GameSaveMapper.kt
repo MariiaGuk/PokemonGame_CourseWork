@@ -1,4 +1,4 @@
-package com.example.chimeralis.data
+package com.example.chimeralis.data.save
 
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraFactory

@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
-import com.example.chimeralis.ui.screens.world.ExitAction
+import com.example.chimeralis.ui.screens.world.model.ExitAction
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
 /** Controls transient interaction state for a town interior screen. */

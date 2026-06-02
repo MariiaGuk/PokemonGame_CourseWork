@@ -1,5 +1,6 @@
-package com.example.chimeralis.logic.chimeras
+package com.example.chimeralis.logic.chimeras.catalog
 
+import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.toSaveLookupKey
 
 /** Validates chimera catalog consistency and reports all detected issues at once. */

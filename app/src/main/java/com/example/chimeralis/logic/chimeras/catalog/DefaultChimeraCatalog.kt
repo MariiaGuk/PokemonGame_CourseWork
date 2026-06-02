@@ -1,5 +1,8 @@
-package com.example.chimeralis.logic.chimeras
+package com.example.chimeralis.logic.chimeras.catalog
 
+import com.example.chimeralis.logic.chimeras.ChimeraSpecies
+import com.example.chimeralis.logic.chimeras.ChimeraType
+import com.example.chimeralis.logic.chimeras.Stats
 import com.example.chimeralis.logic.chimeras.moves.MoveName
 
 /** Stores the default chimera definitions used by the game. */

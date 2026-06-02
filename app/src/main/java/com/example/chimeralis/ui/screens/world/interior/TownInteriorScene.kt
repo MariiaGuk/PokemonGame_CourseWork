@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import com.example.chimeralis.R
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 import com.example.chimeralis.ui.screens.world.locations.TownInteriorData
 import com.example.chimeralis.ui.screens.world.MapColumns

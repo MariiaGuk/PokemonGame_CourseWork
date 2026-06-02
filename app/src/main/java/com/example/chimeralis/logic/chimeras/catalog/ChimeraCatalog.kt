@@ -1,5 +1,6 @@
-package com.example.chimeralis.logic.chimeras
+package com.example.chimeralis.logic.chimeras.catalog
 
+import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.toSaveLookupKey
 
 /** Provides chimera species definitions to factories and UI adapters. */

@@ -4,21 +4,6 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.trainers.NPC
 import com.example.chimeralis.logic.trainers.Player
 
-/** Describes battle-state changes caused by the player's active chimera fainting. */
-data class PlayerFaintResolution(
-    val isBattleActive: Boolean,
-    val isWaitingForPlayerSwitch: Boolean,
-    val message: String
-)
-
-/** Describes battle-state changes caused by an enemy chimera fainting. */
-data class EnemyFaintResolution(
-    val isBattleActive: Boolean,
-    val nextChimera: Chimera?,
-    val shouldAwardMoney: Boolean,
-    val message: String
-)
-
 /** Resolves faint and forced-switch outcomes without applying them to the battle manager. */
 class BattleFaintResolver {
 

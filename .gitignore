@@ -1,15 +1,62 @@
+# Gradle and Android build output
+.gradle/
+.kotlin/
+**/build/
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+out/
+
+# Local Android Studio / IntelliJ files
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
+*.iws
+/.idea/caches/
+/.idea/libraries/
+/.idea/codeStyles/
+/.idea/shelf/
+/.idea/httpRequests/
 /.idea/workspace.xml
+/.idea/tasks.xml
+/.idea/usage.statistics.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+/.idea/deploymentTargetDropDown.xml
+
+# Local machine configuration
+/local.properties
 local.properties
+.env
+.env.*
+
+# Signing keys and release artifacts
+*.apk
+*.aab
+*.ap_
+*.jks
+*.keystore
+*.p12
+*.pem
+key.properties
+
+# Logs and JVM crash dumps
+*.log
+hs_err_pid*
+replay_pid*
+*.hprof
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Course documentation and diagram artifacts
+/ARCHITECTURE_OVERVIEW.md
+/docs/
+*.puml
+*.plantuml
+*.drawio
+*.vsdx
+
+# Local documentation and diagram generation tools
+/tools/

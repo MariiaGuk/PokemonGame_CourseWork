@@ -1,6 +1,6 @@
 package com.example.chimeralis
 
-import com.example.chimeralis.logic.battle.RandomProvider
+import com.example.chimeralis.logic.battle.random.RandomProvider
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies

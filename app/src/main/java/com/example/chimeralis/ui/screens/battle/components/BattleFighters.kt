@@ -215,15 +215,6 @@ internal fun CaptureAbsorbFlash(
     }
 }
 
-/** Lists the capture ball phase values. */
-internal enum class CaptureBallPhase {
-    Throwing,
-    Absorbing,
-    Shaking,
-    Open,
-    Locked
-}
-
 /** Handles capture throw point behavior. */
 internal fun captureThrowPoint(
     progress: Float,

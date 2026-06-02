@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.screens.battle.BattleMenuButtonWidth
-import com.example.chimeralis.ui.screens.battle.presentation.BattleMoveLearningPresentation
-import com.example.chimeralis.ui.screens.battle.presentation.BattleMoveOptionPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveLearningPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleMoveOptionPresentation
 
 /** Renders the battle action buttons UI. */
 @Composable

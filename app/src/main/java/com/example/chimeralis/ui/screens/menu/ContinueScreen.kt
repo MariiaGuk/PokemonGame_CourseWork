@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chimeralis.data.GameSave
+import com.example.chimeralis.data.save.GameSave
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.ui.components.MenuButton

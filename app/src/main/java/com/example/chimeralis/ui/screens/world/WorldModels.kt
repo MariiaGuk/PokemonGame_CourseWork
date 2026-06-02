@@ -23,12 +23,3 @@ internal const val ShiftNpcIdleFrameDelayMs = 960L
 internal const val ServiceNpcIdleFrameDelayMs = 980L
 internal const val InteriorColumns = 16
 internal const val InteriorRows = 16
-
-/** Lists the world field values. */
-enum class WorldField { Lava, Grass }
-
-/** Lists the direction values. */
-enum class Direction { Down, Up, Left, Right }
-
-/** Lists the exit action values. */
-internal enum class ExitAction { MainMenu, ExitGame }

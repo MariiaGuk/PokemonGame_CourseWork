@@ -1,5 +1,11 @@
 package com.example.chimeralis.logic.chimeras
 
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraCatalog
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraCatalogValidator
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraDefinition
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraEvolution
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraVisualSet
+import com.example.chimeralis.logic.chimeras.catalog.DefaultChimeraCatalog
 import com.example.chimeralis.logic.chimeras.moves.Move
 import com.example.chimeralis.logic.chimeras.moves.MoveFactory
 import com.example.chimeralis.logic.chimeras.moves.MoveName

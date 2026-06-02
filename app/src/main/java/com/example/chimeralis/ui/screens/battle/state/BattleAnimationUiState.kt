@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
-import com.example.chimeralis.logic.battle.BattleSide
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleSide
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.ui.screens.battle.CaptureAbsorbEndProgress
-import com.example.chimeralis.ui.screens.battle.presentation.BattleFeedback
-import com.example.chimeralis.ui.screens.battle.presentation.BattleFeedbackType
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedback
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedbackType
 import kotlin.math.roundToInt
 
 /** Stores transient battle animation and feedback state. */

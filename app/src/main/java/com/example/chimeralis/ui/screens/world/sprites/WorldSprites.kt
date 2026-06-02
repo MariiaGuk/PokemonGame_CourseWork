@@ -7,7 +7,7 @@ import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
 
 /** Handles service npc idle frame behavior. */

@@ -1,8 +1,8 @@
 package com.example.chimeralis.ui.screens.chimera
 
 import androidx.compose.ui.graphics.Color
-import com.example.chimeralis.logic.chimeras.ChimeraCatalog
-import com.example.chimeralis.logic.chimeras.ChimeraDefinition
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraCatalog
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraDefinition
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.ChimeraType

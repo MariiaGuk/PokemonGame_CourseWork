@@ -112,7 +112,7 @@ class ChimeraDomainTest {
         chimera.stats.takeDamage(5)
         chimera.gainExp(12)
 
-        val evolved = com.example.chimeralis.logic.chimeras.ChimeraEvolutionService().evolve(chimera)
+        val evolved = com.example.chimeralis.logic.chimeras.evolution.ChimeraEvolutionService().evolve(chimera)
 
         requireNotNull(evolved)
         assertEquals(ChimeraSpecies.Solflare, evolved.species)

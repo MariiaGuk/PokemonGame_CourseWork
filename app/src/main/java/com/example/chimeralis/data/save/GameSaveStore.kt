@@ -1,61 +1,8 @@
-package com.example.chimeralis.data
+package com.example.chimeralis.data.save
 
 import android.content.Context
-import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.Stats
-import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.Player
-
-/** Serializable chimera snapshot stored in SharedPreferences. */
-data class SavedChimera(
-    val species: ChimeraSpecies,
-    val nickname: String,
-    val level: Int,
-    val exp: Int,
-    val currentHp: Int,
-    val ivStats: Stats,
-    val moves: List<SavedMovePp> = emptyList()
-)
-
-/** Serializable move PP snapshot for a saved chimera. */
-data class SavedMovePp(
-    val moveName: String,
-    val pp: Int
-)
-
-/** Serializable inventory entry with item type and amount. */
-data class SavedItem(
-    val itemName: ItemName,
-    val amount: Int
-)
-
-/** Identifies the screen or interior where the player saved the game. */
-enum class SavedGameLocation {
-    LavaField,
-    GrassField,
-    ChimeraCenterInterior,
-    ChimeraStoreInterior
-}
-
-/** Full save snapshot used by the continue menu and persistence layer. */
-data class GameSave(
-    val trainerName: String,
-    val team: List<SavedChimera>,
-    val storage: List<SavedChimera> = emptyList(),
-    val inventoryItems: List<SavedItem> = emptyList(),
-    val money: Int = 0,
-    val playerColumn: Int,
-    val playerRow: Int,
-    val location: SavedGameLocation = SavedGameLocation.LavaField,
-    val updatedAt: Long
-) {
-
-    /** Returns the first team member species for compact save descriptions. */
-    val starterSpecies: ChimeraSpecies get() = team.first().species
-
-    /** Returns the first team member nickname for compact save descriptions. */
-    val starterNickname: String get() = team.first().nickname
-}
 
 /** Handles reading and writing game saves from Android SharedPreferences. */
 class GameSaveStore(context: Context) {

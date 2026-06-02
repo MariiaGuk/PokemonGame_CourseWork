@@ -1,6 +1,6 @@
 package com.example.chimeralis.logic.battle.reporting
 
-import com.example.chimeralis.logic.battle.BattleStatsSnapshot
+import com.example.chimeralis.logic.battle.model.BattleStatsSnapshot
 import com.example.chimeralis.logic.chimeras.Stats
 
 /** Converts data into battle stats snapshot. */

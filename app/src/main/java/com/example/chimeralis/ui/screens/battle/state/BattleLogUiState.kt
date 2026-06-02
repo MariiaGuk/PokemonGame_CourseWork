@@ -4,9 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.chimeralis.logic.battle.BattleAnimationKind
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
-import com.example.chimeralis.ui.screens.battle.presentation.BattlePanelMode
+import com.example.chimeralis.logic.battle.model.BattleAnimationKind
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMode
 import com.example.chimeralis.ui.screens.battle.presentation.mapAnimationsToLogMessages
 
 /** Stores battle log messages and their animation mapping. */

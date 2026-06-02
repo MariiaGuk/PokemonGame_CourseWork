@@ -1,14 +1,8 @@
 package com.example.chimeralis.logic.battle.resolution
 
-import com.example.chimeralis.logic.battle.DefaultRandomProvider
-import com.example.chimeralis.logic.battle.RandomProvider
+import com.example.chimeralis.logic.battle.random.DefaultRandomProvider
+import com.example.chimeralis.logic.battle.random.RandomProvider
 import com.example.chimeralis.logic.chimeras.Chimera
-
-/** Contains the computed capture chance and final capture result. */
-data class BattleCaptureResult(
-    val chance: Float,
-    val caught: Boolean
-)
 
 /** Calculates whether a capture attempt succeeds. */
 class BattleCaptureResolver(

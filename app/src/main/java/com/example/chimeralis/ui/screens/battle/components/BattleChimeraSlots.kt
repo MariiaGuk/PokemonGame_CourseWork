@@ -30,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chimeralis.ui.screens.battle.presentation.BattleChimeraSlotPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleChimeraSlotPresentation
 import com.example.chimeralis.ui.theme.CinzelFamily
 
 /** Renders the empty battle team slot UI. */

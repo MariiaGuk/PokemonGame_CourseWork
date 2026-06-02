@@ -3,42 +3,21 @@ package com.example.chimeralis.ui.screens.battle.presentation
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
-import com.example.chimeralis.logic.battle.BattleAnimationKind
-import com.example.chimeralis.logic.battle.BattleMoveAnimation
-import com.example.chimeralis.logic.battle.BattleMoveFeedback
-import com.example.chimeralis.logic.battle.BattleMoveFeedbackType
-import com.example.chimeralis.logic.battle.BattleSide
+import com.example.chimeralis.logic.battle.model.BattleAnimationKind
+import com.example.chimeralis.logic.battle.model.BattleMoveAnimation
+import com.example.chimeralis.logic.battle.model.BattleMoveFeedback
+import com.example.chimeralis.logic.battle.model.BattleMoveFeedbackType
+import com.example.chimeralis.logic.battle.model.BattleSide
 import com.example.chimeralis.ui.screens.battle.BattleMoveFrameMillis
 import com.example.chimeralis.ui.screens.battle.CaptureAbsorbEndProgress
 import com.example.chimeralis.ui.screens.battle.CaptureAnimationTickMillis
 import com.example.chimeralis.ui.screens.battle.CaptureThrowEndProgress
 import com.example.chimeralis.ui.screens.battle.IdleBattleMoveFrameMillis
 import com.example.chimeralis.ui.screens.battle.SingleActionBattleMoveFrameMillis
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleAnimationFrame
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedback
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleFeedbackType
 import com.example.chimeralis.ui.screens.chimera.battleMoveFrames
-
-/** Stores battle feedback data. */
-internal data class BattleFeedback(
-    val side: BattleSide,
-    val type: BattleFeedbackType
-)
-
-/** Lists the battle feedback type values. */
-internal enum class BattleFeedbackType {
-    Damage,
-    Faint,
-    StatChange
-}
-
-/** Lists the battle panel mode values. */
-internal enum class BattlePanelMode {
-    Actions,
-    Moves,
-    Bag,
-    ItemTarget,
-    Team,
-    MoveLearning,
-    Log
-}
 
 /** Converts data into battle feedbacks. */
 internal fun List<BattleMoveFeedback>.toBattleFeedbacks(): List<BattleFeedback> {
@@ -168,13 +147,6 @@ internal fun BattleMoveAnimation.message(): String {
 
     return "$owner $chimeraName used $moveName!"
 }
-
-/** Stores battle animation frame data. */
-internal data class BattleAnimationFrame(
-    val imageRes: Int,
-    val durationMillis: Long,
-    val feedbacks: List<BattleMoveFeedback> = emptyList()
-)
 
 /** Handles animation frames behavior. */
 internal fun BattleMoveAnimation.animationFrames(): List<BattleAnimationFrame> {

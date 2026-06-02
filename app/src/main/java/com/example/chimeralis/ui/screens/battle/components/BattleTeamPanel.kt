@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.example.chimeralis.ui.screens.battle.presentation.BattleChimeraSlotPresentation
-import com.example.chimeralis.ui.screens.battle.presentation.BattleTeamPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleChimeraSlotPresentation
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattleTeamPresentation
 
 /** Renders the battle team buttons UI. */
 @Composable

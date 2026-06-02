@@ -1,15 +1,15 @@
 package com.example.chimeralis
 
-import com.example.chimeralis.logic.chimeras.ChimeraAvailability
-import com.example.chimeralis.logic.chimeras.ChimeraCatalog
-import com.example.chimeralis.logic.chimeras.ChimeraDefinition
-import com.example.chimeralis.logic.chimeras.ChimeraEvolution
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraAvailability
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraCatalog
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraDefinition
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraEvolution
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.chimeras.ChimeraType
-import com.example.chimeralis.logic.chimeras.ChimeraVisualSet
-import com.example.chimeralis.logic.chimeras.DefaultChimeraCatalog
-import com.example.chimeralis.logic.chimeras.LearnableMove
+import com.example.chimeralis.logic.chimeras.catalog.ChimeraVisualSet
+import com.example.chimeralis.logic.chimeras.catalog.DefaultChimeraCatalog
+import com.example.chimeralis.logic.chimeras.catalog.LearnableMove
 import com.example.chimeralis.logic.chimeras.Stats
 import com.example.chimeralis.logic.chimeras.moves.DefaultMoveCatalog
 import com.example.chimeralis.logic.chimeras.moves.MoveCatalog

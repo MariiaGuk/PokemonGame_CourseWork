@@ -17,23 +17,8 @@ import com.example.chimeralis.R
 import com.example.chimeralis.ui.screens.world.MapColumns
 import com.example.chimeralis.ui.screens.world.MapRows
 import kotlin.math.roundToInt
-
-/** Stores town building data. */
-internal data class TownBuilding(
-    val imageRes: Int,
-    val column: Int,
-    val row: Int,
-    val columns: Int = 4,
-    val rows: Int = 4
-)
-
-/** Stores town sign data. */
-internal data class TownSign(
-    val column: Int,
-    val row: Int,
-    val title: String,
-    val body: String
-)
+import com.example.chimeralis.ui.screens.world.locations.model.TownBuilding
+import com.example.chimeralis.ui.screens.world.locations.model.TownSign
 
 internal val grassTownBuildings = listOf(
     TownBuilding(imageRes = R.drawable.town_building_library, column = 1, row = 1, columns = 4, rows = 3),

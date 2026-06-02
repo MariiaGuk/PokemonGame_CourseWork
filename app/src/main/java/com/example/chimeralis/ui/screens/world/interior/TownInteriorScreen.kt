@@ -22,8 +22,8 @@ import com.example.chimeralis.logic.items.Item
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.R
 import com.example.chimeralis.ui.overlays.WorldControlsOverlay
-import com.example.chimeralis.ui.screens.world.Direction
-import com.example.chimeralis.ui.screens.world.ExitAction
+import com.example.chimeralis.ui.screens.world.model.Direction
+import com.example.chimeralis.ui.screens.world.model.ExitAction
 import com.example.chimeralis.ui.screens.world.HeldStepDelayMs
 import com.example.chimeralis.ui.screens.world.IdleFrameDelayMs
 import com.example.chimeralis.ui.screens.world.interior.state.rememberTownInteriorInteractionState

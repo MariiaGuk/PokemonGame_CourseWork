@@ -3,7 +3,7 @@ package com.example.chimeralis.ui.screens.battle.state
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.chimeralis.logic.battle.ChimeraEvolutionEvent
+import com.example.chimeralis.logic.battle.model.ChimeraEvolutionEvent
 
 /** Stores queued post-battle evolution presentation state. */
 internal class BattleEvolutionUiState {

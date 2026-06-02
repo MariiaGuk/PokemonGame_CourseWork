@@ -9,9 +9,9 @@ import com.example.chimeralis.ui.navigation.GameTransitionState
 import com.example.chimeralis.ui.navigation.session.GameSessionState
 import com.example.chimeralis.ui.navigation.session.saveCurrentGame
 import com.example.chimeralis.ui.navigation.session.useInventoryItem
-import com.example.chimeralis.ui.screens.world.Direction
+import com.example.chimeralis.ui.screens.world.model.Direction
 import com.example.chimeralis.ui.screens.world.locations.TownInterior
-import com.example.chimeralis.ui.screens.world.WorldField
+import com.example.chimeralis.ui.screens.world.model.WorldField
 import com.example.chimeralis.ui.screens.world.WorldScreen
 
 /** Renders the world route UI. */

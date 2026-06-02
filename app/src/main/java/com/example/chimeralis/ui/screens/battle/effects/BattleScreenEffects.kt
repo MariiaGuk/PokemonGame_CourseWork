@@ -9,7 +9,7 @@ import com.example.chimeralis.ui.screens.battle.BattleEndInputLockMillis
 import com.example.chimeralis.ui.screens.battle.BattleIntroInputLockMillis
 import com.example.chimeralis.ui.screens.battle.components.EvolutionOverlayDurationMillis
 import com.example.chimeralis.ui.screens.battle.components.EvolutionRevealMillis
-import com.example.chimeralis.ui.screens.battle.presentation.BattlePanelMode
+import com.example.chimeralis.ui.screens.battle.presentation.model.BattlePanelMode
 import com.example.chimeralis.ui.screens.battle.state.BattleUiState
 import kotlinx.coroutines.delay
 

@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -21,14 +23,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.R
+import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.ui.components.GameSettingsPanel
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.theme.CinzelFamily
@@ -52,6 +57,7 @@ fun MainMenuScreen(
 ) {
     var showExitConfirmation by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -73,6 +79,13 @@ fun MainMenuScreen(
             MenuButton(text = "Settings", onClick = { showSettings = true })
             MenuButton(text = "Exit", onClick = { showExitConfirmation = true })
         }
+
+        MainMenuInfoButton(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 24.dp, bottom = 24.dp),
+            onClick = { showAbout = true }
+        )
 
         if (showSettings) {
             MainMenuSettingsOverlay(
@@ -96,6 +109,57 @@ fun MainMenuScreen(
                 onCancel = { showExitConfirmation = false }
             )
         }
+
+        if (showAbout) {
+            MainMenuAboutOverlay(onBack = { showAbout = false })
+        }
+    }
+}
+
+/** Renders the main menu information button. */
+@Composable
+private fun MainMenuInfoButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    var isPressed by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = {
+                        GameSoundPlayer.play(context, R.raw.button_click)
+                        onClick()
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                color = colors.background.copy(alpha = if (isPressed) 0.88f else 0.72f)
+            )
+            drawCircle(
+                color = colors.primary.copy(alpha = 0.86f),
+                style = Stroke(width = 2.5f)
+            )
+        }
+        Text(
+            text = "i",
+            color = colors.primary,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Black,
+            fontFamily = CinzelFamily
+        )
     }
 }
 
@@ -154,6 +218,61 @@ private fun MainMenuSettingsOverlay(
                 onSoundEnabledChanged = onSoundEnabledChanged,
                 onSoundVolumeChanged = onSoundVolumeChanged,
                 onEncounterChanceChanged = onEncounterChanceChanged
+            )
+
+            MenuButton(text = "Back", onClick = onBack)
+        }
+    }
+}
+
+/** Renders the application and author information overlay. */
+@Composable
+private fun MainMenuAboutOverlay(
+    onBack: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {})
+            }
+            .background(Color.Black.copy(alpha = 0.36f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .width(420.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(colors.surface.copy(alpha = 0.78f))
+                .border(1.dp, colors.primary.copy(alpha = 0.42f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 24.dp, vertical = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "About Chimeralis",
+                color = colors.primary,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = CinzelFamily
+            )
+
+            Text(
+                text = "Chimeralis is a creature-collection Android game with exploration, turn-based battles, items, saves, and evolutions.",
+                color = colors.onSurface,
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+                fontFamily = CinzelFamily
+            )
+
+            Text(
+                text = "Course project: Object-Oriented Programming\nAuthor: Гук М.О., КС-24\nBuilt with Kotlin and Jetpack Compose",
+                color = colors.onSurface,
+                fontSize = 13.sp,
+                lineHeight = 20.sp,
+                fontFamily = CinzelFamily
             )
 
             MenuButton(text = "Back", onClick = onBack)

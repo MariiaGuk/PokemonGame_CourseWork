@@ -37,13 +37,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.items.Item
+import com.example.chimeralis.logic.trainers.NpcDialogues
 import com.example.chimeralis.ui.components.MenuButton
 import com.example.chimeralis.ui.screens.world.locations.model.TownSign
 import com.example.chimeralis.ui.screens.world.SmallWorldMenuButton
 import com.example.chimeralis.ui.screens.world.sprites.shiftNpcDialogFrame
 import com.example.chimeralis.ui.screens.world.sprites.shiftNpcDialogText
 import com.example.chimeralis.ui.screens.world.sprites.trainerNpcDialogFrame
-import com.example.chimeralis.ui.screens.world.sprites.trainerNpcDialogText
 import com.example.chimeralis.ui.screens.world.TeamSlots
 import com.example.chimeralis.ui.theme.CinzelFamily
 import kotlinx.coroutines.delay
@@ -412,7 +412,7 @@ internal fun TrainerNpcChallengeOverlay(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = trainerNpcDialogText(step),
+                text = NpcDialogues.RivalTrainer.challengeLine(step).orEmpty(),
                 color = colors.primary,
                 fontSize = 17.sp,
                 lineHeight = 24.sp,

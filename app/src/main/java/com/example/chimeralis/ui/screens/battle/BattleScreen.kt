@@ -53,7 +53,10 @@ fun BattleScreen(
             )
         }
     }
-    val openingMessage = if (isTrainerBattle) {
+    val openingMessage = battleManager.enemy.dialogue.battleOpening(
+        npcName = battleManager.enemy.name,
+        chimeraName = battleManager.enemyChimera.name
+    ) ?: if (isTrainerBattle) {
         "${battleManager.enemy.name} challenged you!"
     } else {
         "A wild ${battleManager.enemyChimera.name} appeared!"

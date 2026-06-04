@@ -6,6 +6,7 @@ import com.example.chimeralis.logic.battle.random.RandomProvider
 import com.example.chimeralis.logic.chimeras.ChimeraFactory
 import com.example.chimeralis.logic.chimeras.ChimeraSpecies
 import com.example.chimeralis.logic.trainers.NPC
+import com.example.chimeralis.logic.trainers.NpcDialogues
 import com.example.chimeralis.logic.trainers.Player
 
 /** Creates configured battle scenarios for wild and trainer encounters. */
@@ -34,7 +35,8 @@ object BattleScenarioFactory {
         )
         val enemy = NPC(
             name = WildTrainerName,
-            team = listOf(wildChimera)
+            team = listOf(wildChimera),
+            dialogue = NpcDialogues.WildEncounter
         )
 
         return BattleManager(player = player, enemy = enemy, randomProvider = randomProvider)
@@ -71,7 +73,8 @@ object BattleScenarioFactory {
         }
         val enemy = NPC(
             name = RivalTrainerName,
-            team = trainerTeam
+            team = trainerTeam,
+            dialogue = NpcDialogues.RivalTrainer
         )
 
         return BattleManager(

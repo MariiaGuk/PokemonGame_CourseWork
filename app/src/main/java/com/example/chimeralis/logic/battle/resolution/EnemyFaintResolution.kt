@@ -7,5 +7,7 @@ data class EnemyFaintResolution(
     val isBattleActive: Boolean,
     val nextChimera: Chimera?,
     val shouldAwardMoney: Boolean,
-    val message: String
+    val message: String,
+    val extraMessages: List<String> = emptyList()
 )
+  

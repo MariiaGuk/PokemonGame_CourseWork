@@ -120,20 +120,6 @@ internal fun shiftNpcDialogFrame(step: Int, frameIndex: Int): Int {
 }
 
 /**
- * Handles trainer npc dialog text behavior.
- *
- * @param step Numeric value used by this operation: step.
- * @return The text value produced by this operation.
- */
-internal fun trainerNpcDialogText(step: Int): String {
-    return if (step == 0) {
-        "Hey! You look like you have a strong team. I have been waiting for a real challenge."
-    } else {
-        "Want to test your chimeras against mine?"
-    }
-}
-
-/**
  * Handles shift npc dialog text behavior.
  *
  * @param step Numeric value used by this operation: step.

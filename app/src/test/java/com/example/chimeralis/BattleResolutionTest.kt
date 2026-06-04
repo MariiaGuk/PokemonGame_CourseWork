@@ -19,6 +19,7 @@ import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.NPC
+import com.example.chimeralis.logic.trainers.NPCDialogue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -140,6 +141,31 @@ class BattleResolutionTest {
         assertNotNull(victoryResolution)
         assertFalse(victoryResolution!!.isBattleActive)
         assertTrue(victoryResolution.shouldAwardMoney)
+    }
+
+    @Test
+    fun enemyFaintResolutionUsesNpcDialogueWhenAvailable() {
+        val first = testChimera(ChimeraSpecies.Sunflare)
+        val second = testChimera(ChimeraSpecies.Sylvhorn)
+        val enemy = NPC(
+            name = "Rival",
+            team = listOf(first, second),
+            dialogue = NPCDialogue(
+                nextChimeraLine = "{npc}: Try {chimera}!",
+                defeatLine = "{npc}: You got me."
+            )
+        )
+        first.stats.takeDamage(999)
+
+        val switchResolution = BattleFaintResolver().resolveEnemyFaint(enemy, first)
+
+        assertEquals("Rival: Try ${second.name}!", switchResolution!!.message)
+
+        second.stats.takeDamage(999)
+        val victoryResolution = BattleFaintResolver().resolveEnemyFaint(enemy, second)
+
+        assertEquals("You won!", victoryResolution!!.message)
+        assertEquals(listOf("Rival: You got me."), victoryResolution.extraMessages)
     }
 
     @Test

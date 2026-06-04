@@ -34,7 +34,8 @@ class BattleFaintResolver {
                 isBattleActive = false,
                 nextChimera = null,
                 shouldAwardMoney = true,
-                message = "You won!"
+                message = "You won!",
+                extraMessages = listOfNotNull(enemy.dialogue.defeat(enemy.name))
             )
         } else {
             val nextChimera = enemy.firstLivingChimera() ?: return null
@@ -42,7 +43,8 @@ class BattleFaintResolver {
                 isBattleActive = true,
                 nextChimera = nextChimera,
                 shouldAwardMoney = false,
-                message = "${enemy.name} sent out ${nextChimera.name}!"
+                message = enemy.dialogue.nextChimera(enemy.name, nextChimera.name)
+                    ?: "${enemy.name} sent out ${nextChimera.name}!"
             )
         }
     }

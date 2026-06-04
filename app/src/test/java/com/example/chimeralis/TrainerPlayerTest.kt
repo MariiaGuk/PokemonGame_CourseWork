@@ -5,6 +5,7 @@ import com.example.chimeralis.logic.items.Inventory
 import com.example.chimeralis.logic.items.ItemFactory
 import com.example.chimeralis.logic.items.ItemName
 import com.example.chimeralis.logic.trainers.NPC
+import com.example.chimeralis.logic.trainers.NPCDialogue
 import com.example.chimeralis.logic.trainers.Player
 import com.example.chimeralis.logic.trainers.PlayerChimeraPlacement
 import org.junit.Assert.assertEquals
@@ -40,6 +41,28 @@ class TrainerPlayerTest {
         snapshot.clear()
 
         assertEquals(2, npc.team.size)
+    }
+
+    @Test
+    fun npcStoresReusableDialogueLines() {
+        val chimera = testChimera(ChimeraSpecies.Sunflare)
+        val dialogue = NPCDialogue(
+            challengeLines = listOf("First line.", "Second line."),
+            battleOpeningLine = "{npc} challenged you with {chimera}!",
+            nextChimeraLine = "{npc}: Go, {chimera}!",
+            defeatLine = "{npc}: I need more training."
+        )
+        val npc = NPC("Rival", listOf(chimera), dialogue)
+
+        assertSame(dialogue, npc.dialogue)
+        assertEquals("First line.", npc.dialogue.challengeLine(0))
+        assertEquals("Second line.", npc.dialogue.challengeLine(99))
+        assertEquals(
+            "Rival challenged you with ${chimera.name}!",
+            npc.dialogue.battleOpening(npc.name, chimera.name)
+        )
+        assertEquals("Rival: Go, ${chimera.name}!", npc.dialogue.nextChimera(npc.name, chimera.name))
+        assertEquals("Rival: I need more training.", npc.dialogue.defeat(npc.name))
     }
 
     @Test

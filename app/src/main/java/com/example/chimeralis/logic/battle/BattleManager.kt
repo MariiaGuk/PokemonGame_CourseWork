@@ -323,6 +323,7 @@ class BattleManager(
         isBattleActive = resolution.isBattleActive
         pendingEnemySwitch = resolution.nextChimera
         log.add(resolution.message)
+        log.addAll(resolution.extraMessages)
         if (resolution.shouldAwardMoney) {
             awardMoney(log, defeatedChimera)
         }

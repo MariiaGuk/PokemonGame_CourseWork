@@ -12,6 +12,7 @@ import com.example.chimeralis.ui.navigation.session.toGameScreen
 import com.example.chimeralis.ui.screens.menu.ContinueScreen
 import com.example.chimeralis.ui.screens.menu.MainMenuScreen
 import com.example.chimeralis.ui.screens.onboarding.StarterSelectionScreen
+import com.example.chimeralis.ui.screens.onboarding.TutorialScreen
 import com.example.chimeralis.ui.screens.onboarding.TrainerNameScreen
 
 /**
@@ -106,9 +107,27 @@ internal fun GameSessionState.StarterSelectionRoute() {
     StarterSelectionScreen(
         onStarterSelected = { starter, nickname ->
             startNewGame(starter, nickname)
-            saveCurrentGame(column = 1, row = 1)
-            currentScreen = GameScreen.LavaField
+            currentScreen = GameScreen.Tutorial
         },
         onBack = { currentScreen = GameScreen.TrainerName }
+    )
+}
+
+/**
+ * Renders the tutorial route UI.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
+@Composable
+internal fun GameSessionState.TutorialRoute() {
+    TutorialScreen(
+        trainerName = trainerName,
+        starter = selectedStarter,
+        starterNickname = starterNickname,
+        onBegin = {
+            saveCurrentGame(column = 1, row = 1)
+            currentScreen = GameScreen.LavaField
+        }
     )
 }

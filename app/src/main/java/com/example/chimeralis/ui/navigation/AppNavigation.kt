@@ -16,6 +16,7 @@ import com.example.chimeralis.ui.navigation.routes.MainMenuRoute
 import com.example.chimeralis.ui.navigation.routes.StarterSelectionRoute
 import com.example.chimeralis.ui.navigation.routes.TownInteriorRoute
 import com.example.chimeralis.ui.navigation.routes.TrainerNameRoute
+import com.example.chimeralis.ui.navigation.routes.TutorialRoute
 import com.example.chimeralis.ui.navigation.routes.WorldRoute
 import com.example.chimeralis.ui.navigation.session.rememberGameSessionState
 import com.example.chimeralis.ui.overlays.LocationTransitionOverlay
@@ -63,6 +64,7 @@ fun AppNavigation(onExitGame: () -> Unit) {
                     GameScreen.Continue -> ContinueRoute()
                     GameScreen.TrainerName -> TrainerNameRoute()
                     GameScreen.StarterSelection -> StarterSelectionRoute()
+                    GameScreen.Tutorial -> TutorialRoute()
                     GameScreen.LavaField -> WorldRoute(
                         screen = GameScreen.LavaField,
                         field = WorldField.Lava,

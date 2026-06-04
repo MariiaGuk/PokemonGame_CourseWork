@@ -7,6 +7,7 @@ enum class GameScreen {
     Continue,
     TrainerName,
     StarterSelection,
+    Tutorial,
     LavaField,
     GrassField,
     ChimeraCenterInterior,

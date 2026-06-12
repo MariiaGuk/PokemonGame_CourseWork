@@ -4,7 +4,7 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraType
 
 /** Damages the target and then applies recoil to the attacker. */
-class RecoilEffect(private val power: Int, private val recoilPercent: Int) : IMoveEffect
+class RecoilEffect(private val power: Int, private val recoilPercent: Int) : MoveEffect
 {
     /**
      * Applies target damage and recoil damage in one effect.

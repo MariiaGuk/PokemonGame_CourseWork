@@ -9,7 +9,7 @@ class StatChangeEffect(
     private val statType: Stats.StatType,
     private val amount: Int,
     private val onTarget: Boolean = true
-): IMoveEffect {
+): MoveEffect {
 
     /**
      * Applies the stat-stage change to the configured subject.

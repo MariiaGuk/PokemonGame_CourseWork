@@ -2,7 +2,7 @@ package com.example.chimeralis.logic.chimeras.moves
 
 import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraType
-import com.example.chimeralis.logic.chimeras.moves.moveEffects.IMoveEffect
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.MoveEffect
 
 /** Represents a combat move with PP, accuracy, type, and effects. */
 class Move (
@@ -11,7 +11,7 @@ class Move (
     val type: ChimeraType,
     val maxPp: Int,
     val accuracy: Int,
-    private val effects: List<IMoveEffect>
+    private val effects: List<MoveEffect>
 ){
     var pp: Int = maxPp
         private set

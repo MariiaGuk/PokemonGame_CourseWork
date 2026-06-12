@@ -96,6 +96,47 @@ fun GameSessionState.swapTeamWithStorage(teamIndex: Int, storageIndex: Int): Boo
 }
 
 /**
+ * Renames one chimera from the active team.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param teamIndex The team index value used by this operation.
+ * @param newName The new name value used by this operation.
+ * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+ */
+fun GameSessionState.renameTeamChimera(teamIndex: Int, newName: String): Boolean {
+    val chimera = player?.team?.getOrNull(teamIndex) ?: return false
+    return renameChimera(chimera, newName)
+}
+
+/**
+ * Renames one chimera from storage.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param storageIndex The storage index value used by this operation.
+ * @param newName The new name value used by this operation.
+ * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+ */
+fun GameSessionState.renameStoredChimera(storageIndex: Int, newName: String): Boolean {
+    val chimera = player?.storage?.getOrNull(storageIndex) ?: return false
+    return renameChimera(chimera, newName)
+}
+
+/**
+ * Applies chimera rename and marks the current collection state as changed.
+ *
+ * @receiver The game session state receiver used by this operation.
+ * @param chimera Domain object used by this operation: chimera.
+ * @param newName The new name value used by this operation.
+ * @return True when the operation succeeds or the condition is satisfied; otherwise false.
+ */
+private fun GameSessionState.renameChimera(chimera: Chimera, newName: String): Boolean {
+    return runCatching {
+        chimera.rename(newName)
+        teamVersion++
+    }.isSuccess
+}
+
+/**
  * Purchases items from the shop and updates player money and inventory.
  *
  * @receiver The game session state receiver used by this operation.

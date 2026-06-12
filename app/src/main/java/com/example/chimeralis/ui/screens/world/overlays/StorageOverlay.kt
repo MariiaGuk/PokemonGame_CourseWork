@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -61,6 +64,8 @@ import kotlin.math.abs
  * @param onDepositTeamMember Callback invoked when deposit team member occurs.
  * @param onWithdrawStoredChimera Callback invoked when withdraw stored chimera occurs.
  * @param onSwapTeamWithStorage Callback invoked when swap team with storage occurs.
+ * @param onRenameTeamChimera Callback invoked when rename team chimera occurs.
+ * @param onRenameStoredChimera Callback invoked when rename stored chimera occurs.
  * @param onClose Callback invoked when close occurs.
  * @return Unit; the operation updates state, performs side effects, or renders UI.
  */
@@ -73,12 +78,19 @@ internal fun ChimeraStorageOverlay(
     onDepositTeamMember: (Int) -> Unit,
     onWithdrawStoredChimera: (Int) -> Unit,
     onSwapTeamWithStorage: (Int, Int) -> Unit,
+    onRenameTeamChimera: (Int, String) -> Boolean,
+    onRenameStoredChimera: (Int, String) -> Boolean,
     onClose: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     var selectedTeamIndex by remember(teamStateKey) { mutableStateOf<Int?>(null) }
     var selectedStorageIndex by remember(teamStateKey) { mutableStateOf<Int?>(null) }
+    var renameText by remember(teamStateKey) { mutableStateOf("") }
+    var renameError by remember(teamStateKey) { mutableStateOf<String?>(null) }
     val storageScrollState = rememberScrollState()
+
+    val selectedChimera = selectedTeamIndex?.let(team::getOrNull)
+        ?: selectedStorageIndex?.let(storage::getOrNull)
 
     /**
      * Selects a team slot for storage actions.
@@ -94,6 +106,8 @@ internal fun ChimeraStorageOverlay(
             selectedStorageIndex = null
         } else {
             selectedTeamIndex = index
+            renameText = team[index].name
+            renameError = null
         }
     }
 
@@ -111,6 +125,30 @@ internal fun ChimeraStorageOverlay(
             selectedStorageIndex = null
         } else {
             selectedStorageIndex = index
+            renameText = storage[index].name
+            renameError = null
+        }
+    }
+
+    /**
+     * Renames the currently selected chimera.
+     *
+     * @return Unit; the operation updates state, performs side effects, or renders UI.
+     */
+    fun renameSelected() {
+        val didRename = when {
+            selectedTeamIndex != null -> onRenameTeamChimera(selectedTeamIndex!!, renameText)
+            selectedStorageIndex != null -> onRenameStoredChimera(selectedStorageIndex!!, renameText)
+            else -> false
+        }
+
+        if (didRename) {
+            selectedTeamIndex = null
+            selectedStorageIndex = null
+            renameText = ""
+            renameError = null
+        } else {
+            renameError = "Use 1-12 characters."
         }
     }
 
@@ -128,8 +166,8 @@ internal fun ChimeraStorageOverlay(
                 .clip(RoundedCornerShape(8.dp))
                 .background(colors.surface.copy(alpha = 0.96f))
                 .border(2.dp, colors.primary.copy(alpha = 0.65f), RoundedCornerShape(8.dp))
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -147,26 +185,48 @@ internal fun ChimeraStorageOverlay(
                 )
             }
 
+            RenameChimeraPanel(
+                chimera = selectedChimera,
+                value = renameText,
+                error = renameError,
+                onValueChange = {
+                    renameText = it.take(12)
+                    renameError = null
+                },
+                onRename = ::renameSelected,
+                onCancel = {
+                    selectedTeamIndex = null
+                    selectedStorageIndex = null
+                    renameText = ""
+                    renameError = null
+                }
+            )
+
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 StoragePanel(title = "Team", count = "${team.size}/${PlayerCollectionLimits.MaxTeamSize}", width = 400.dp) {
-                    repeat(2) { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            repeat(3) { column ->
-                                val index = row * 3 + column
-                                StorageTeamSlot(
-                                    chimera = team.getOrNull(index),
-                                    selected = selectedTeamIndex == index,
-                                    isPrimary = index == 0,
-                                    onTap = { if (team.getOrNull(index) != null) selectTeam(index) },
-                                    onDrag = { dragX, dragY ->
-                                        when {
-                                            dragX > 90f -> onDepositTeamMember(index)
-                                            dragY < -70f -> onSwapTeamMembers(index, (index - 3).coerceAtLeast(0))
-                                            dragY > 70f -> onSwapTeamMembers(index, (index + 3).coerceAtMost(team.lastIndex))
-                                            dragX < -70f -> onSwapTeamMembers(index, (index - 1).coerceAtLeast(0))
+                    Column(
+                        modifier = Modifier.requiredHeight(168.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        repeat(2) { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                                repeat(3) { column ->
+                                    val index = row * 3 + column
+                                    StorageTeamSlot(
+                                        chimera = team.getOrNull(index),
+                                        selected = selectedTeamIndex == index,
+                                        isPrimary = index == 0,
+                                        onTap = { if (team.getOrNull(index) != null) selectTeam(index) },
+                                        onDrag = { dragX, dragY ->
+                                            when {
+                                                dragX > 90f -> onDepositTeamMember(index)
+                                                dragY < -70f -> onSwapTeamMembers(index, (index - 3).coerceAtLeast(0))
+                                                dragY > 70f -> onSwapTeamMembers(index, (index + 3).coerceAtMost(team.lastIndex))
+                                                dragX < -70f -> onSwapTeamMembers(index, (index - 1).coerceAtLeast(0))
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
                     }
@@ -178,7 +238,7 @@ internal fun ChimeraStorageOverlay(
                     width = 290.dp
                 ) {
                     Row(
-                        modifier = Modifier.height(204.dp),
+                        modifier = Modifier.height(250.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Column(
@@ -219,6 +279,136 @@ internal fun ChimeraStorageOverlay(
 }
 
 /**
+ * Shows controls for renaming the currently selected chimera.
+ *
+ * @param chimera Domain object used by this operation: chimera.
+ * @param value The value value used by this operation.
+ * @param error The error value used by this operation.
+ * @param onValueChange Callback invoked when value change occurs.
+ * @param onRename Callback invoked when rename occurs.
+ * @param onCancel Callback invoked when cancel occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
+@Composable
+private fun RenameChimeraPanel(
+    chimera: Chimera?,
+    value: String,
+    error: String?,
+    onValueChange: (String) -> Unit,
+    onRename: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(RoundedCornerShape(7.dp))
+            .background(colors.background.copy(alpha = 0.44f))
+            .border(1.dp, colors.primary.copy(alpha = 0.28f), RoundedCornerShape(7.dp))
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = chimera?.let { "Rename ${it.name}" } ?: "Select a chimera",
+                color = colors.primary,
+                fontFamily = CinzelFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                maxLines = 1,
+                modifier = Modifier.width(160.dp)
+            )
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                enabled = chimera != null,
+                singleLine = true,
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    color = colors.onSurface,
+                    fontFamily = CinzelFamily,
+                    fontSize = 13.sp
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(colors.surface.copy(alpha = 0.72f))
+                    .border(1.dp, colors.primary.copy(alpha = 0.36f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 9.dp, vertical = 7.dp)
+            )
+            RenameActionButton(
+                text = "Rename",
+                enabled = chimera != null && value.isNotBlank(),
+                onClick = onRename
+            )
+            RenameActionButton(
+                text = "Cancel",
+                enabled = chimera != null,
+                onClick = onCancel
+            )
+        }
+
+        if (error != null) {
+            Text(
+                text = error,
+                color = colors.error,
+                fontFamily = CinzelFamily,
+                fontSize = 9.sp,
+                modifier = Modifier.align(Alignment.End)
+            )
+        }
+    }
+}
+
+/**
+ * Draws a compact storage action button.
+ *
+ * @param text The text value used by this operation.
+ * @param enabled Flag that controls or describes enabled.
+ * @param onClick Callback invoked when click occurs.
+ * @return Unit; the operation updates state, performs side effects, or renders UI.
+ */
+@Composable
+private fun RenameActionButton(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val alpha = if (enabled) 0.9f else 0.34f
+
+    Box(
+        modifier = Modifier
+            .width(104.dp)
+            .height(32.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(colors.surface.copy(alpha = 0.44f))
+            .border(1.dp, colors.primary.copy(alpha = alpha), RoundedCornerShape(6.dp))
+            .pointerInput(enabled) {
+                detectTapGestures {
+                    if (enabled) onClick()
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = colors.primary.copy(alpha = alpha),
+            fontFamily = CinzelFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
  * Draws a bordered storage section with a title, counter, and custom content.
  *
  * @param title The title value used by this operation.
@@ -239,7 +429,7 @@ private fun StoragePanel(
     Column(
         modifier = Modifier
             .width(width)
-            .height(258.dp)
+            .height(304.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(colors.background.copy(alpha = 0.56f))
             .border(1.dp, colors.primary.copy(alpha = 0.36f), RoundedCornerShape(7.dp))
@@ -326,8 +516,8 @@ private fun StorageTeamSlot(
 
     Box(
         modifier = Modifier
-            .width(118.dp)
-            .height(78.dp)
+            .requiredWidth(118.dp)
+            .requiredHeight(78.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(colors.surface.copy(alpha = if (selected) 0.86f else 0.58f))
             .border(

@@ -4,7 +4,7 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraType
 
 /** Restores HP to the attacking chimera. */
-class HealEffect(private val healAmount: Int): IMoveEffect
+class HealEffect(private val healAmount: Int): MoveEffect
 {
     /**
      * Applies healing to the move user.

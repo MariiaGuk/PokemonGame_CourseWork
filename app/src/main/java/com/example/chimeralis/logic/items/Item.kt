@@ -1,12 +1,12 @@
 package com.example.chimeralis.logic.items
 
 import com.example.chimeralis.logic.chimeras.Chimera
-import com.example.chimeralis.logic.items.itemEffects.IItemEffect
+import com.example.chimeralis.logic.items.itemEffects.ItemEffect
 
 /** Represents an inventory item and its domain effects. */
 class Item(
     val itemName: ItemName,
-    val effects: List<IItemEffect>
+    val effects: List<ItemEffect>
 ) {
     val name: String get() = itemName.displayName
 

@@ -1,7 +1,7 @@
 package com.example.chimeralis.logic.chimeras.moves
 
 import com.example.chimeralis.logic.chimeras.ChimeraType
-import com.example.chimeralis.logic.chimeras.moves.moveEffects.IMoveEffect
+import com.example.chimeralis.logic.chimeras.moves.moveEffects.MoveEffect
 
 /** Describes how to create one configured battle move. */
 data class MoveDefinition(
@@ -10,7 +10,7 @@ data class MoveDefinition(
     val type: ChimeraType,
     val maxPp: Int,
     val accuracy: Int,
-    private val effectsFactory: () -> List<IMoveEffect>
+    private val effectsFactory: () -> List<MoveEffect>
 ) {
 
     /**

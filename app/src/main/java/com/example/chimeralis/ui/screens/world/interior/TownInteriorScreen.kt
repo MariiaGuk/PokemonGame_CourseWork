@@ -82,6 +82,8 @@ import kotlinx.coroutines.delay
  * @param onDepositTeamMember Callback invoked when deposit team member occurs.
  * @param onWithdrawStoredChimera Callback invoked when withdraw stored chimera occurs.
  * @param onSwapTeamWithStorage Callback invoked when swap team with storage occurs.
+ * @param onRenameTeamChimera Callback invoked when rename team chimera occurs.
+ * @param onRenameStoredChimera Callback invoked when rename stored chimera occurs.
  * @param onSaveGame Callback invoked when save game occurs.
  * @param onBackToMainMenu Callback invoked when back to main menu occurs.
  * @param onExitGame Callback invoked when exit game occurs.
@@ -120,6 +122,8 @@ fun TownInteriorScreen(
     onDepositTeamMember: (Int) -> Unit = {},
     onWithdrawStoredChimera: (Int) -> Unit = {},
     onSwapTeamWithStorage: (Int, Int) -> Unit = { _, _ -> },
+    onRenameTeamChimera: (Int, String) -> Boolean = { _, _ -> false },
+    onRenameStoredChimera: (Int, String) -> Boolean = { _, _ -> false },
     onSaveGame: (Int, Int) -> Unit = { _, _ -> },
     onBackToMainMenu: () -> Unit = {},
     onExitGame: () -> Unit = {},
@@ -459,6 +463,8 @@ fun TownInteriorScreen(
                 onDepositTeamMember = onDepositTeamMember,
                 onWithdrawStoredChimera = onWithdrawStoredChimera,
                 onSwapTeamWithStorage = onSwapTeamWithStorage,
+                onRenameTeamChimera = onRenameTeamChimera,
+                onRenameStoredChimera = onRenameStoredChimera,
                 onClose = interactionState::closeStorage
             )
         }

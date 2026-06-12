@@ -4,7 +4,7 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraType
 
 /** Defines polymorphic behavior for effects produced by moves. */
-interface IMoveEffect {
+interface MoveEffect {
 
     /**
      * Applies the effect from an attacker to a target using the move type.

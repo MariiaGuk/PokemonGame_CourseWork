@@ -21,6 +21,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chimeralis.audio.GameSoundPlayer
@@ -39,6 +41,8 @@ import com.example.chimeralis.ui.theme.CinzelFamily
 fun MenuButton(
     text: String,
     enabled: Boolean = true,
+    fontSize: TextUnit = 14.sp,
+    letterSpacing: TextUnit = 2.sp,
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -111,10 +115,13 @@ fun MenuButton(
         Text(
             text = text,
             color = colors.primary.copy(alpha = if (enabled) 1f else 0.38f),
-            fontSize = 14.sp,
+            fontSize = fontSize,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp,
-            fontFamily = CinzelFamily
+            letterSpacing = letterSpacing,
+            fontFamily = CinzelFamily,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            softWrap = false
         )
     }
 }

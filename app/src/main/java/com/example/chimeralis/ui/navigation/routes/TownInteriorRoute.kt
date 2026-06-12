@@ -10,6 +10,8 @@ import com.example.chimeralis.ui.navigation.session.buyItem
 import com.example.chimeralis.ui.navigation.session.depositTeamMember
 import com.example.chimeralis.ui.navigation.session.GameSessionState
 import com.example.chimeralis.ui.navigation.session.healTeam
+import com.example.chimeralis.ui.navigation.session.renameStoredChimera
+import com.example.chimeralis.ui.navigation.session.renameTeamChimera
 import com.example.chimeralis.ui.navigation.session.saveCurrentGame
 import com.example.chimeralis.ui.navigation.session.swapTeamMembers
 import com.example.chimeralis.ui.navigation.session.swapTeamWithStorage
@@ -87,6 +89,12 @@ internal fun GameSessionState.TownInteriorRoute(
         },
         onSwapTeamWithStorage = { teamIndex, storageIndex ->
             swapTeamWithStorage(teamIndex, storageIndex)
+        },
+        onRenameTeamChimera = { teamIndex, newName ->
+            renameTeamChimera(teamIndex, newName)
+        },
+        onRenameStoredChimera = { storageIndex, newName ->
+            renameStoredChimera(storageIndex, newName)
         },
         onSaveGame = { column, row ->
             playerColumn = column

@@ -4,7 +4,7 @@ import com.example.chimeralis.logic.chimeras.Chimera
 import com.example.chimeralis.logic.chimeras.ChimeraType
 
 /** Applies direct damage to the target chimera. */
-class DamageEffect(private val power: Int): IMoveEffect
+class DamageEffect(private val power: Int): MoveEffect
 {
     /**
      * Calculates and applies damage to the target.

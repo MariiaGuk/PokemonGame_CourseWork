@@ -1,11 +1,11 @@
 package com.example.chimeralis.logic.items
 
-import com.example.chimeralis.logic.items.itemEffects.IItemEffect
+import com.example.chimeralis.logic.items.itemEffects.ItemEffect
 
 /** Describes how to create one configured inventory item. */
 data class ItemDefinition(
     val itemName: ItemName,
-    private val effectsFactory: () -> List<IItemEffect>
+    private val effectsFactory: () -> List<ItemEffect>
 ) {
 
     /**

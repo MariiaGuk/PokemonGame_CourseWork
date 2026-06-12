@@ -17,7 +17,7 @@ class BattleEscapeResolver(
      * @return True when the operation succeeds or the condition is satisfied; otherwise false.
      */
     fun canEscape(playerSpeed: Int, enemySpeed: Int, escapeAttempts: Int): Boolean {
-        val odds = ((playerSpeed * 32) / (enemySpeed / 4).coerceAtLeast(1) % 256) +
+        val odds = ((playerSpeed * 32) / (enemySpeed / 4).coerceAtLeast(1)) +
                 EscapeAttemptBonus * escapeAttempts
 
         return odds >= GuaranteedEscapeOdds || randomProvider.nextDouble() < odds / GuaranteedEscapeOdds.toDouble()

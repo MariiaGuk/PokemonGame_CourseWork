@@ -41,9 +41,12 @@ internal fun BattleInventoryButtons(
             inventoryItems.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowItems.forEach { item ->
+                        val compactLabel = item.label.length >= 15
                         MenuButton(
                             text = item.label,
                             enabled = item.enabled,
+                            fontSize = if (compactLabel) 12.sp else 14.sp,
+                            letterSpacing = if (compactLabel) 1.sp else 2.sp,
                             onClick = { onItemSelected(item) }
                         )
                     }

@@ -1,6 +1,9 @@
 package com.example.chimeralis.ui.navigation.routes
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import com.example.chimeralis.R
+import com.example.chimeralis.audio.GameSoundPlayer
 import com.example.chimeralis.ui.navigation.GameScreen
 import com.example.chimeralis.ui.navigation.session.GameSessionState
 import com.example.chimeralis.ui.navigation.session.loadSave
@@ -55,10 +58,13 @@ internal fun GameSessionState.MainMenuRoute(onExitGame: () -> Unit) {
  */
 @Composable
 internal fun GameSessionState.ContinueRoute() {
+    val context = LocalContext.current
+
     ContinueScreen(
         saves = saves,
         onLoad = { save ->
             loadSave(save)
+            GameSoundPlayer.play(context, R.raw.load_game)
             currentScreen = save.location.toGameScreen()
         },
         onDelete = { save ->

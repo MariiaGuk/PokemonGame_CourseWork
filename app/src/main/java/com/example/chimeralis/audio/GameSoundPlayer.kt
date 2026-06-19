@@ -2,6 +2,7 @@ package com.example.chimeralis.audio
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.media.SoundPool
 import androidx.annotation.RawRes
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ object GameSoundPlayer {
     private var soundPool: SoundPool? = null
     private val soundIds = mutableMapOf<Int, Int>()
     private val activeStreams = mutableMapOf<Int, MutableList<Int>>()
+    private val activeMediaPlayers = mutableMapOf<Int, MutableList<MediaPlayer>>()
     private val loadedSounds = mutableSetOf<Int>()
     private val pendingSounds = mutableSetOf<Int>()
     private var isEnabled: Boolean = true
@@ -49,12 +51,13 @@ object GameSoundPlayer {
 
         preload(context, R.raw.button_click)
         preload(context, R.raw.save_game)
+        preload(context, R.raw.load_game)
+        preload(context, R.raw.return_to_main_menu)
         preload(context, R.raw.ran_away)
         preload(context, R.raw.level_up)
         preload(context, R.raw.attack_sound)
         preload(context, R.raw.chimera_faint)
         preload(context, R.raw.battle_loss)
-        preload(context, R.raw.battle_victory)
         preload(context, R.raw.caught_a_chimera)
         preload(context, R.raw.chimera_evolution)
         preload(context, R.raw.start_transition)
@@ -71,6 +74,11 @@ object GameSoundPlayer {
      */
     fun play(context: Context, @RawRes soundResId: Int, force: Boolean = false) {
         if ((!isEnabled && !force) || volume <= 0f) return
+
+        if (soundResId in MediaPlayerSounds) {
+            playMediaPlayer(context, soundResId)
+            return
+        }
 
         initialize(context.applicationContext)
 
@@ -92,6 +100,15 @@ object GameSoundPlayer {
      * @return Unit; the operation updates state, performs side effects, or renders UI.
      */
     fun stop(@RawRes soundResId: Int) {
+        activeMediaPlayers.remove(soundResId)?.forEach { player ->
+            runCatching {
+                if (player.isPlaying) {
+                    player.stop()
+                }
+                player.release()
+            }
+        }
+
         val pool = soundPool ?: return
         activeStreams.remove(soundResId)?.forEach(pool::stop)
     }
@@ -128,6 +145,15 @@ object GameSoundPlayer {
      * @return Unit; the operation updates state, performs side effects, or renders UI.
      */
     fun release() {
+        activeMediaPlayers.values.flatten().forEach { player ->
+            runCatching {
+                if (player.isPlaying) {
+                    player.stop()
+                }
+                player.release()
+            }
+        }
+        activeMediaPlayers.clear()
         soundPool?.release()
         soundPool = null
         soundIds.clear()
@@ -151,6 +177,33 @@ object GameSoundPlayer {
         soundIds[soundResId] = soundId
         return soundId
     }
+
+    /**
+     * Plays longer audio that should not be decoded into SoundPool memory.
+     *
+     * @param context Android context used to access application resources and services.
+     * @param soundResId The sound resource to play.
+     * @return Unit; the operation updates audio playback state.
+     */
+    private fun playMediaPlayer(context: Context, @RawRes soundResId: Int) {
+        val player = MediaPlayer.create(context.applicationContext, soundResId) ?: return
+        player.setVolume(volume, volume)
+        activeMediaPlayers.getOrPut(soundResId) { mutableListOf() }.add(player)
+        player.setOnCompletionListener { completedPlayer ->
+            activeMediaPlayers[soundResId]?.let { players ->
+                players.remove(completedPlayer)
+                if (players.isEmpty()) {
+                    activeMediaPlayers.remove(soundResId)
+                }
+            }
+            completedPlayer.release()
+        }
+        player.start()
+    }
+
+    private val MediaPlayerSounds = setOf(
+        R.raw.battle_victory
+    )
 }
 
 /**

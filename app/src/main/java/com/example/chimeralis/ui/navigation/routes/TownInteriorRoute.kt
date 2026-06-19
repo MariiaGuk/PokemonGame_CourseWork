@@ -104,6 +104,7 @@ internal fun GameSessionState.TownInteriorRoute(
             }
         },
         onBackToMainMenu = {
+            GameSoundPlayer.play(context, R.raw.return_to_main_menu)
             currentScreen = GameScreen.MainMenu
         },
         onExitGame = onExitGame,

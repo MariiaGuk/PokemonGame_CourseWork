@@ -68,7 +68,13 @@ class GameTransitionState(
             } else {
                 whiteAlpha.animateTo(
                     targetValue = 1f,
-                    animationSpec = tween(durationMillis = 980)
+                    animationSpec = tween(
+                        durationMillis = if (isLocationTransition) {
+                            LocationTransitionCoverMillis
+                        } else {
+                            DefaultTransitionCoverMillis
+                        }
+                    )
                 )
             }
 
@@ -82,7 +88,13 @@ class GameTransitionState(
             }
             whiteAlpha.animateTo(
                 targetValue = 0f,
-                animationSpec = tween(durationMillis = 1180)
+                animationSpec = tween(
+                    durationMillis = if (isLocationTransition) {
+                        LocationTransitionRevealMillis
+                    } else {
+                        DefaultTransitionRevealMillis
+                    }
+                )
             )
             if (screen != GameScreen.Battle) {
                 GameSoundPlayer.stopBattleResultSounds()
@@ -92,6 +104,11 @@ class GameTransitionState(
         }
     }
 }
+
+private const val LocationTransitionCoverMillis = 2320
+private const val LocationTransitionRevealMillis = 2000
+private const val DefaultTransitionCoverMillis = 980
+private const val DefaultTransitionRevealMillis = 1180
 
 /**
  * Remembers the remember game transition state state.

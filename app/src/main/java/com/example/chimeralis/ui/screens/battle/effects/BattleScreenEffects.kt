@@ -49,7 +49,6 @@ internal fun BattleScreenEffects(
         uiState.pendingEvolutionEvents.forEach { event ->
             uiState.showEvolution(event)
             battleSoundEvents.playEvolutionRevealSounds()
-            delay(EvolutionRevealMillis)
             battleManager.applyEvolution(event)
             delay(EvolutionOverlayDurationMillis - EvolutionRevealMillis)
         }

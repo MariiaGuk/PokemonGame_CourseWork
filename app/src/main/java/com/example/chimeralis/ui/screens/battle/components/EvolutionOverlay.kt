@@ -24,8 +24,8 @@ import com.example.chimeralis.logic.battle.model.ChimeraEvolutionEvent
 import com.example.chimeralis.ui.screens.chimera.chimeraImageRes
 import kotlinx.coroutines.delay
 
-internal const val EvolutionOverlayDurationMillis = 8000L
-internal const val EvolutionRevealMillis = 7000L
+internal const val EvolutionOverlayDurationMillis = 7000L
+internal const val EvolutionRevealMillis = 3000L
 private const val EvolutionBlinkIntervalMillis = 500L
 private const val EvolutionFrameMillis = 150L
 

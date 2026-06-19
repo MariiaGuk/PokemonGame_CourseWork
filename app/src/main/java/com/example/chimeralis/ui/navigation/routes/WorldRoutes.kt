@@ -106,6 +106,7 @@ internal fun GameSessionState.WorldRoute(
             transition.transitionTo(GameScreen.Battle, this)
         },
         onBackToMainMenu = {
+            GameSoundPlayer.play(context, R.raw.return_to_main_menu)
             currentScreen = GameScreen.MainMenu
         },
         onExitGame = onExitGame,

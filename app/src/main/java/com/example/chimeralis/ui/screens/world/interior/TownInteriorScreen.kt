@@ -190,7 +190,7 @@ fun TownInteriorScreen(
         if (!interactionState.isHealingInProgress) return@LaunchedEffect
 
         GameSoundPlayer.play(context, R.raw.healing_chimeras)
-        delay(3400L)
+        delay(4000L)
         onHealTeam()
         interactionState.finishHealing("All your chimeras are healthy again.")
     }

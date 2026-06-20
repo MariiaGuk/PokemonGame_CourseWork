@@ -60,3 +60,8 @@ desktop.ini
 
 # Local documentation and diagram generation tools
 /tools/
+
+# Android Studio release metadata and local config
+/app/release/
+/.idea/markdown.xml
+
